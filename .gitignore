@@ -1,0 +1,14 @@
+
+# test kit output
+tests/kit/suite_logs/
+__pycache__/
+
+# Retail's test-mode TOC (tests/kit/link.py --retail writes it): the packager reads every TOC in
+# the repository, and the release stays Forever only
+HeyCousin_Standard.toc
+
+# local notes and tool settings: they stay on this computer, never in the repository
+CLAUDE.md
+PLAN.md
+docs/
+.claude/

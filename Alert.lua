@@ -11,7 +11,7 @@ local Kin = HC.Kin
 local L = HC.L
 local C = Theme.C
 
-local WIDTH, HEIGHT = 380, 92
+local WIDTH, HEIGHT = 440, 92
 local SHOW_FOR = 8      -- seconds on screen; pointing at it holds it
 local QUEUE_MAX = 5
 local STALE = 90        -- a waiting pop-up older than this is dropped
@@ -129,7 +129,7 @@ local function Build()
 
     toast.title = Theme.Text(toast, "Headline")
     toast.title:SetPoint("TOPLEFT", portrait, "TOPRIGHT", 14, -3)
-    toast.title:SetPoint("RIGHT", toast, "RIGHT", -60, 0)
+    toast.title:SetPoint("RIGHT", toast, "RIGHT", -44, 0)
     toast.mark = Theme.Texture(toast, Theme.Icon("Star"), "OVERLAY", 0)
     toast.mark:SetSize(16, 16)
     toast.name = Theme.Text(toast, "Body")
@@ -138,8 +138,9 @@ local function Build()
     toast.note = Theme.Text(toast, "Small", C.text3)
     toast.note:SetPoint("TOPLEFT", toast.name, "BOTTOMLEFT", 0, -6)
     toast.note:SetPoint("RIGHT", toast, "RIGHT", -16, 0)
+    -- how many more wait, by the timer
     toast.more = Theme.Text(toast, "Small", C.text2)
-    toast.more:SetPoint("TOPRIGHT", toast, "TOPRIGHT", -40, -14)
+    toast.more:SetPoint("BOTTOMRIGHT", toast, "BOTTOMRIGHT", -14, 12)
 
     -- how long it stays: a thin line along the bottom that empties
     toast.timer = Theme.Texture(toast, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 3)

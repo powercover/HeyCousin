@@ -26,6 +26,8 @@ What runs:
   names, broken saved data. An error the addon catches fails it too (`run51.py` runs it on 5.1,
   `run55.py` on 5.5).
 - `make_media.py`: draws every theme's art and makes the sounds (`--preview DIR` for a look).
+- `make_font.py`: builds the addon's own pixel font from the letters drawn in it, as a TrueType
+  file (`--preview OUT`); `ttf_cmap.py` lists the characters a font has.
 
 Tools:
 

@@ -9,7 +9,11 @@ end
 
 -- Pixel: chunky dark outlines, flat shading, warm wood colors, a hard cartoon shadow. Its art
 -- (Media/Pixel, drawn by make_media.py on a small grid) shows sharp; the colors here match
--- make_media.py's palette.
+-- make_media.py's palette. Titles and buttons are in the addon's own pixel font, Hey Cousin Pixel
+-- (Media/Fonts, drawn by make_font.py: capitals, Latin and Cyrillic), at whole multiples of its
+-- pixel size (20, 30, 40), where it stays crisp.
+local PIXEL_FONT = Theme.MEDIA .. "Fonts\\HeyCousinPixel.ttf"
+
 local skin = {
     key = "pixel", folder = "Pixel", filter = "NEAREST", press = 2, iconButton = "secondary",
     letters = "pixel", crest = "pixel", sound = "boop", ribbonText = "buttonText", ribbonTextY = 2,
@@ -20,14 +24,15 @@ local skin = {
         gold = RGB(240, 195, 90), text = RGB(244, 228, 196), text2 = RGB(205, 180, 151), text3 = RGB(150, 126, 108),
         buttonText = RGB(44, 27, 22), near = RGB(116, 208, 99), enemy = RGB(226, 78, 60),
     },
+    displayFiles = { roman = PIXEL_FONT, russian = PIXEL_FONT },
     fonts = {
-        Title = { height = 19, flags = "OUTLINE" },
-        Headline = { height = 14, flags = "OUTLINE" },
-        Big = { height = 24, flags = "OUTLINE" },
+        Title = { height = 30, display = true, flags = "OUTLINE" },
+        Headline = { height = 20, display = true, flags = "OUTLINE" },
+        Big = { height = 40, display = true, flags = "OUTLINE" },
         Body = { height = 12 },
         Small = { height = 11 },
         Tiny = { height = 10 },
-        Button = { height = 12, shadow = false },
+        Button = { height = 20, display = true, shadow = false },
     },
 }
 skin.name = HC.L["Pixel"]

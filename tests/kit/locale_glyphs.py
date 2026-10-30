@@ -1,4 +1,6 @@
-"""Lists characters in the addon's texts that the game's fonts can't draw.
+"""Lists characters in the addon's texts that the game's fonts can't draw, nor the addon's own
+pixel font (Media/Fonts/HeyCousinPixel.ttf, read with ttf_cmap.py): the Pixel theme draws titles
+and buttons in it, in Latin and Cyrillic.
 
 Fonts come from the game's Slug cache (slug_cmap.py): Friz Quadrata TT (Latin), FrizQuadrataCTT
 (Cyrillic), 2002 (Korean), AR ZhongkaiGBK (simplified Chinese), AR Kaiti B5 (traditional Chinese).
@@ -9,6 +11,7 @@ import re
 import sys
 
 import slug_cmap
+import ttf_cmap
 
 sys.stdout.reconfigure(encoding="utf-8")
 ROOT = os.environ.get("HC_ROOT", os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")))
@@ -57,3 +60,23 @@ english = []
 for path in glob.glob(os.path.join(ROOT, "*.lua")) + glob.glob(os.path.join(ROOT, "Skins", "*.lua")):
     english += re.findall(r'"((?:[^"\\]|\\.)*)"', open(path, encoding="utf-8").read())
 report("English (source)", english, ["latin"])
+
+# The Pixel theme's font draws the Latin and Cyrillic languages' titles and buttons (Korean and
+# Chinese take the game's fonts): every character those texts use must be in it.
+PIXEL_FONT = os.path.join(ROOT, "Media", "Fonts", "HeyCousinPixel.ttf")
+pixel = ttf_cmap.characters(PIXEL_FONT)
+texts = {"English (source)": english}
+for path in sorted(glob.glob(os.path.join(ROOT, "Locales", "*.lua"))):
+    code = os.path.splitext(os.path.basename(path))[0]
+    if code not in ("Locales", "koKR", "zhCN", "zhTW"):
+        texts[code] = strings(path)
+for label, items in texts.items():
+    missing = {}
+    for text in items:
+        for char in set(text):
+            if ord(char) >= 0x20 and ord(char) not in pixel:
+                missing.setdefault(char, text)
+    if not missing:
+        print(f"{label}: every character is in the Pixel font")
+    for char, example in sorted(missing.items()):
+        print(f"{label}: {char!r} U+{ord(char):04X} not in the Pixel font, e.g. {example[:70]!r}")

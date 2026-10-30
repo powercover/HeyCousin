@@ -77,13 +77,18 @@ end
 -- --- fonts -------------------------------------------------------------------------------------
 
 -- Each font is a family with one font per alphabet, as Blizzard's are, so every language shows.
--- The text fonts are the game's own; a theme may set Morpheus (the game's storybook serif) for
--- display text, sizes and outlines. Korean and Chinese read small: a little taller.
+-- The text fonts are the game's own; a theme brings its display font (titles, buttons) for the
+-- alphabets it draws (Skins/*.lua: displayFiles), and the game's fonts draw the rest. Korean and
+-- Chinese read small: a little taller.
 local FONT_KEYS = { "Title", "Headline", "Big", "Body", "Small", "Tiny", "Button" }
 local ALPHABETS = { "roman", "russian", "korean", "simplifiedchinese", "traditionalchinese" }
-local DISPLAY_FILES = { roman = "Fonts\\MORPHEUS.TTF", russian = "Fonts\\MORPHEUS_CYR.TTF" }
 local CJK = { korean = 2, simplifiedchinese = 2, traditionalchinese = 2 }
 local fonts = {}
+
+local function DisplayFile(alphabet)
+    local files = skin and skin.displayFiles
+    return files and files[alphabet] or nil
+end
 
 local function GameFile(alphabet)
     local template = GameFontHighlight
@@ -114,7 +119,7 @@ end
 local function Shape(font, spec, height)
     for _, entry in ipairs(Members(font)) do
         local member, alphabet = entry[1], entry[2]
-        local file = spec.display and DISPLAY_FILES[alphabet] or GameFile(alphabet) or "Fonts\\FRIZQT__.TTF"
+        local file = spec.display and DisplayFile(alphabet) or GameFile(alphabet) or "Fonts\\FRIZQT__.TTF"
         member:SetFont(file, height + (CJK[alphabet] or 0), spec.flags or "")
         -- a file the game doesn't have leaves the font empty: the game's own then, never no text
         if not member:GetFont() then
@@ -165,7 +170,7 @@ function Theme.Font(key)
     return font
 end
 
--- A display font at any height (a crest's initial), made once per height and theme.
+-- The theme's display font at any height (a crest's initial), made once per height and theme.
 function Theme.DisplayFont(height, flags)
     height = math.max(6, math.floor(height + 0.5))
     local key = (skin and skin.key or "") .. "Display" .. height .. (flags or "")
@@ -173,7 +178,7 @@ function Theme.DisplayFont(height, flags)
     if not font then
         font = MakeFont("HeyCousinFont" .. key)
         fonts[key] = font
-        Shape(font, { display = skin and skin.letters == "font", flags = flags }, height)
+        Shape(font, { display = true, flags = flags }, height)
     end
     return font
 end

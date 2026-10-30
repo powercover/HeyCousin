@@ -13,6 +13,7 @@ local skin = {
     key = "smooth", folder = "Smooth", filter = "LINEAR", press = 1, iconButton = "round",
     letters = "font", crest = "smooth", sound = "chime", ribbonText = "gold", ribbonTextY = 0,
     badgeTint = { 0.78, 0.2, 0.17 },
+    displayFiles = { roman = "Fonts\\MORPHEUS.TTF", russian = "Fonts\\MORPHEUS_CYR.TTF" },
     buttonText = { primary = "text", secondary = "text", ghost = "text2", round = "text2" },
     colors = {
         ink = Hex("0E0B09"), bg = Hex("14110E"), surface = Hex("1D1813"), raised = Hex("262019"), hover = Hex("30281F"),

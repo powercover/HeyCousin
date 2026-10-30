@@ -14,7 +14,7 @@ local C = Theme.C
 local WIDTH, HEIGHT = 500, 600
 local PAD = 18
 local ROW = 38
-local CARD = 124
+local CARD = 138
 local LIST_TOP = 166
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 
@@ -237,8 +237,8 @@ local function BuildCard()
     Theme.Panel(card, "card")
     card:Hide()
     local portrait = CreateFrame("Frame", nil, card)
-    portrait:SetSize(84, 84)
-    portrait:SetPoint("LEFT", 14, 0)
+    portrait:SetSize(72, 72)
+    portrait:SetPoint("TOPLEFT", 14, -14)
     Theme.Panel(portrait, "frame")
     card.model = CreateFrame("PlayerModel", nil, portrait)
     card.model:SetPoint("TOPLEFT", 4, -4)
@@ -246,10 +246,10 @@ local function BuildCard()
     card.model:SetScript("OnModelLoaded", function(self)
         self:SetPortraitZoom(0.85)
     end)
-    card.crest = Crest.Create(portrait, 64)
+    card.crest = Crest.Create(portrait, 56)
     card.crest:SetPoint("CENTER")
     card.name = Theme.Text(card, "Headline")
-    card.name:SetPoint("TOPLEFT", portrait, "TOPRIGHT", 14, -2)
+    card.name:SetPoint("TOPLEFT", portrait, "TOPRIGHT", 14, -4)
     card.name:SetPoint("RIGHT", card, "RIGHT", -40, 0)
     card.line = Theme.Text(card, "Small", C.text2)
     card.line:SetPoint("TOPLEFT", card.name, "BOTTOMLEFT", 0, -6)
@@ -257,16 +257,19 @@ local function BuildCard()
     card.met = Theme.Text(card, "Small", C.text3)
     card.met:SetPoint("TOPLEFT", card.line, "BOTTOMLEFT", 0, -5)
     card.met:SetPoint("RIGHT", card, "RIGHT", -14, 0)
-    card.whisper = Theme.Button(card, L["Whisper"], "secondary", 96, 28)
-    card.whisper:SetPoint("BOTTOMLEFT", portrait, "BOTTOMRIGHT", 14, 0)
+    -- the buttons, in a row along the bottom, each as wide as its label
+    card.whisper = Theme.Button(card, L["Whisper"], "secondary", 96, 30)
+    card.whisper:SetPoint("BOTTOMLEFT", 14, 12)
     Theme.ButtonIcon(card.whisper, "Whisper")
-    card.invite = Theme.Button(card, L["Invite"], "secondary", 90, 28)
+    card.invite = Theme.Button(card, L["Invite"], "secondary", 90, 30)
     card.invite:SetPoint("LEFT", card.whisper, "RIGHT", 6, 0)
     Theme.ButtonIcon(card.invite, "Invite")
-    card.layer = Theme.Button(card, L["Join their layer"], "primary", 140, 28)
+    card.layer = Theme.Button(card, L["Join their layer"], "primary", 140, 30)
     card.layer:SetPoint("LEFT", card.invite, "RIGHT", 6, 0)
     Theme.ButtonIcon(card.layer, "Portal")
-    Theme.Fit(card.layer, 12, 120)
+    for _, button in ipairs({ card.whisper, card.invite, card.layer }) do
+        Theme.Fit(button, 12, 84)
+    end
     Theme.Tip(card.layer, L["Join their layer"], function()
         return HC.Layer and HC.Layer.Explain(card.first) or nil
     end)

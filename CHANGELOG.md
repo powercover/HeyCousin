@@ -7,5 +7,6 @@
 - **The family window**: your relatives, who is near you now, stats, and a card for each cousin
   with Whisper, Invite and Join their layer.
 - **The setup**: make your crest and motto, pick your alerts and your look.
-- **Two looks**: Pixel and Smooth. `/cousin theme` switches.
+- **Two looks**: Pixel and Smooth. `/cousin theme` switches. Pixel's titles and buttons are in
+  Hey Cousin Pixel, the addon's own pixel font, with Latin and Cyrillic letters.
 - **Test mode on Retail**, with a made-up family.

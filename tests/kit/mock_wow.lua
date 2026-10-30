@@ -347,6 +347,7 @@ local function Globals()
     end
     function GameTooltip:GetUnit() return self.unitName, self.unit end
     function GameTooltip:NumLines() return #self.lines end
+    function GameTooltip:SetItemByID(id) self.lines, self.colors = { "item " .. id }, { {} } end
 
     TooltipDataProcessor = { AddTooltipPostCall = function(kind, fn) Mock.postCalls[kind] = fn end }
     Enum = { TooltipDataType = { Unit = 2 } }
@@ -392,7 +393,18 @@ local function Globals()
     function GetNumGroupMembers() return GetNumSubgroupMembers() + 1 end
     function GetRealZoneText() return Mock.zone end
     function GetZoneText() return Mock.zone end
-    C_Map = { GetBestMapForUnit = function() return Mock.map end }
+    C_Map = {
+        GetBestMapForUnit = function() return Mock.map end,
+        GetPlayerMapPosition = function(map, unit)
+            assert(type(map) == "number" and unit == "player")
+            return { GetXY = function() return Mock.x, Mock.y end }
+        end,
+    }
+    Mock.subzone, Mock.x, Mock.y, Mock.resting, Mock.hour = "Goldshire", 0.421, 0.653, false, 14
+    function GetSubZoneText() return Mock.subzone end
+    function IsResting() return Mock.resting end
+    function GetGameTime() return Mock.hour, 30 end
+    date = os.date
     function IsShiftKeyDown() return false end
     function GetCursorPosition() return 0, 0 end
     function GetMinimapShape() return "ROUND" end
@@ -423,6 +435,17 @@ local function Globals()
     function UnitFactionGroup(unit) local u = U(unit); return u and u.faction end
     function GetGuildInfo(unit) local u = U(unit); return u and u.guild end
     function UnitExists(unit) return U(unit) ~= nil end
+    function UnitInParty(unit) local u = U(unit); return u ~= nil and u.party == true end
+    function UnitInRaid() return nil end
+    -- inspect: a look at a unit's gear (Mock.units[unit].gear = { [slot] = item id }, .ilvl)
+    Mock.inspects = {}
+    function CanInspect(unit) local u = U(unit); return u ~= nil and not u.npc end
+    function CheckInteractDistance(unit) return U(unit) ~= nil end
+    function NotifyInspect(unit) table.insert(Mock.inspects, unit) end
+    function ClearInspectPlayer() Mock.cleared = (Mock.cleared or 0) + 1 end
+    function GetInventoryItemID(unit, slot) local u = U(unit); return u and u.gear and u.gear[slot] end
+    C_PaperDollInfo = { GetInspectItemLevel = function(unit) local u = U(unit); return u and u.ilvl end }
+    C_Item = { GetItemIconByID = function(id) return 130000 + id end }
     function UnitIsVisible(unit) local u = U(unit); return u ~= nil and u.visible ~= false end
     function UnitTokenFromGUID(guid)
         for token, u in pairs(Mock.units) do if u.guid == guid and token ~= "player" then return token end end

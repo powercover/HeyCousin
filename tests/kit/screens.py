@@ -358,6 +358,14 @@ class Painter:
     def image(self, file):
         if file in self.images:
             return self.images[file]
+        if isinstance(file, (int, float)):
+            # a game file by its number (an item's icon): a plain stand-in
+            icon = Image.new("RGBA", (32, 32), (88, 96, 110, 255))
+            draw = ImageDraw.Draw(icon)
+            draw.rectangle((3, 3, 28, 28), fill=(120, 130, 146, 255))
+            draw.rectangle((9, 9, 22, 22), fill=(150, 160, 176, 255))
+            self.images[file] = icon
+            return icon
         low = file.replace("/", "\\").lower()
         image = None
         if low == "interface\\buttons\\white8x8":
@@ -424,7 +432,7 @@ class Painter:
         if region["atlas"] is not None and file is None:
             self.notes.append(f"atlas {region['atlas']} (the game's, not drawn)")
             return
-        if not isinstance(file, str):
+        if not isinstance(file, (str, int, float)):
             return
         x0, y0, x1, y1 = self.px(box)
         layer = self.texture_layer(file, (x1 - x0, y1 - y0), self.coords(region), region["filter"],
@@ -777,8 +785,12 @@ def main():
         sheet([[shot(scene, skin)[0] for skin in SKINS]], SKINS).save(os.path.join(out, name))
         print("drew", name)
 
+    for old in os.listdir(out):
+        if old.endswith(".png"):
+            os.remove(os.path.join(out, old))
     pair("1-family.png", "family")
-    pair("2-stats.png", "stats")
+    pair("2-cousin.png", "cousin")
+    pair("2b-stats.png", "stats")
     rows = [[shot(scene, skin)[0] for skin in SKINS] for scene in ("near", "new", "sheep", "ask")]
     sheet(rows, SKINS).save(os.path.join(out, "3-pop-ups.png"))
     print("drew 3-pop-ups.png")

@@ -18,12 +18,15 @@ os.chdir(ROOT)
 LUA_STRING = r'"((?:[^"\\]|\\.)*)"'
 # Labels kept in tables and translated where they're shown (L[option.label] and the like): the
 # shapes and patterns (Setup.lua), the tinctures' names (Crest.TINCTURES), the symbols
-# (Crest.CHARGES).
+# (Crest.CHARGES), how you met and where (Window.lua), the months (Utils.When).
 TABLE_LABELS = [
     "Shield", "Round", "Kite", "Banner", "Plain", "Split", "Halves", "Diagonal", "Quarters", "Chevron", "Cross",
     "Red", "Wine", "Orange", "Gold", "Green", "Teal", "Sky", "Blue", "Purple", "Rose", "Black", "Silver",
     "Heart", "Star", "Crown", "Tree", "Sword", "Key", "Moon", "Sun", "Flower", "Mushroom", "Skull", "Axe", "Tower",
     "Flame", "Bolt", "Anchor", "Cup", "Bell",
+    "Seen near you", "You pointed at them", "You targeted them", "In your group", "Talked near you", "Whispered you",
+    "In a dungeon", "In a raid", "In a battleground", "In an arena", "In a scenario",
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ]
 
 

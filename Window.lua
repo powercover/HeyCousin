@@ -14,17 +14,20 @@ local C = Theme.C
 local WIDTH, HEIGHT = 500, 600
 local PAD = 18
 local ROW = 38
-local CARD = 138
+-- a cousin's page: where it starts, its meetings' rows, the meeting shown in full
+local PAGE_TOP, MEETING_ROW, DETAIL = 134, 32, 146
 -- the list's columns from a row's left, and the room the seen column keeps at its right
 local LEVEL_X, ZONE_X, SEEN_W = 206, 248, 76
 local LIST_TOP = 166
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 
-local window, list, card, stats, empty
+local window, list, page, stats, empty
 local tabs, search, header
 -- Each column has its natural order (newest first, A to Z, highest level first); a second click
 -- on it turns the list around.
 local sort = { key = "seen", reversed = false }
+-- the relative whose page is open (and the meeting shown in full), and the one last opened
+local opened, shownMeeting
 local selected
 local query = ""
 local ticker
@@ -165,7 +168,7 @@ local function NewRow(parent)
     end)
     row:SetScript("OnClick", Utils.Protect("row", function(self)
         if self.item and not self.item.me then
-            Window.Select(self.item.first ~= selected and self.item.first or nil)
+            Window.Open(self.item.first)
         end
     end))
     function row:SetChosen(chosen)
@@ -216,7 +219,15 @@ local function PaintRow(row, item)
     row:SetChosen(item.first == selected and not item.me)
 end
 
--- --- the card ----------------------------------------------------------------------------------
+-- --- a cousin's page --------------------------------------------------------------------------
+
+-- How you met, and how it was around you: a meeting's lines.
+local HOW = {
+    nameplate = "Seen near you", mouseover = "You pointed at them", target = "You targeted them",
+    group = "In your group", say = "Talked near you", whisper = "Whispered you",
+}
+local INSTANCES = { party = "In a dungeon", raid = "In a raid", pvp = "In a battleground", arena = "In an arena",
+    scenario = "In a scenario" }
 
 local function Whisper(full)
     local send = (ChatFrameUtil and ChatFrameUtil.SendTell) or ChatFrame_SendTell
@@ -234,90 +245,299 @@ local function Invite(full)
     end
 end
 
-local function BuildCard()
-    card = CreateFrame("Frame", nil, window)
-    card:SetHeight(CARD)
-    card:SetPoint("BOTTOMLEFT", window, "BOTTOMLEFT", PAD, 42)
-    card:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -PAD, 42)
-    Theme.Panel(card, "card")
-    card:Hide()
-    local portrait = CreateFrame("Frame", nil, card)
-    portrait:SetSize(72, 72)
-    portrait:SetPoint("TOPLEFT", 14, -14)
+-- Where a meeting was: "Goldshire, Elwynn Forest".
+local function Place(meeting)
+    local zone = Utils.IsUsableString(meeting.zone) and meeting.zone or nil
+    local sub = Utils.IsUsableString(meeting.sub) and meeting.sub or nil
+    if sub and zone then
+        return sub .. ", " .. zone
+    end
+    return sub or zone or L["Somewhere"]
+end
+
+-- How long a meeting went on ("12 min", "2 h"), or nil for a moment.
+local function Lasted(meeting)
+    local seconds = Utils.IsUsableNumber(meeting.last) and meeting.last - meeting.at or 0
+    if seconds < 60 then
+        return nil
+    elseif seconds < 3600 then
+        return string.format(L["%d min"], math.floor(seconds / 60 + 0.5))
+    end
+    return string.format(L["%d h"], math.floor(seconds / 3600 + 0.5))
+end
+
+local function NewMeetingRow(parent)
+    local row = CreateFrame("Button", nil, parent)
+    row.back = Theme.Texture(row, WHITE, "BACKGROUND", 0, C.hover)
+    row.back:SetAllPoints()
+    local function SetBack(value)
+        row.back:SetAlpha(value)
+    end
+    Theme.Jump(row.back, 0, SetBack)
+    row.line = Theme.Texture(row, WHITE, "BACKGROUND", 1, C.line)
+    row.line:SetHeight(1)
+    row.line:SetPoint("BOTTOMLEFT", 8, 0)
+    row.line:SetPoint("BOTTOMRIGHT", -8, 0)
+    row.bar = Theme.Texture(row, WHITE, "ARTWORK", 0)
+    row.bar:SetSize(3, MEETING_ROW - 12)
+    row.bar:SetPoint("LEFT", 2, 0)
+    row.when = Theme.Text(row, "Small", C.text2)
+    row.when:SetPoint("LEFT", 12, 0)
+    row.when:SetWidth(118)
+    row.place = Theme.Text(row, "Body")
+    row.place:SetPoint("LEFT", 136, 0)
+    row.place:SetPoint("RIGHT", -54, 0)
+    row.level = Theme.Text(row, "Small", C.text3)
+    row.level:SetJustifyH("RIGHT")
+    row.level:SetPoint("RIGHT", -12, 0)
+    row:SetScript("OnEnter", function(self)
+        if not self.chosen then
+            Theme.Ease(self.back, 1, SetBack, 18)
+        end
+    end)
+    row:SetScript("OnLeave", function(self)
+        if not self.chosen then
+            Theme.Ease(self.back, 0, SetBack, 18)
+        end
+    end)
+    row:SetScript("OnClick", Utils.Protect("meeting", function(self)
+        if self.item then
+            shownMeeting = self.item.meeting
+            Window.Refresh(true)
+        end
+    end))
+    function row:SetChosen(chosen)
+        self.chosen = chosen
+        local fill = chosen and C.selected or C.hover
+        self.back:SetVertexColor(fill[1], fill[2], fill[3])
+        Theme.Jump(self.back, chosen and 1 or 0, SetBack)
+        local color = Theme.Accent()
+        self.bar:SetVertexColor(color[1], color[2], color[3])
+        self.bar:SetShown(chosen)
+    end
+    return row
+end
+
+local function PaintMeetingRow(row, item)
+    local meeting = item.meeting
+    row.when:SetText(Utils.When(meeting.at))
+    row.place:SetText(Place(meeting))
+    row.level:SetText(Utils.IsUsableNumber(meeting.level) and string.format(L["Lv %d"], meeting.level) or "")
+    row:SetChosen(meeting == item.shown)
+end
+
+-- One meeting in full: when and how long, where, how you met, both levels, what they said, and
+-- their gear.
+local function BuildDetail(parent)
+    local detail = CreateFrame("Frame", nil, parent)
+    detail:SetHeight(DETAIL)
+    detail:SetPoint("BOTTOMLEFT")
+    detail:SetPoint("BOTTOMRIGHT")
+    Theme.Panel(detail, "card")
+    local above
+    local function Line(font, color)
+        local text = Theme.Text(detail, font, color)
+        if above then
+            text:SetPoint("TOPLEFT", above, "BOTTOMLEFT", 0, -5)
+        else
+            text:SetPoint("TOPLEFT", 14, -12)
+        end
+        text:SetPoint("RIGHT", detail, "RIGHT", -14, 0)
+        above = text
+        return text
+    end
+    detail.when = Line("Body", C.text)
+    detail.place = Line("Body", C.text2)
+    detail.how = Line("Small", C.text2)
+    detail.levels = Line("Small", C.text2)
+    detail.said = Line("Small", C.text3)
+    -- their gear then: the item level, and an icon for each item (its tooltip on the mouse)
+    detail.gear = Theme.Text(detail, "Small", C.text3)
+    detail.gear:SetPoint("BOTTOMLEFT", 14, 15)
+    detail.icons = {}
+    for index = 1, #HC.Gear.SLOTS do
+        local icon = CreateFrame("Button", nil, detail)
+        icon:SetSize(18, 18)
+        icon.back = Theme.Texture(icon, WHITE, "BACKGROUND", 0, C.ink)
+        icon.back:SetAllPoints()
+        icon.art = icon:CreateTexture(nil, "ARTWORK")
+        icon.art:SetPoint("TOPLEFT", 1, -1)
+        icon.art:SetPoint("BOTTOMRIGHT", -1, 1)
+        icon.art:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        icon:SetScript("OnEnter", function(self)
+            if self.id then
+                GameTooltip:SetOwner(self, "ANCHOR_TOP")
+                GameTooltip:SetItemByID(self.id)
+                GameTooltip:Show()
+            end
+        end)
+        icon:SetScript("OnLeave", function()
+            GameTooltip:Hide()
+        end)
+        icon:Hide()
+        detail.icons[index] = icon
+    end
+    return detail
+end
+
+local function PaintGear(detail, meeting)
+    local gear = type(meeting.gear) == "table" and meeting.gear or {}
+    local count = 0
+    for index, icon in ipairs(detail.icons) do
+        local art = HC.Gear.Icon(gear[index])
+        icon.id = art and gear[index] or nil
+        if art then
+            -- in a row after the label, empty slots left out
+            count = count + 1
+            icon:ClearAllPoints()
+            icon:SetPoint("LEFT", detail.gear, "RIGHT", 8 + (count - 1) * 20, 0)
+            icon.art:SetTexture(art)
+        end
+        icon:SetShown(art ~= nil)
+    end
+    if Utils.IsUsableNumber(meeting.ilvl) then
+        detail.gear:SetText(string.format(L["Item level %d"], meeting.ilvl))
+    else
+        detail.gear:SetText(count > 0 and L["Gear"] or L["Gear: not seen up close"])
+    end
+end
+
+local function PaintMeeting(meeting, first)
+    local detail = page.detail
+    local lasted = Lasted(meeting)
+    detail.when:SetText(Utils.When(meeting.at)
+        .. (lasted and Theme.Paint("  ·  " .. string.format(L["%s together"], lasted), C.text3) or ""))
+    local place = Place(meeting)
+    if Utils.IsUsableNumber(meeting.x) and Utils.IsUsableNumber(meeting.y) then
+        place = place .. Theme.Paint(string.format("  ·  %.1f, %.1f", meeting.x, meeting.y), C.text3)
+    end
+    detail.place:SetText(place)
+    local how = {}
+    if HOW[meeting.how] then
+        how[#how + 1] = L[HOW[meeting.how]]
+    end
+    if meeting.group == true and meeting.how ~= "group" then
+        how[#how + 1] = L["In your group"]
+    end
+    if INSTANCES[meeting.instance] then
+        how[#how + 1] = L[INSTANCES[meeting.instance]]
+    elseif meeting.rest == true then
+        how[#how + 1] = L["In a town"]
+    end
+    if meeting.night == true then
+        how[#how + 1] = L["At night"]
+    end
+    detail.how:SetText(table.concat(how, "  ·  "))
+    local levels = {}
+    if Utils.IsUsableNumber(meeting.level) then
+        levels[#levels + 1] = string.format(L["%s: level %d"], first, meeting.level)
+    end
+    if Utils.IsUsableNumber(meeting.myLevel) then
+        levels[#levels + 1] = string.format(L["you: level %d"], meeting.myLevel)
+    end
+    if Utils.IsUsableString(meeting.guild) then
+        levels[#levels + 1] = "<" .. meeting.guild .. ">"
+    end
+    detail.levels:SetText(table.concat(levels, "  ·  "))
+    detail.said:SetText(Utils.IsUsableString(meeting.said) and ("\226\128\156" .. meeting.said .. "\226\128\157") or "")
+    PaintGear(detail, meeting)
+end
+
+local function BuildPage()
+    page = CreateFrame("Frame", nil, window)
+    page:SetPoint("TOPLEFT", window, "TOPLEFT", PAD, -PAGE_TOP)
+    page:SetPoint("BOTTOMRIGHT", window, "BOTTOMRIGHT", -PAD, 42)
+    page:Hide()
+    page.back = Theme.IconButton(page, "ChevronLeft", 26, L["All your cousins"])
+    page.back:SetPoint("TOPLEFT", 0, -2)
+    Theme.OnClick(page.back, "back to the family", function()
+        Window.Open(nil)
+    end)
+    local portrait = CreateFrame("Frame", nil, page)
+    portrait:SetSize(64, 64)
+    portrait:SetPoint("TOPLEFT", 36, 0)
     Theme.Panel(portrait, "frame")
-    card.model = CreateFrame("PlayerModel", nil, portrait)
-    card.model:SetPoint("TOPLEFT", 4, -4)
-    card.model:SetPoint("BOTTOMRIGHT", -4, 4)
-    card.model:SetScript("OnModelLoaded", function(self)
+    page.model = CreateFrame("PlayerModel", nil, portrait)
+    page.model:SetPoint("TOPLEFT", 4, -4)
+    page.model:SetPoint("BOTTOMRIGHT", -4, 4)
+    page.model:SetScript("OnModelLoaded", function(self)
         self:SetPortraitZoom(0.85)
     end)
-    card.crest = Crest.Create(portrait, 56)
-    card.crest:SetPoint("CENTER")
-    card.name = Theme.Text(card, "Headline")
-    card.name:SetPoint("TOPLEFT", portrait, "TOPRIGHT", 14, -4)
-    card.name:SetPoint("RIGHT", card, "RIGHT", -40, 0)
-    card.line = Theme.Text(card, "Small", C.text2)
-    card.line:SetPoint("TOPLEFT", card.name, "BOTTOMLEFT", 0, -6)
-    card.line:SetPoint("RIGHT", card, "RIGHT", -14, 0)
-    card.met = Theme.Text(card, "Small", C.text3)
-    card.met:SetPoint("TOPLEFT", card.line, "BOTTOMLEFT", 0, -5)
-    card.met:SetPoint("RIGHT", card, "RIGHT", -14, 0)
-    -- the buttons, in a row along the bottom, each as wide as its label
-    card.whisper = Theme.Button(card, L["Whisper"], "secondary", 96, 30)
-    card.whisper:SetPoint("BOTTOMLEFT", 14, 12)
-    Theme.ButtonIcon(card.whisper, "Whisper")
-    card.invite = Theme.Button(card, L["Invite"], "secondary", 90, 30)
-    card.invite:SetPoint("LEFT", card.whisper, "RIGHT", 6, 0)
-    Theme.ButtonIcon(card.invite, "Invite")
-    card.layer = Theme.Button(card, L["Join their layer"], "primary", 140, 30)
-    card.layer:SetPoint("LEFT", card.invite, "RIGHT", 6, 0)
-    Theme.ButtonIcon(card.layer, "Portal")
-    for _, button in ipairs({ card.whisper, card.invite, card.layer }) do
+    page.crest = Crest.Create(portrait, 50)
+    page.crest:SetPoint("CENTER")
+    page.name = Theme.Text(page, "Headline")
+    page.name:SetPoint("TOPLEFT", portrait, "TOPRIGHT", 14, -2)
+    page.name:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+    page.line = Theme.Text(page, "Small", C.text2)
+    page.line:SetPoint("TOPLEFT", page.name, "BOTTOMLEFT", 0, -6)
+    page.line:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+    page.met = Theme.Text(page, "Small", C.text3)
+    page.met:SetPoint("TOPLEFT", page.line, "BOTTOMLEFT", 0, -5)
+    page.met:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+    -- the buttons, in a row under them, each as wide as its label
+    page.whisper = Theme.Button(page, L["Whisper"], "secondary", 96, 30)
+    page.whisper:SetPoint("TOPLEFT", 36, -74)
+    Theme.ButtonIcon(page.whisper, "Whisper")
+    page.invite = Theme.Button(page, L["Invite"], "secondary", 90, 30)
+    page.invite:SetPoint("LEFT", page.whisper, "RIGHT", 6, 0)
+    Theme.ButtonIcon(page.invite, "Invite")
+    page.layer = Theme.Button(page, L["Join their layer"], "primary", 140, 30)
+    page.layer:SetPoint("LEFT", page.invite, "RIGHT", 6, 0)
+    Theme.ButtonIcon(page.layer, "Portal")
+    for _, button in ipairs({ page.whisper, page.invite, page.layer }) do
         Theme.Fit(button, 12, 84)
     end
-    Theme.Tip(card.layer, L["Join their layer"], function()
-        return HC.Layer and HC.Layer.Explain(card.first) or nil
-    end)
-    card.close = Theme.IconButton(card, "Close", 22)
-    card.close:SetPoint("TOPRIGHT", -8, -8)
-    Theme.OnClick(card.close, "card close", function()
-        Window.Select(nil)
+    Theme.Tip(page.layer, L["Join their layer"], function()
+        return HC.Layer and HC.Layer.Explain(page.first) or nil
     end)
     local function Act(fn)
         return function()
-            if not card.first then
+            if not page.first then
                 return
             end
             if HC.TestMode.active then
                 Utils.Print(L["Test mode: made-up cousins can't hear you."])
                 return
             end
-            fn(card.first, card.surname)
+            fn(page.first, page.surname)
         end
     end
-    Theme.OnClick(card.whisper, "whisper", Act(function(first, surname)
+    Theme.OnClick(page.whisper, "whisper", Act(function(first, surname)
         Whisper(Names.Full(first, surname))
     end))
-    Theme.OnClick(card.invite, "invite", Act(function(first, surname)
+    Theme.OnClick(page.invite, "invite", Act(function(first, surname)
         Invite(Names.Full(first, surname))
     end))
-    Theme.OnClick(card.layer, "join their layer", Act(function(first, surname)
+    Theme.OnClick(page.layer, "join their layer", Act(function(first, surname)
         HC.Layer.Ask(first, surname)
         Window.Refresh(true)
     end))
+    -- every meeting, the newest first; a click shows it in full below
+    page.heading = Theme.Text(page, "Headline")
+    page.heading:SetPoint("TOPLEFT", 0, -118)
+    page.list = Theme.List(page, MEETING_ROW, NewMeetingRow, PaintMeetingRow)
+    page.list:SetPoint("TOPLEFT", 0, -144)
+    page.list:SetPoint("BOTTOMRIGHT", 0, DETAIL + 8)
+    page.none = Theme.Text(page, "Small", C.text3)
+    page.none:SetPoint("TOPLEFT", 4, -150)
+    page.none:SetPoint("RIGHT", page, "RIGHT", -4, 0)
+    page.none:SetWordWrap(true)
+    page.detail = BuildDetail(page)
 end
 
-local function PaintCard()
+-- The page of the relative opened (Window.Open); false when there's none to show.
+local function PaintPage(keep)
     local house, surname = Kin.House()
-    local relative = house and selected and house.relatives[selected]
+    local relative = house and opened and house.relatives[opened]
     if not relative then
-        card:Hide()
+        opened = nil
+        page:Hide()
         return false
     end
-    card.first, card.surname = selected, surname
+    page.first, page.surname = opened, surname
     local color = Utils.ClassColor(relative.class)
-    card.name:SetText(Names.Full(selected, surname))
-    card.name:SetTextColor(color[1], color[2], color[3])
+    page.name:SetText(Names.Full(opened, surname))
+    page.name:SetTextColor(color[1], color[2], color[3])
     local sheep = Kin.IsBlackSheep(relative)
     local parts = { sheep and Theme.Paint(L["Black sheep"], C.enemy) or L["Cousin"] }
     local className = Utils.ClassName(relative.class, relative.sex)
@@ -325,40 +545,62 @@ local function PaintCard()
         parts[#parts + 1] = string.format(L["Level %d %s"], relative.level, className)
     end
     if relative.zone then
-        parts[#parts + 1] = Kin.IsNear(selected) and string.format(L["%s, now"], relative.zone) or relative.zone
+        parts[#parts + 1] = Kin.IsNear(opened) and string.format(L["%s, now"], relative.zone) or relative.zone
     end
-    card.line:SetText(table.concat(parts, "  ·  "))
+    page.line:SetText(table.concat(parts, "  ·  "))
     local met = relative.met or 0
     local metText = met <= 0 and L["Not met yet: known from the guild"]
         or met == 1 and L["Met once"] or string.format(L["Met %d times"], met)
     if HC.Layer then
-        HC.Layer.Query(selected, surname)
+        HC.Layer.Query(opened, surname)
     end
-    local layer = HC.Layer and HC.Layer.Status(selected)
-    card.met:SetText(metText .. "  ·  " .. string.format(L["first seen %s"], Utils.Ago(relative.firstSeen))
+    local layer = HC.Layer and HC.Layer.Status(opened)
+    page.met:SetText(metText .. "  ·  " .. string.format(L["first seen %s"], Utils.Ago(relative.firstSeen))
         .. (layer and ("  ·  " .. layer) or ""))
     -- black sheep play on the other side: no layer of theirs to join
-    card.layer:SetShown(not sheep)
-    card.layer:SetEnabled(HC.Layer == nil or HC.Layer.CanAsk(selected))
+    page.layer:SetShown(not sheep)
+    page.layer:SetEnabled(HC.Layer == nil or HC.Layer.CanAsk(opened))
     -- their face when the game can show them (near you), else the crest. The model loads once
     -- per relative: a refresh doesn't reload it.
     local unit = relative.guid and type(UnitTokenFromGUID) == "function" and Utils.Call(UnitTokenFromGUID, relative.guid)
     local live = unit and Utils.Call(UnitIsVisible, unit) and not Utils.UnitHidden(unit)
-    local shown = live and selected or false
-    if card.modelFor ~= shown then
-        card.modelFor = shown
-        card.model:ClearModel()
+    local shownFor = live and opened or false
+    if page.modelFor ~= shownFor then
+        page.modelFor = shownFor
+        page.model:ClearModel()
         if live then
-            card.model:SetUnit(unit)
-            card.model:SetPortraitZoom(0.85)
+            page.model:SetUnit(unit)
+            page.model:SetPortraitZoom(0.85)
         end
     end
-    card.model:SetShown(live == true)
-    card.crest:SetShown(not live)
+    page.model:SetShown(live == true)
+    page.crest:SetShown(not live)
     if not live then
-        card.crest:SetCrest(house.crest, surname, sheep)
+        page.crest:SetCrest(house.crest, surname, sheep)
     end
-    card:Show()
+    -- the meetings: the one you clicked shows in full, else the newest
+    local meetings = Kin.Meetings(relative)
+    local shown = meetings[1]
+    for _, meeting in ipairs(meetings) do
+        if meeting == shownMeeting then
+            shown = meeting
+        end
+    end
+    local items = {}
+    for _, meeting in ipairs(meetings) do
+        items[#items + 1] = { meeting = meeting, shown = shown }
+    end
+    page.heading:SetText(met > 0 and string.format(L["Meetings (%d)"], met) or L["Meetings"])
+    page.list:SetItems(items, keep and page.listFor == opened)
+    page.listFor = opened
+    page.none:SetShown(#meetings == 0)
+    page.none:SetText(met > 0 and L["Meetings are kept from now on: the next one shows here."]
+        or L["Not met yet: known from the guild"])
+    page.detail:SetShown(shown ~= nil)
+    if shown then
+        PaintMeeting(shown, opened)
+    end
+    page:Show()
     return true
 end
 
@@ -583,7 +825,7 @@ local function Build()
     empty.text:SetText(L["Hey Cousin! spots players with your surname around you, in chat and in your guild. Go say hi!"])
     empty:Hide()
 
-    BuildCard()
+    BuildPage()
     BuildStats()
 
     -- the line along the bottom
@@ -616,7 +858,7 @@ local function Build()
         end
         search.edit:ClearFocus()
         -- a model drops while hidden: load it again next time
-        card.modelFor = nil
+        page.modelFor = nil
     end)
     tabs:Select("family")
 end
@@ -658,26 +900,29 @@ function Window.Refresh(keep)
     end
     PaintHeader()
     local onStats = tabs.selected == "stats"
-    search:SetShown(not onStats)
+    local onPage = not onStats and opened ~= nil and PaintPage(keep)
+    if not onPage then
+        page:Hide()
+    end
+    search:SetShown(not onStats and not onPage)
     for _, column in ipairs(window.columns) do
-        column:SetShown(not onStats)
+        column:SetShown(not onStats and not onPage)
         local color = sort.key == column.key and C.text2 or C.text3
         column.label:SetTextColor(color[1], color[2], color[3])
         column.arrow:SetShown(sort.key == column.key)
     end
-    if onStats then
+    if onStats or onPage then
         list:Hide()
         empty:Hide()
-        card:Hide()
-        stats:Show()
-        PaintStats()
+        stats:SetShown(onStats)
+        if onStats then
+            PaintStats()
+        end
         return
     end
     stats:Hide()
     list:Show()
     local items = Items()
-    local hasCard = PaintCard()
-    list:SetPoint("BOTTOMRIGHT", -PAD, hasCard and (42 + CARD + 10) or 42)
     list:SetItems(items, keep)
     -- the "Seen" heading moves with the rows when the scroll bar takes room
     window.columns[4]:SetPoint("TOPRIGHT", list.bar:IsShown() and (-PAD - 22) or (-PAD - 12), -142)
@@ -688,10 +933,17 @@ function Window.Refresh(keep)
     end
 end
 
-function Window.Select(first)
-    selected = first
+-- Opens a relative's page: every meeting (nil: back to the family, as you left it).
+function Window.Open(first)
+    if first ~= opened then
+        shownMeeting = nil
+    end
+    opened = first
+    selected = first or selected
     Window.Refresh(true)
 end
+
+Window.Select = Window.Open
 
 function Window.Show(tab)
     if not window then
@@ -711,12 +963,12 @@ function Window.Toggle()
     end
 end
 
--- Opens the family on one relative (the pop-up's right-click).
+-- Opens the family on one relative's page (the pop-up's right-click).
 function Window.ShowRelative(first)
     Window.Show("family")
     query = ""
     search.edit:SetText("")
-    Window.Select(first)
+    Window.Open(first)
     for index, item in ipairs(list.items) do
         if item.first == first then
             list:ScrollTo((index - 2) * ROW, true)
@@ -736,7 +988,7 @@ Theme.OnSkin(function()
     end
     local shown = window:IsShown()
     window:Hide()
-    window, list, card, stats, empty, tabs, search, header = nil, nil, nil, nil, nil, nil, nil, nil
+    window, list, page, stats, empty, tabs, search, header = nil, nil, nil, nil, nil, nil, nil, nil
     if shown then
         Window.Show()
     end

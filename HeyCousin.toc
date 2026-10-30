@@ -31,6 +31,7 @@ Skins\Smooth.lua
 Crest.lua
 Names.lua
 Kin.lua
+Gear.lua
 TestMode.lua
 Alert.lua
 Radar.lua

@@ -174,6 +174,36 @@ function Utils.Ago(stamp)
     return days == 1 and L["1 day"] or string.format(L["%d days"], days)
 end
 
+local MONTHS = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" }
+
+-- When `stamp` (time()) was, as a date: "Today, 18:55", "Yesterday, 21:10", "Oct 28, 21:10", and
+-- the year when it isn't this one.
+function Utils.When(stamp)
+    if not Utils.IsUsableNumber(stamp) or stamp <= 0 or type(date) ~= "function" then
+        return ""
+    end
+    -- (whole seconds: date() takes nothing else)
+    local now = math.floor(time())
+    local day, today, yesterday = date("*t", math.floor(stamp)), date("*t", now), date("*t", now - 86400)
+    local clock = string.format("%02d:%02d", day.hour, day.min)
+    if day.year == today.year and day.yday == today.yday then
+        return string.format(L["Today, %s"], clock)
+    elseif day.year == yesterday.year and day.yday == yesterday.yday then
+        return string.format(L["Yesterday, %s"], clock)
+    elseif day.year == today.year then
+        return string.format(L["%s %d, %s"], L[MONTHS[day.month]], day.day, clock)
+    end
+    return string.format(L["%s %d %d"], L[MONTHS[day.month]], day.day, day.year)
+end
+
+-- `text` cut to `most` bytes, never through a letter (UTF-8), with "..." when it was cut.
+function Utils.Short(text, most)
+    if #text <= most then
+        return text
+    end
+    return (text:sub(1, most):gsub("[\192-\255][\128-\191]*$", "")) .. "..."
+end
+
 -- `fn` once, `delay` seconds from now, its errors caught.
 function Utils.After(delay, label, fn)
     if C_Timer and type(C_Timer.After) == "function" then

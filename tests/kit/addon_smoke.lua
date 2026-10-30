@@ -154,16 +154,33 @@ local window = _G.HeyCousinWindow
 check(window and window:IsShown() and next(window.anchors) ~= nil, "/cousin opens the family")
 Settle()
 local function Rows()
-    return All(window, function(f) return f.item ~= nil and f:IsShown() end)
+    return All(window, function(f) return f.item ~= nil and f.item.relative ~= nil and f:IsVisible() end)
 end
 local list = Rows()
 check(#list >= 9, "the list shows the family: " .. #list)
 check(list[1].item.me == true, "you are on top")
+local first = list[2].item.first
 list[2]:Click()
-local card = All(window, function(f) return f.whisper ~= nil end)[1]
-check(card and card:IsShown(), "a click on a relative opens their card")
+Settle()
+local page = All(window, function(f) return f.whisper ~= nil end)[1]
+check(page and page:IsShown() and not list[2]:IsVisible(), "a click on a relative opens their page")
+local function Meetings()
+    return All(page, function(f) return f.item ~= nil and f.item.meeting ~= nil and f:IsShown() end)
+end
+local made = HC.TestMode.House().relatives[first]
+check(#Meetings() >= 1 and #made.meetings == made.met, "their page lists every meeting: " .. #Meetings())
+check(page.detail:IsShown() and page.detail.when.text ~= "" and page.detail.place.text ~= "",
+    "the newest meeting shows in full")
+local older = Meetings()[2]
+if older then
+    older:Click()
+    check(older.chosen and page.detail.when.text:find(HC.Utils.When(older.item.meeting.at), 1, true) == 1,
+        "a click on a meeting shows it in full")
+end
 ButtonWith(window, "Whisper"):Click()
 check(Mock.Said("Test mode"), "test mode: made-up cousins can't be whispered")
+page.back:Click()
+check(not page:IsShown() and Rows()[1] ~= nil, "the arrow goes back to the family")
 ButtonWith(window, "Stats"):Click()
 Settle()
 ButtonWith(window, "Family"):Click()
@@ -437,6 +454,56 @@ Mock.Fire("PLAYER_TARGET_CHANGED")
 for first in pairs(house.relatives) do check(type(first) == "string", "relatives are named by text only") end
 NoErrors(HC, "secrets")
 
+-- meetings: where, when, how, both levels; one meeting while you keep seeing them (Wren, of her
+-- own, so the tests above keep theirs). The name test's fight is over first.
+Mock.Fire("PLAYER_REGEN_ENABLED")
+Mock.units.nameplate3 = { name = "Wren", surname = "Ashbrook", guid = "Player-1-WREN", class = "SHAMAN", race = "Dwarf",
+    level = 19, sex = 3, faction = "Alliance" }
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate3")
+local wren = house.relatives.Wren
+local m1 = wren and wren.meetings and wren.meetings[1]
+check(m1 and m1.zone == "Elwynn Forest" and m1.sub == "Goldshire" and m1.map == 1429 and m1.x == 42.1 and m1.y == 65.3
+    and m1.how == "nameplate" and m1.level == 19 and m1.myLevel == 20 and not m1.rest and not m1.night,
+    "a meeting keeps where, how and both levels")
+Mock.Advance(10 * 60)
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate3")
+check(wren.met == 1 and #wren.meetings == 1 and m1.last > m1.at, "seen again 10 minutes on: the same meeting")
+Mock.Advance(20 * 60)
+Mock.subzone, Mock.resting, Mock.hour, Mock.units.nameplate3.level = "Lion's Pride Inn", true, 22, 20
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate3")
+local m2 = wren.meetings[2]
+check(wren.met == 2 and m2 and m2.sub == "Lion's Pride Inn" and m2.rest and m2.night and m2.level == 20,
+    "20 minutes away, then a new meeting: in a town, at night")
+Mock.subzone, Mock.resting, Mock.hour = "Goldshire", false, 14
+-- their gear: a quiet look while they're close, kept with the meeting
+check(Mock.inspects[#Mock.inspects] == "nameplate3", "a quiet look at their gear, up close")
+Mock.units.nameplate3.gear, Mock.units.nameplate3.ilvl = { [1] = 1001, [5] = 1005, [16] = 1016 }, 31.6
+Mock.Fire("INSPECT_READY", "Player-1-WREN")
+check(m2.gear and m2.gear[1] == 1001 and m2.gear[5] == 1005 and m2.gear[15] == 1016 and m2.ilvl == 32
+    and (Mock.cleared or 0) > 0, "their gear and item level, with the meeting")
+local looks = #Mock.inspects
+Mock.Advance(61)
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate3")
+check(#Mock.inspects == looks, "one look a meeting")
+-- what they said near you
+Mock.Fire("CHAT_MSG_SAY", "Hey cousin, nice crest!", "Wren Ashbrook", "", "", "", "", 0, 0, "", 0, 20, "Player-1-WREN")
+check(m2.said == "Hey cousin, nice crest!", "what they said near you")
+-- a long adventure: the first meeting and the latest, 100 in all
+for _ = 1, 105 do
+    Mock.Advance(16 * 60)
+    Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate3")
+end
+check(#wren.meetings == 100 and wren.met == 107 and wren.meetings[1] == m1,
+    "100 meetings kept, the first among them: " .. #wren.meetings .. ", met " .. wren.met)
+HC.Window.ShowRelative("Wren")
+Settle()
+local wrenPage = All(_G.HeyCousinWindow, function(f) return f.whisper ~= nil end)[1]
+check(wrenPage:IsShown() and wrenPage.heading.text == "Meetings (107)" and wrenPage.detail.place.text:find("Goldshire"),
+    "her page has them all: " .. tostring(wrenPage.heading.text))
+_G.HeyCousinWindow:Hide()
+Mock.units.nameplate3 = nil
+NoErrors(HC, "meetings")
+
 -- === Broken saved data ========================================================================
 
 HC = Mock.Boot("forever", { skin = "nope", chats = "x", setupDone = true, windows = 5,
@@ -450,5 +517,18 @@ Settle()
 SlashCmdList.HEYCOUSIN("setup")
 Settle()
 NoErrors(HC, "broken saved data")
+
+HC = Mock.Boot("forever", { setupDone = true, houses = { Ashbrook = { relatives = {
+    Ann = { met = 2, meetings = "junk" }, Cy = "oops",
+    Bo = { met = 3, meetings = { 5, { at = "x" }, { at = 1699990000, zone = 3, x = "y", gear = "z", said = 4 } } },
+} } } })
+house = HC.Kin.House()
+check(house.relatives.Ann.meetings == nil and #house.relatives.Bo.meetings == 1 and house.relatives.Cy == nil,
+    "broken saved meetings are mended")
+HC.Window.ShowRelative("Bo")
+Settle()
+HC.Window.ShowRelative("Ann")
+Settle()
+NoErrors(HC, "broken saved meetings")
 
 print(fails == 0 and ("addon checks passed (" .. checks .. " checks)") or (fails .. " addon checks failed"))

@@ -53,11 +53,32 @@ local function Boot(skin, client, saved)
     return HC
 end
 
--- the family window, on Mira's card
+-- the family window
 function Screens.family(skin)
     local HC = Boot(skin)
     HC.Window.Show("family")
-    HC.Window.Select("Mira")
+    return { frames = { HeyCousinWindow } }
+end
+
+-- Mira's page: every meeting, the one before the last in full
+function Screens.cousin(skin)
+    local HC = Boot(skin)
+    HC.Window.Show("family")
+    HC.Window.Open("Mira")
+    local rows = {}
+    local function Walk(frame)
+        if frame.item and frame.item.meeting and frame:IsVisible() then
+            rows[#rows + 1] = frame
+        end
+        for _, child in ipairs(frame.children or {}) do
+            Walk(child)
+        end
+    end
+    Walk(HeyCousinWindow)
+    table.sort(rows, function(a, b) return a.item.meeting.at > b.item.meeting.at end)
+    if rows[2] then
+        rows[2]:Click()
+    end
     return { frames = { HeyCousinWindow } }
 end
 

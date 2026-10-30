@@ -35,6 +35,66 @@ local RACES = {
 local SURNAMES = { Stormhold = 34, Fairwind = 21, Ironvale = 17, Ashbrook = 13, Brightwater = 12, Duskmantle = 9,
     Greywood = 7 }
 
+-- Their made-up meetings: places on each side (zone, subzone, and whether it's a town), what
+-- they said, and starter gear every version of the game has (robes, trousers, boots, weapons).
+local PLACES = {
+    Alliance = { { "Elwynn Forest", "Goldshire", true }, { "Westfall", "Sentinel Hill" },
+        { "Redridge Mountains", "Lakeshire", true }, { "Duskwood", "Darkshire" }, { "Wetlands", "Menethil Harbor" },
+        { "Stormwind City", "Trade District", true }, { "Ironforge", "The Commons", true }, { "Loch Modan", "Thelsamar" } },
+    Horde = { { "Durotar", "Razor Hill" }, { "Mulgore", "Bloodhoof Village", true }, { "The Barrens", "The Crossroads" },
+        { "Orgrimmar", "Valley of Strength", true }, { "Tirisfal Glades", "Brill", true }, { "Ashenvale", "Splintertree Post" } },
+}
+local SAID = { "Hey cousin!", "Same surname, same family!", "Need a hand with that quest?",
+    "Family dinner in Goldshire at 8.", "Wait, we're related?", "For the family!" }
+local WAYS = { "nameplate", "mouseover", "target", "group", "say", "nameplate" }
+local ROBES, TROUSERS, BOOTS, WEAPONS = { 56, 57, 6098 }, { 39, 44, 48, 52 }, { 40, 43, 47, 51, 55 },
+    { 25, 35, 36, 37, 2092, 2361 }
+
+-- The same made-up numbers every time for a name: the pictures (screens.py) stay the same.
+local function Dice(name)
+    local state = 7
+    for i = 1, #name do
+        state = (state * 31 + name:byte(i)) % 2147483647
+    end
+    return function(sides)
+        state = (state * 48271) % 2147483647
+        return state % sides + 1
+    end
+end
+
+local function History(first, relative, ago)
+    local roll = Dice(first)
+    local places = PLACES[relative.faction] or PLACES.Alliance
+    local myLevel = Utils.Call(UnitLevel, "player") or 20
+    local meetings = {}
+    for i = 1, relative.met do
+        local back = relative.met - i
+        local at = relative.lastSeen - back * (2 * DAY + roll(20) * HOUR)
+        local place = places[roll(#places)]
+        local meeting = {
+            at = at, last = at + (roll(6) - 1) * 9 * MINUTE, zone = place[1], sub = place[2], rest = place[3],
+            x = 20 + roll(600) / 10, y = 20 + roll(600) / 10, level = math.max(1, relative.level - back * roll(3)),
+            myLevel = math.max(1, myLevel - back), how = WAYS[roll(#WAYS)], night = roll(3) == 1 or nil,
+        }
+        meeting.group = meeting.how == "group" or roll(5) == 1 or nil
+        if meeting.how == "say" then
+            meeting.said = SAID[roll(#SAID)]
+        end
+        if roll(2) == 1 then
+            meeting.gear = { 0, 0, 0, 0, ROBES[roll(#ROBES)], 0, 0, 0, TROUSERS[roll(#TROUSERS)], BOOTS[roll(#BOOTS)],
+                0, 0, 0, 0, WEAPONS[roll(#WEAPONS)], 0, 0 }
+            meeting.ilvl = math.floor(meeting.level * 1.5) + 4
+        end
+        meetings[i] = meeting
+    end
+    -- the latest meeting is where they are now (a moment ago for the ones near you)
+    local latest = meetings[#meetings]
+    latest.zone, latest.sub, latest.rest = relative.zone, nil, nil
+    latest.level, latest.at = relative.level, relative.lastSeen
+    latest.last = ago < 120 and time() or latest.last
+    return meetings
+end
+
 local house
 
 local function Factions()
@@ -58,6 +118,7 @@ local function Build()
             race = races[(index - 1) % #races + 1],
             firstSeen = now - ago - met * 3 * DAY, lastSeen = now - ago, met = met,
         }
+        relatives[first].meetings = History(first, relatives[first], ago)
         if ago < 120 then
             HC.Kin.MarkNear(first, clock - ago)
         end

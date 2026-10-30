@@ -33,6 +33,17 @@ end
 
 -- --- units -------------------------------------------------------------------------------------
 
+-- How the game showed a unit: for a meeting's page.
+local function How(unit)
+    if unit == "target" or unit == "mouseover" then
+        return unit
+    elseif unit:find("^nameplate") then
+        return "nameplate"
+    elseif unit:find("^party") or unit:find("^raid") then
+        return "group"
+    end
+end
+
 -- One unit: a player with your surname becomes (or stays) a relative. `near`: seen around you,
 -- so a pop-up may show.
 function Radar.Look(unit, near)
@@ -73,10 +84,15 @@ function Radar.Look(unit, near)
         first = first, class = class, race = race, level = Utils.Call(UnitLevel, unit),
         sex = Utils.Call(UnitSex, unit), faction = Utils.Call(UnitFactionGroup, unit),
         guild = Utils.Call(GetGuildInfo, unit) or false, zone = near and Utils.Zone() or nil, guid = guid,
-        near = near,
+        near = near, how = How(unit),
+        group = Utils.Call(UnitInParty, unit) == true or Utils.IsUsableNumber((Utils.Call(UnitInRaid, unit))),
     })
     if relative and near and (new or meeting) then
         HC.Alert.Cousin(first, relative, new, unit)
+    end
+    -- their gear, once a meeting, while they're this close
+    if relative and near and Kin.WantsGear(first) then
+        HC.Gear.Look(unit, first)
     end
 end
 
@@ -148,6 +164,9 @@ local function Heard(event, text, author, ...)
     local relative, new, meeting = Kin.Seen({
         first = first, class = class, race = race, sex = sex, guid = guid, near = near,
         zone = near and Utils.Zone() or nil, quiet = not near and kind ~= "whisper",
+        how = (near or kind == "whisper") and (near and "say" or "whisper") or nil,
+        -- what they said around you (a whisper is yours, not kept)
+        said = near and text or nil,
     })
     if relative and near and (new or meeting) then
         HC.Alert.Cousin(first, relative, new, nil)

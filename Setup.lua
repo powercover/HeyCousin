@@ -20,8 +20,13 @@ local BAR = 44
 local SHAPE_NAMES = { Heater = "Shield", Round = "Round", Kite = "Kite", Banner = "Banner" }
 local PATTERN_NAMES = { Plain = "Plain", Pale = "Split", Fess = "Halves", Bend = "Diagonal", Quarterly = "Quarters",
     Chevron = "Chevron", Cross = "Cross" }
--- what the alerts step sets, kept as it was when the setup opened (Reset goes back to it)
+-- the steps: your crest, the alerts, the family map, and your guild's family (its guild master's)
+local CREST, ALERTS, MAP, GUILD = 1, 2, 3, 4
+local STEPS = { crest = CREST, alerts = ALERTS, map = MAP, guild = GUILD }
+-- what the alerts and map steps set, kept as it was when the setup opened (Reset goes back to it)
 local ALERT_KEYS = { "popup", "enemyAlerts", "chatCrest", "tooltipLine", "showMinimap", "sound", "chats" }
+local MAP_KEYS = { "mapShow", "mapShare" }
+local STEP_KEYS = { [ALERTS] = ALERT_KEYS, [MAP] = MAP_KEYS }
 
 local window, pages, page
 local draft, motto
@@ -86,12 +91,12 @@ local function Changed(index)
     if not session then
         return false
     end
-    if index == 1 then
+    if index == CREST then
         return not Same(draft, session.start.crest) or Utils.Trim(motto or "") ~= Utils.Trim(session.start.motto)
-    elseif index == 3 then
+    elseif index == GUILD then
         return not HC.Guild.Equal(session.guild, session.start.guild)
     end
-    for _, key in ipairs(ALERT_KEYS) do
+    for _, key in ipairs(STEP_KEYS[index] or {}) do
         if not Same(Settings()[key], session.start.settings[key]) then
             return true
         end
@@ -357,6 +362,8 @@ local function Setting(key, default)
         Settings()[key] = value
         if key == "showMinimap" and HC.Minimap then
             HC.Minimap.Apply()
+        elseif key == "mapShow" or key == "mapShare" then
+            HC.Map.Apply()
         end
         UpdateReset()
     end
@@ -443,7 +450,68 @@ local function BuildAlertsPage(parent)
     return p
 end
 
--- --- page 3: your guild, when you lead it ------------------------------------------------------
+-- --- page 3: the family map --------------------------------------------------------------------
+
+local function BuildMapPage(parent)
+    local p = Page(parent)
+    p.toggles = {}
+    local function Row(label, note, key, default, y)
+        local get, set = Setting(key, default)
+        local row = Theme.ToggleRow(p, 286, label, note, get, set)
+        row:SetPoint("TOPLEFT", PAD - 8, y)
+        row.toggle:Refresh(true)
+        p.toggles[#p.toggles + 1] = row.toggle
+    end
+    Heading(p, L["On your map"], PAD, -60)
+    Row(L["Your family on the world map"], L["Cousins who share where they are."], "mapShow", true, -86)
+    Heading(p, L["Where you are"], PAD, -150)
+    Row(L["Share it with your guild"], L["Your guild sees you move."], "mapShare", false, -176)
+    local note = Theme.Text(p, "Small", C.text3)
+    note:SetPoint("TOPLEFT", PAD, -232)
+    note:SetWidth(280)
+    note:SetWordWrap(true)
+    note:SetSpacing(2)
+    note:SetText(L["Every few seconds while you move; never in a fight or a dungeon. A guild is one faction: the other side never sees you."])
+    -- how it looks: a bit of map, with crests on it
+    Heading(p, L["How it looks"], 322, -60)
+    local look = CreateFrame("Frame", nil, p)
+    look:SetSize(WIDTH - 322 - PAD, 236)
+    look:SetPoint("TOPLEFT", 322, -86)
+    Theme.Panel(look, "well")
+    local land = Theme.Texture(look, "Interface\\Buttons\\WHITE8X8", "BORDER", 0, { 0.36, 0.43, 0.26 })
+    land:SetPoint("TOPLEFT", 6, -6)
+    land:SetPoint("BOTTOMRIGHT", -6, 6)
+    local road = Theme.Texture(look, "Interface\\Buttons\\WHITE8X8", "BORDER", 1, { 0.58, 0.5, 0.34 })
+    road:SetPoint("TOPLEFT", 6, -150)
+    road:SetPoint("TOPRIGHT", -6, -150)
+    road:SetHeight(4)
+    p.crests = {}
+    for index, spec in ipairs({ { "Mira", "MAGE", 0.28, 0.3 }, { "Lia", "PRIEST", 0.66, 0.46 }, { "Thane", "WARRIOR", 0.4, 0.72 } }) do
+        local crest = Crest.Create(look, 28)
+        crest:SetPoint("CENTER", look, "TOPLEFT", spec[3] * look:GetWidth(), -spec[4] * look:GetHeight())
+        local color = Utils.ClassColor(spec[2])
+        local bar = Theme.Texture(look, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 2, color)
+        bar:SetSize(20, 3)
+        bar:SetPoint("TOP", crest, "BOTTOM", 0, 1)
+        local name = Theme.Text(look, "Tiny", color)
+        name:SetPoint("TOP", crest, "BOTTOM", 0, -4)
+        name:SetText(spec[1])
+        p.crests[index] = crest
+    end
+    -- shows the settings as they are (after a Reset), and your crest as it is now
+    function p.Refresh()
+        for _, toggle in ipairs(p.toggles) do
+            toggle:Refresh(true)
+        end
+        local _, surname = Kin.House()
+        for _, crest in ipairs(p.crests) do
+            crest:SetCrest(Kin.Crest(), surname)
+        end
+    end
+    return p
+end
+
+-- --- page 4: your guild, when you lead it ------------------------------------------------------
 
 local function BuildGuildPage(parent)
     local p = Page(parent)
@@ -577,9 +645,9 @@ local function ShowPage(index)
     window.next:SetText(last and L["Done"] or L["Next"])
     Theme.SetArt(window.next.icon, Theme.Icon(last and "Check" or "ChevronRight"))
     Theme.Fit(window.next, 20, 110)
-    -- the guild's step shows your crest as it is now
-    if index == 3 then
-        pages[3].Refresh()
+    -- the map's and the guild's steps show your crest as it is now
+    if index == MAP or index == GUILD then
+        pages[index].Refresh()
     end
     UpdateReset()
 end
@@ -595,23 +663,24 @@ end
 
 -- The step you're on, as it was when the setup opened.
 local function Reset()
-    if page == 1 then
+    if page == CREST then
         draft = Copy(session.start.crest)
         motto = session.start.motto
         mottoBox.edit:SetText(motto)
         Edited()
-    elseif page == 3 then
+    elseif page == GUILD then
         session.guild = Copy(session.start.guild)
-        pages[3].Refresh()
+        pages[GUILD].Refresh()
         SaveGuild()
     else
-        for _, key in ipairs(ALERT_KEYS) do
+        for _, key in ipairs(STEP_KEYS[page]) do
             Settings()[key] = Copy(session.start.settings[key])
         end
         if HC.Minimap then
             HC.Minimap.Apply()
         end
-        pages[2].Refresh()
+        HC.Map.Apply()
+        pages[page].Refresh()
     end
     UpdateReset()
 end
@@ -724,14 +793,15 @@ local function Build()
     window = Theme.Window("HeyCousinSetup", WIDTH, HEIGHT)
     window:SetFrameStrata("DIALOG")
     window.steps = {
-        { name = L["Crest"], title = L["Your house"] },
-        { name = L["Alerts"], title = L["Alerts"] },
+        [CREST] = { name = L["Crest"], title = L["Your house"] },
+        [ALERTS] = { name = L["Alerts"], title = L["Alerts"] },
+        [MAP] = { name = L["Map"], title = L["The family map"] },
     }
     -- the guild's family is its guild master's to give, on a step with a row for each rank
     window.guild = session.guild ~= nil
     window.ranks = table.concat(HC.Guild.Ranks(), "\n")
     if window.guild then
-        window.steps[3] = { name = L["Guild"], title = L["Your guild"] }
+        window.steps[GUILD] = { name = L["Guild"], title = L["Your guild"] }
     end
     window.title = Theme.Text(window, "Title")
     window.title:SetPoint("TOPLEFT", PAD, -20)
@@ -739,9 +809,9 @@ local function Build()
     window.title:SetTextColor(metal[1], metal[2], metal[3])
     BuildLook()
     BuildSteps()
-    pages = { BuildCrestPage(window), BuildAlertsPage(window) }
+    pages = { [CREST] = BuildCrestPage(window), [ALERTS] = BuildAlertsPage(window), [MAP] = BuildMapPage(window) }
     if window.guild then
-        pages[3] = BuildGuildPage(window)
+        pages[GUILD] = BuildGuildPage(window)
     end
     -- along the bottom: back (or skip, the first time), and reset beside next (done at the end)
     window.skip = Theme.Button(window, L["Skip for now"], "ghost", 120, 32)
@@ -795,10 +865,12 @@ local function Begin()
         motto = type(Settings().testMotto) == "string" and Settings().testMotto or motto
     end
     local settings = {}
-    for _, key in ipairs(ALERT_KEYS) do
-        settings[key] = Copy(Settings()[key])
+    for _, keys in pairs(STEP_KEYS) do
+        for _, key in ipairs(keys) do
+            settings[key] = Copy(Settings()[key])
+        end
     end
-    session = { page = 1, visited = {}, start = { crest = Copy(draft), motto = motto, settings = settings } }
+    session = { page = CREST, visited = {}, start = { crest = Copy(draft), motto = motto, settings = settings } }
 end
 
 -- Your guild's family in the setup, from when you lead your guild (the guild's step comes with it).
@@ -817,9 +889,10 @@ local function Drop()
     window, pages, pickers, mottoBox, openPicker = nil, nil, nil, nil, nil
 end
 
--- Opens the setup on `startPage`: else an open setup stays where it is, and a new one starts on
--- the first step.
+-- Opens the setup on `startPage` (a number, or "crest", "alerts", "map", "guild"): else an open
+-- setup stays where it is, and a new one starts on the first step.
 function Setup.Show(startPage)
+    startPage = STEPS[startPage] or startPage
     if not session then
         Begin()
     end
@@ -841,9 +914,9 @@ function Setup.Show(startPage)
         openPicker = open and picker or openPicker
     end
     Paint()
-    pages[2].Refresh()
+    pages[ALERTS].Refresh()
     -- (a step that isn't there, as the guild's for a member: the first)
-    ShowPage(pages[startPage or session.page] and (startPage or session.page) or 1)
+    ShowPage(pages[startPage or session.page] and (startPage or session.page) or CREST)
     window:Show()
 end
 

@@ -28,7 +28,7 @@ local ASK_GAP = 15
 Guild.NAME_MAX, Guild.WORD_MAX, Guild.WELCOME_MAX = 24, 20, 100
 
 local frame = CreateFrame("Frame")
-local members, dirty = {}, true
+local members, byName, dirty = {}, {}, true
 local asked, answered = -ASK_GAP, -ANSWER_GAP
 local greeted       -- the guild your addon said hello to this session
 local incoming = {} -- [sender] = { stamp, count, parts, have }: settings arriving in parts
@@ -127,6 +127,11 @@ local function Read()
     return list
 end
 
+-- A member's key by their names: the same letters, big or small (as Names.Same).
+local function Key(first, surname)
+    return first:lower() .. "\1" .. surname:lower()
+end
+
 -- Your guild's members, each: full, first, surname, rank (0: the guild master), rankName, level,
 -- class, zone, online, seen (when they were last online), guid, me (you). Read again after the
 -- game's roster changes.
@@ -136,7 +141,12 @@ function Guild.Members()
     end
     if dirty then
         dirty = false
-        members = Read()
+        members, byName = Read(), {}
+        for _, member in ipairs(members) do
+            if member.first and member.surname then
+                byName[Key(member.first, member.surname)] = member
+            end
+        end
     end
     return members
 end
@@ -459,19 +469,19 @@ local function Hello()
     Send("2:H:" .. string.format("%d", given and given.stamp or 0))
 end
 
--- The member of your guild who sent an addon message: their first name and surname both match
--- the roster's.
+-- The member of your guild who sent an addon message (Guild.Members's): their first name and
+-- surname both match the roster's.
 local function Sender(sender)
     local first, surname = Names.Split(sender)
-    if not first or not surname then
+    if not Utils.IsUsableString(first) or not Utils.IsUsableString(surname) then
         return nil
     end
-    for _, member in ipairs(Guild.Members()) do
-        if Names.Same(member.first, first) and Names.Same(member.surname, surname) then
-            return member
-        end
-    end
+    Guild.Members()
+    return byName[Key(first, surname)]
 end
+
+-- (the family map's messages go the same way, from the same members)
+Guild.Send, Guild.Sender = Send, Sender
 
 -- A member's first settings from their guild master: the family greets them.
 local function Welcome(family)

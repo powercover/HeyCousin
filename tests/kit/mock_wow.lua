@@ -299,7 +299,7 @@ local function Globals()
     Mock.filters, Mock.postCalls, Mock.accepted = {}, {}, 0
     Mock.inGroup, Mock.zone, Mock.map = false, "Elwynn Forest", 1429
     Mock.focus, Mock.all = nil, {}
-    Mock.units, Mock.players, Mock.roster, Mock.guild, Mock.throttle = {}, {}, {}, nil, 0
+    Mock.units, Mock.players, Mock.roster, Mock.guild, Mock.throttle, Mock.instance = {}, {}, {}, nil, 0, nil
 
     function CreateFrame(kind, name, parent, template)
         local class = kind == "Button" and Button or kind == "EditBox" and EditBox or kind == "PlayerModel" and Model or Frame
@@ -394,20 +394,61 @@ local function Globals()
     function time() return Mock.now end
     function GetLocale() return "enUS" end
     function InCombatLockdown() return Mock.combat end
-    function IsInInstance() return false end
+    -- (Mock.instance: the kind of instance you're in, "party" or "raid"; nil out in the world)
+    function IsInInstance() return Mock.instance ~= nil, Mock.instance or "none" end
     function IsInGroup() return Mock.inGroup end
     function IsInRaid() return false end
     function GetNumSubgroupMembers() local n = 0; for i = 1, 4 do if Mock.units["party" .. i] then n = i end end; return n end
     function GetNumGroupMembers() return GetNumSubgroupMembers() + 1 end
     function GetRealZoneText() return Mock.zone end
     function GetZoneText() return Mock.zone end
+    -- maps on one made-up continent (0), each { left, top, width, height } in yards: Elwynn Forest,
+    -- Stormwind City in it, and the Eastern Kingdoms around them
+    Mock.maps = { [1429] = { 0, 0, 1000, 667 }, [1453] = { 300, 100, 200, 133 }, [1415] = { -4000, -5000, 9000, 6000 } }
+    function CreateVector2D(x, y) return { x = x, y = y, GetXY = function(self) return self.x, self.y end } end
     C_Map = {
         GetBestMapForUnit = function() return Mock.map end,
         GetPlayerMapPosition = function(map, unit)
             assert(type(map) == "number" and unit == "player")
             return { GetXY = function() return Mock.x, Mock.y end }
         end,
+        GetWorldPosFromMapPos = function(map, at)
+            local m = Mock.maps[map]
+            if m then return 0, CreateVector2D(m[1] + at.x * m[3], m[2] + at.y * m[4]) end
+        end,
+        GetMapPosFromWorldPos = function(continent, world, map)
+            local m = Mock.maps[map]
+            if m and continent == 0 then return map, CreateVector2D((world.x - m[1]) / m[3], (world.y - m[2]) / m[4]) end
+        end,
     }
+    -- the world map: its canvas (the addon's crests go on it) and its data providers
+    MapCanvasDataProviderMixin = {}
+    function MapCanvasDataProviderMixin:OnAdded(map) self.owningMap = map end
+    function MapCanvasDataProviderMixin:GetMap() return self.owningMap end
+    function MapCanvasDataProviderMixin:RefreshAllData() end
+    function MapCanvasDataProviderMixin:RemoveAllData() end
+    function MapCanvasDataProviderMixin:OnCanvasScaleChanged() end
+    function CreateFromMixins(...)
+        local object = {}
+        for _, mixin in ipairs({ ... }) do for key, value in pairs(mixin) do object[key] = value end end
+        return object
+    end
+    WorldMapFrame = CreateFrame("Frame", "WorldMapFrame", UIParent)
+    WorldMapFrame:SetSize(702, 468)
+    WorldMapFrame:Hide()
+    WorldMapFrame.ScrollContainer = CreateFrame("Frame", nil, WorldMapFrame)
+    WorldMapFrame.ScrollContainer:SetAllPoints()
+    WorldMapFrame.ScrollContainer.Child = CreateFrame("Frame", nil, WorldMapFrame.ScrollContainer)
+    WorldMapFrame.ScrollContainer.Child:SetSize(702, 468)
+    WorldMapFrame.ScrollContainer.Child:SetPoint("TOPLEFT")
+    WorldMapFrame.dataProviders, WorldMapFrame.mapID, WorldMapFrame.zoom = {}, 1429, 1
+    function WorldMapFrame:AddDataProvider(provider)
+        table.insert(self.dataProviders, provider)
+        provider:OnAdded(self)
+    end
+    function WorldMapFrame:GetMapID() return self.mapID end
+    function WorldMapFrame:GetCanvas() return self.ScrollContainer.Child end
+    function WorldMapFrame:GetCanvasScale() return self.zoom end
     Mock.subzone, Mock.x, Mock.y, Mock.resting, Mock.hour = "Goldshire", 0.421, 0.653, false, 14
     function GetSubZoneText() return Mock.subzone end
     function IsResting() return Mock.resting end
@@ -506,6 +547,20 @@ function Mock.Fire(event, ...)
         local script = frame.scripts.OnEvent
         if script then script(frame, event, ...) end
     end
+end
+
+-- The world map opens on `map` (zoomed `zoom` times), and asks its data providers for their pins,
+-- as the game does when it shows or changes maps.
+function Mock.ShowMap(map, zoom)
+    WorldMapFrame.mapID, WorldMapFrame.zoom = map or WorldMapFrame.mapID, zoom or 1
+    WorldMapFrame:Show()
+    for _, provider in ipairs(WorldMapFrame.dataProviders) do provider:RefreshAllData(true) end
+end
+
+-- The open map zooms (its providers keep their pins' size).
+function Mock.Zoom(zoom)
+    WorldMapFrame.zoom = zoom
+    for _, provider in ipairs(WorldMapFrame.dataProviders) do provider:OnCanvasScaleChanged() end
 end
 
 -- Runs every visible frame's OnUpdate for `frames` frames of `elapsed` seconds each.

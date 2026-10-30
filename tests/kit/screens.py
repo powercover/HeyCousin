@@ -797,7 +797,8 @@ def main():
     print("drew 3-pop-ups.png")
     pair("4-setup-crest.png", "crest")
     pair("5-setup-alerts.png", "alerts")
-    pair("5b-setup-guild.png", "guild")
+    pair("5b-setup-map.png", "mapstep")
+    pair("5c-setup-guild.png", "guild")
     bits = []
     for skin in SKINS:
         picture, parts = shot("world", skin)
@@ -815,6 +816,7 @@ def main():
     pair("10-empty.png", "empty")
     pair("10b-tree-empty.png", "treeless")
     pair("11-probe.png", "probe")
+    pair("12-family-map.png", "map")
     for note in dict.fromkeys(notes):
         print("note:", note)
 

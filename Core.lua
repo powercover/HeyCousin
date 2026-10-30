@@ -26,6 +26,9 @@ local DEFAULTS = {
     minimapAngle = 200,
     lockMinimap = false,
     chats = { say = true, channel = true, guild = true, group = true, whisper = true },
+    -- the family map: your cousins' crests on yours; where you are, shared only when you say
+    mapShow = true,
+    mapShare = false,
 }
 
 local function SavedDefaults()
@@ -141,6 +144,7 @@ frame:SetScript("OnEvent", Utils.Protect("event", function(_, event, arg1)
         HC.Radar.Start()
         HC.Layer.Start()
         HC.Guild.Start()
+        HC.Map.Start()
     elseif event == "PLAYER_ENTERING_WORLD" then
         -- the first time: the setup, a moment after the world shows
         if not welcomed and not HeyCousinDB.setupDone then

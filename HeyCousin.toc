@@ -33,6 +33,7 @@ Names.lua
 Kin.lua
 Gear.lua
 Guild.lua
+Map.lua
 TestMode.lua
 Alert.lua
 Radar.lua

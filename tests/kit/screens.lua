@@ -111,10 +111,54 @@ function Screens.treeless(skin)
     return { frames = { HeyCousinWindow } }
 end
 
+-- The family map in test mode: the made-up cousins online around you, on a bit of map that
+-- stands in for the game's (fields, woods, a lake, a road, names, and you).
+function Screens.map(skin)
+    Boot(skin)
+    local map = WorldMapFrame
+    map:SetPoint("CENTER", UIParent, "CENTER", 0, 20)
+    local canvas = map:GetCanvas()
+    local function Patch(parent, color, x, y, w, h, sublevel)
+        local patch = parent:CreateTexture(nil, "BACKGROUND", nil, sublevel or 0)
+        patch:SetTexture("Interface\\Buttons\\WHITE8X8")
+        patch:SetVertexColor(color[1], color[2], color[3])
+        patch:SetPoint("TOPLEFT", parent, "TOPLEFT", x, -y)
+        patch:SetSize(w, h)
+    end
+    Patch(map, { 0.16, 0.12, 0.09 }, -6, -6, 714, 480, -1)
+    Patch(canvas, { 0.42, 0.49, 0.29 }, 0, 0, 702, 468)
+    for _, wood in ipairs({ { 20, 30, 190, 120 }, { 470, 60, 200, 150 }, { 60, 330, 160, 110 }, { 520, 300, 150, 140 } }) do
+        Patch(canvas, { 0.27, 0.36, 0.2 }, wood[1], wood[2], wood[3], wood[4], 1)
+    end
+    Patch(canvas, { 0.27, 0.43, 0.56 }, 360, 360, 120, 70, 1)
+    Patch(canvas, { 0.62, 0.53, 0.36 }, 0, 300, 702, 6, 2)
+    Patch(canvas, { 0.62, 0.53, 0.36 }, 292, 0, 6, 468, 2)
+    local function Name(text, x, y, font)
+        local label = canvas:CreateFontString(nil, "ARTWORK")
+        label:SetFontObject(Screens.HC.Theme.Font(font or "Small"))
+        label:SetTextColor(0.98, 0.9, 0.7)
+        label:SetPoint("TOP", canvas, "TOPLEFT", x, -y)
+        label:SetText(text)
+    end
+    Name("Elwynn Forest", 351, 14, "Headline")
+    Name("Goldshire", 300, 418)
+    -- you: a gold dot where you stand
+    Patch(canvas, { 1, 0.82, 0.2 }, 0.421 * 702 - 4, 0.653 * 468 - 4, 8, 8, 3)
+    Mock.ShowMap(1429)
+    return { frames = { map } }
+end
+
+-- the setup's map step: your family on your map, and sharing where you are
+function Screens.mapstep(skin)
+    local HC = Boot(skin)
+    HC.Setup.Show("map")
+    return { frames = { HeyCousinSetup } }
+end
+
 -- the setup's last step for a guild master: the guild as a family
 function Screens.guild(skin)
     local HC = Boot(skin)
-    HC.Setup.Show(3)
+    HC.Setup.Show("guild")
     return { frames = { HeyCousinSetup } }
 end
 

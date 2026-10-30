@@ -133,6 +133,17 @@ ButtonWith(setup, "Crest"):Click()
 check(Crest(setup, 160):IsVisible() and ButtonWith(setup, "Next") ~= nil, "a click on a step goes to it")
 NoErrors(HC, "alerts")
 
+-- the map's step: your family on your map, and sharing where you are (off until you say)
+ButtonWith(setup, "Map"):Click()
+local mapRows = All(setup, function(f) return f.toggle ~= nil and f:IsVisible() end)
+check(#mapRows == 2 and HeyCousinDB.mapShow == true and HeyCousinDB.mapShare == false and Crest(setup, 28) ~= nil,
+    "the map's step: two settings, sharing off, and how the crests look")
+mapRows[2]:Click()
+check(HeyCousinDB.mapShare == true and ButtonWith(setup, "Reset"):IsEnabled(), "sharing turns on")
+ButtonWith(setup, "Reset"):Click()
+check(HeyCousinDB.mapShare == false and not ButtonWith(setup, "Reset"):IsEnabled(), "reset: off again")
+NoErrors(HC, "map step")
+
 -- the guild's step: you lead the made-up guild, so it's yours to make a family
 ButtonWith(setup, "Guild"):Click()
 check(ButtonWith(setup, "Guild").node.kind == "primary" and ButtonWith(setup, "Done") ~= nil, "the guild's step, the last")
@@ -271,6 +282,28 @@ check(_G.HeyCousinSetup:IsShown() and ButtonWith(_G.HeyCousinSetup, "Done") ~= n
 _G.HeyCousinSetup:Hide()
 NoErrors(HC, "tree")
 
+-- the family map in test mode: the made-up cousins online stand around you
+local function Pins()
+    return All(WorldMapFrame, function(f) return f.spot ~= nil and f:IsShown() end)
+end
+Mock.ShowMap(1429)
+local pins = Pins()
+check(#pins == 4, "the cousins online, as crests on the map: " .. #pins)
+Mock.Run(pins[1], "OnEnter")
+check(GameTooltip.lines[2] and GameTooltip.lines[2]:find("Level", 1, true), "a crest's tooltip: who, their word, level and class")
+Mock.Zoom(2)
+check(pins[1].scale == 0.5 and pins[1].anchors.CENTER.x == pins[1].x * 702 * 2, "the crests keep their size as the map zooms")
+Mock.ShowMap(1415)
+check(#Pins() == 4, "on the continent's map too")
+Mock.ShowMap(1453)
+check(#Pins() == 0, "not on a map they aren't on")
+HeyCousinDB.mapShow = false
+Mock.ShowMap(1429)
+check(#Pins() == 0, "your family on the map, turned off: no crests")
+HeyCousinDB.mapShow = true
+WorldMapFrame:Hide()
+NoErrors(HC, "the map in test mode")
+
 -- the next look, with the window open: it's built again in it
 SlashCmdList.HEYCOUSIN("theme")
 check(HC.Theme.Skin().key == "pixel", "/cousin theme goes to the next look")
@@ -335,7 +368,7 @@ check(_G.HeyCousinWindow:IsShown(), "the family stays open through the looks")
 HC.Setup.Show(1)
 Hover(_G.HeyCousinSetup)
 Round("looks with the setup's first step")
-HC.Setup.Show(3)
+HC.Setup.Show(4)
 Hover(_G.HeyCousinSetup)
 Round("looks with the setup's last step")
 check(_G.HeyCousinSetup:IsShown() and ButtonWith(_G.HeyCousinSetup, "Done") ~= nil, "the setup stays on its step")
@@ -605,6 +638,59 @@ HC.Window.Show("tree")
 Settle()
 local treeBoxes = All(_G.HeyCousinWindow, function(f) return f.member ~= nil and f.SetChosen ~= nil and f:IsVisible() end)
 check(#treeBoxes == 5 and treeBoxes[1].line.text:find("Elder", 1, true) == 1, "the Tree tab shows them all")
+-- the family map: you share where you are with your guild, as you move
+local function MapPins()
+    return All(WorldMapFrame, function(f) return f.spot ~= nil and f:IsShown() end)
+end
+HeyCousinDB.mapShare = true
+local mapSent = #Mock.addonSent
+HC.Map.Apply()
+local where = Mock.addonSent[#Mock.addonSent]
+check(#Mock.addonSent == mapSent + 1 and where.channel == "GUILD" and where.text == "3:P:1429:4210:6530",
+    "sharing: where you are goes to your guild's addons: " .. tostring(where.text))
+Mock.Advance(20)
+check(#Mock.addonSent == mapSent + 1, "standing still: nothing more for a while")
+Mock.Advance(30)
+check(#Mock.addonSent == mapSent + 2, "then a word now and then, so you stay on their maps")
+Mock.x = 0.45
+Mock.Advance(5)
+check(Mock.addonSent[#Mock.addonSent].text == "3:P:1429:4500:6530", "a move goes in a moment")
+mapSent = #Mock.addonSent
+Mock.combat, Mock.x = true, 0.5
+Mock.Advance(10)
+check(#Mock.addonSent == mapSent, "never in a fight")
+Mock.combat, Mock.instance = false, "party"
+Mock.Advance(10)
+check(#Mock.addonSent == mapSent + 1 and Mock.addonSent[#Mock.addonSent].text == "3:D", "in a dungeon: no place, said once")
+Mock.instance, Mock.x = nil, 0.421
+HeyCousinDB.mapShare = false
+HC.Map.Apply()
+check(Mock.addonSent[#Mock.addonSent].text == "3:X", "sharing off: your crest leaves their maps at once")
+mapSent = #Mock.addonSent
+Mock.Advance(60)
+check(#Mock.addonSent == mapSent, "and nothing more goes")
+-- their crests on your map: only your guild's family, not you, not one in a dungeon
+for _, line in ipairs({ { "3:P:1429:5000:2500", "Mira Ashbrook" }, { "3:P:1429:9000:9000", "Bob Stone" },
+    { "3:P:1429:9000:9000", "Rowan Ashbrook" }, { "3:P:1429:99999:1", "Lia Ashbrook" }, { "3:P:x", "Lia Ashbrook" },
+    { "3:P:1429:7000:7000", "Ogre Ashbrook" }, { "3:D", "Ogre Ashbrook" } }) do
+    Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", line[1], "GUILD", line[2])
+end
+Mock.ShowMap(1429)
+local mapPins = MapPins()
+check(#mapPins == 1 and mapPins[1].spot.member.first == "Mira" and mapPins[1].x == 0.5 and mapPins[1].y == 0.25
+    and mapPins[1].name.text == "Mira", "a crest for each cousin who shares: " .. #mapPins)
+Mock.ShowMap(1415)
+mapPins = MapPins()
+check(#mapPins == 1 and math.abs(mapPins[1].x - 0.5) < 0.001, "on the continent's map too")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:X", "GUILD", "Mira Ashbrook")
+Mock.ShowMap(1429)
+check(#MapPins() == 0, "they stopped sharing: gone at once")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:P:1429:5000:2500", "GUILD", "Mira Ashbrook")
+Mock.Advance(121)
+Mock.ShowMap(1429)
+check(#MapPins() == 0, "a cousin whose addon went quiet leaves the map")
+WorldMapFrame:Hide()
+NoErrors(HC, "the family map")
 -- the guild master's words, from their addon (in two parts); a member's are not theirs to give
 local payload = "1~Ashbrook~Round.Fess.azure.argent.or.charge.Heart~^^Kid^Little cousin^^^^^^~Welcome home, cousin!~"
 local function Given(sender, stamp, parts)

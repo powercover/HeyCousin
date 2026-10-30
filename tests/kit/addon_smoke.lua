@@ -287,6 +287,47 @@ SlashCmdList.HEYCOUSIN("status")
 check(Mock.Said("Your layer: 5151") and Mock.Said("\"Ashbrook\""), "status shows your surname and your layer")
 NoErrors(HC, "forever window")
 
+-- the launch-day name test: a checklist, and what the game hands over written down
+Mock.units.target = { name = "Mira", surname = "Ashbrook", guid = "Player-1-MIRA", class = "MAGE", race = "Human",
+    level = 23, sex = 3, faction = "Alliance" }
+SlashCmdList.HEYCOUSIN("probe")
+local probe = HeyCousinDB.probe
+check(probe and probe.client and probe.done.name, "the name test reads your name at once")
+check(probe.client.unitName[1] == "Rowan" and probe.client.unitName[2] == "Ashbrook", "your name, both parts as the game gives them")
+check(_G.HeyCousinProbe and _G.HeyCousinProbe:IsShown(), "its checklist shows")
+local forms = 0
+for kind, sent in pairs(probe.addon.sent) do
+    forms = forms + 1
+    check(type(sent.target) == "string", "an addon message to yourself as " .. kind)
+end
+check(forms >= 3, "addon messages to yourself, your name written three ways: " .. forms)
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "probe:full", "WHISPER", "Rowan Ashbrook")
+check(probe.addon.got.full and probe.addon.got.full.sender == "Rowan Ashbrook" and probe.done.addon, "the one that arrives is noted")
+Mock.Fire("CHAT_MSG_SAY", "hello", "Mira Ashbrook", "", "", "", "", 0, 0, "", 0, 9, "Player-1-MIRA")
+check(probe.chat_CHAT_MSG_SAY and probe.chat_CHAT_MSG_SAY[1].author == "Mira Ashbrook" and probe.done.say, "a /say line, its author as it came")
+Mock.Fire("PLAYER_TARGET_CHANGED")
+check(probe.units and probe.units[1].unitName[2] == "Ashbrook" and probe.done.target, "a target's name parts")
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate3")
+check(probe.npc and probe.npc[1].layer == 5151 and probe.done.npc, "an NPC and its layer")
+Mock.Fire("GUILD_ROSTER_UPDATE")
+check(probe.guild and probe.guild[1].name == "Odo Ashbrook" and probe.done.guild, "guild names as the roster has them")
+local targetSelf = _G.HeyCousinProbetargetSelf
+check(targetSelf:GetAttribute("macrotext1") == "/cleartarget\n/targetexact Rowan Ashbrook", "the test targets you by your whole name")
+targetSelf:Click()
+Mock.Advance(1)
+check(probe.targeting and probe.targeting.targetSelf and probe.done.targetSelf, "and writes down what got targeted")
+Mock.Fire("PLAYER_REGEN_DISABLED")
+check(not _G.HeyCousinProbe:IsShown(), "a fight hides the checklist (it has secure buttons)")
+SlashCmdList.HEYCOUSIN("probe")
+check(_G.HeyCousinProbe:IsShown(), "/cousin probe brings it back while it runs")
+for _ = 1, 10 do Mock.Fire("CHAT_MSG_SAY", "spam", "Bob Stone", "", "", "", "", 0, 0, "", 0, 9, "Player-1-BOB") end
+check(#probe.chat_CHAT_MSG_SAY <= 6, "only a few samples of each kind")
+SlashCmdList.HEYCOUSIN("probe stop")
+check(probe.stopped and not _G.HeyCousinProbe:IsShown(), "it stops")
+Mock.Fire("CHAT_MSG_SAY", "after", "Lia Ashbrook", "", "", "", "", 0, 0, "", 0, 9, "Player-1-LIA")
+check(#probe.chat_CHAT_MSG_SAY == 2, "and records nothing after")
+NoErrors(HC, "name test")
+
 -- a secret name (protected content) is never used
 Mock.units.target = { name = Mock.SECRET, surname = "Ashbrook", guid = "Player-9-SEC", class = "MAGE", faction = "Alliance" }
 Mock.Fire("PLAYER_TARGET_CHANGED")

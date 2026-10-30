@@ -28,6 +28,8 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - `/cousin test`: a pop-up to try
 - `/cousin theme`: the next look
 - `/cousin status`: what the game tells the addon about you
+- `/cousin probe`: the name test: a short checklist that writes down how the game gives names to
+  addons (for launch day)
 - `/cousin debug`: the errors the addon caught, in chat
 
 ## Tests

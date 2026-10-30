@@ -75,6 +75,7 @@ local function PrintHelp()
     Utils.Print("/cousin test - " .. L["a pop-up to try"])
     Utils.Print("/cousin theme - " .. L["the next look"])
     Utils.Print("/cousin status - " .. L["what the game tells the addon about you"])
+    Utils.Print("/cousin probe - " .. L["the launch-day name test (on or off)"])
     Utils.Print("/cousin debug - " .. L["the errors the addon caught, in chat (on or off)"])
 end
 
@@ -95,6 +96,10 @@ local function HandleSlash(message)
         Utils.Print(string.format(L["Look: %s"], HC.Theme.Skin().name))
     elseif command == "status" then
         HC.PrintStatus()
+    elseif command == "probe" then
+        HC.Probe.Toggle()
+    elseif command == "probe stop" then
+        HC.Probe.Stop()
     elseif command == "debug" then
         SavedDefaults()
         HeyCousinDB.debug = not HeyCousinDB.debug

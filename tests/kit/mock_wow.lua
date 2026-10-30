@@ -94,6 +94,7 @@ function Frame:RegisterEvent(event)
     Mock.events[event][self] = true
 end
 function Frame:UnregisterEvent(event) if Mock.events[event] then Mock.events[event][self] = nil end end
+function Frame:UnregisterAllEvents() for _, frames in pairs(Mock.events) do frames[self] = nil end end
 function Frame:CreateTexture(_, layer) local t = New(Texture, self); t.layer = layer; return t end
 function Frame:CreateFontString(_, layer) local t = New(FontString, self); t.layer = layer; t.text = ""; return t end
 function Frame:CreateMaskTexture() return New(Mask, self) end
@@ -368,6 +369,12 @@ local function Globals()
         end
         if p then return p.class, p.class, p.race, p.race, p.sex or 2, p.name, p.surname end
     end
+    function GetUnitName(unit) local u = U(unit); if u then return u.surname and (u.name .. " " .. u.surname) or u.name end end
+    function UnitFullName(unit) local u = U(unit); if u then return u.name, u.surname end end
+    function GetRealmName() return "Forever" end
+    function GetNormalizedRealmName() return "Forever" end
+    function Ambiguate(name) return name end
+    function GetChannelList() return 1, "General", false, 2, "Trade", false end
     function GetNumGuildMembers() return #Mock.roster end
     function GetGuildRosterInfo(i)
         local m = Mock.roster[i]

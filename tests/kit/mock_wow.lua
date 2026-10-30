@@ -118,7 +118,11 @@ function Frame:RegisterEvent(event)
     Mock.events[event][self] = true
 end
 function Frame:UnregisterEvent(event) if Mock.events[event] then Mock.events[event][self] = nil end end
-function Frame:UnregisterAllEvents() for _, frames in pairs(Mock.events) do frames[self] = nil end end
+function Frame:RegisterAllEvents() Mock.all[self] = true end
+function Frame:UnregisterAllEvents()
+    Mock.all[self] = nil
+    for _, frames in pairs(Mock.events) do frames[self] = nil end
+end
 function Frame:CreateTexture(_, layer, _, sublevel)
     local t = Add(self, New(Texture, self))
     t.layer, t.sublevel = layer, sublevel
@@ -294,7 +298,7 @@ local function Globals()
     Mock.chat, Mock.addonSent, Mock.sounds, Mock.invites, Mock.opened, Mock.tells = {}, {}, {}, {}, {}, {}
     Mock.filters, Mock.postCalls, Mock.accepted = {}, {}, 0
     Mock.inGroup, Mock.zone, Mock.map = false, "Elwynn Forest", 1429
-    Mock.focus = nil
+    Mock.focus, Mock.all = nil, {}
     Mock.units, Mock.players, Mock.roster = {}, {}, {}
 
     function CreateFrame(kind, name, parent, template)
@@ -449,6 +453,9 @@ end
 function Mock.Fire(event, ...)
     local list = {}
     for frame in pairs(Mock.events[event] or {}) do list[#list + 1] = frame end
+    for frame in pairs(Mock.all) do
+        if not (Mock.events[event] or {})[frame] then list[#list + 1] = frame end
+    end
     for _, frame in ipairs(list) do
         local script = frame.scripts.OnEvent
         if script then script(frame, event, ...) end

@@ -218,7 +218,12 @@ local function ReadChat(event, text, author, ...)
         byGuid = Answers(GetPlayerInfoByGUID, guid),
         channel = event == "CHAT_MSG_CHANNEL" and { Value(channel), Value(channelIndex), Value(channelBase) } or nil,
     }
-    if Keep("chat_" .. event, tostring(author), sample) then
+    local kind = "chat_" .. event
+    if event == "CHAT_MSG_CHANNEL" then
+        -- each channel apart (General, Trade, a local channel...): a few lines of each
+        kind = kind .. "_" .. tostring(Value(channelBase ~= "" and channelBase or channel))
+    end
+    if Keep(kind, tostring(author), sample) then
         if event == "CHAT_MSG_SAY" then
             Mark("say")
         elseif event == "CHAT_MSG_WHISPER" or event == "CHAT_MSG_WHISPER_INFORM" then
@@ -332,6 +337,19 @@ frame:SetScript("OnEvent", Utils.Protect("probe", function(_, event, ...)
     end
 end))
 
+-- WoW Forever may have kinds of chat line the list above doesn't (a local channel?): while the
+-- test runs, a second frame hears every event and keeps the chat ones it doesn't know.
+local KNOWN = { CHAT_MSG_ADDON = true, CHAT_MSG_SYSTEM = true }
+for _, event in ipairs(CHATS) do
+    KNOWN[event] = true
+end
+local everything = CreateFrame("Frame")
+everything:SetScript("OnEvent", Utils.Protect("probe chats", function(_, event, ...)
+    if running and not KNOWN[event] and event:sub(1, 9) == "CHAT_MSG_" then
+        ReadChat(event, ...)
+    end
+end))
+
 -- --- the window --------------------------------------------------------------------------------
 
 local function SecureButton(parent, kind, label)
@@ -435,12 +453,13 @@ function Probe.Start()
         Utils.Print(L["Not during a fight."])
         return
     end
-    HeyCousinDB.probe = { started = time(), version = HC.VERSION, done = {} }
+    HeyCousinDB.probe = { started = time(), version = HC.VERSION, done = {}, channels = Answers(GetChannelList) }
     seen = {}
     running, stopAt = true, GetTime() + RUN_FOR
     for _, event in ipairs(CHATS) do
         frame:RegisterEvent(event)
     end
+    pcall(everything.RegisterAllEvents, everything)
     for _, event in ipairs({ "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "NAME_PLATE_UNIT_ADDED",
         "GROUP_ROSTER_UPDATE", "GUILD_ROSTER_UPDATE", "CHAT_MSG_ADDON", "CHAT_MSG_SYSTEM", "PLAYER_REGEN_DISABLED" }) do
         frame:RegisterEvent(event)
@@ -470,7 +489,9 @@ function Probe.Stop()
     end
     running = false
     frame:UnregisterAllEvents()
-    Data().stopped = time()
+    everything:UnregisterAllEvents()
+    -- the channels again: some are joined a while after you log in
+    Data().stopped, Data().channels = time(), Answers(GetChannelList)
     if window and window:IsShown() and not InCombatLockdown() then
         window:Hide()
     end

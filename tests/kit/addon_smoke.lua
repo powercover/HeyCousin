@@ -389,6 +389,13 @@ Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "probe:full", "WHISPER", "Rowan Ashbroo
 check(probe.addon.got.full and probe.addon.got.full.sender == "Rowan Ashbrook" and probe.done.addon, "the one that arrives is noted")
 Mock.Fire("CHAT_MSG_SAY", "hello", "Mira Ashbrook", "", "", "", "", 0, 0, "", 0, 9, "Player-1-MIRA")
 check(probe.chat_CHAT_MSG_SAY and probe.chat_CHAT_MSG_SAY[1].author == "Mira Ashbrook" and probe.done.say, "a /say line, its author as it came")
+check(probe.channels and probe.channels[2] == "General", "the channels you're in")
+Mock.Fire("CHAT_MSG_CHANNEL", "lfg", "Bob Stone", "", "1. Local", "", "", 0, 1, "Local", 0, 10, "Player-1-BOB")
+local localLines = probe.chat_CHAT_MSG_CHANNEL_Local
+check(localLines and localLines[1].channel[3] == "Local" and localLines[1].author == "Bob Stone",
+    "each channel's lines are kept apart")
+Mock.Fire("CHAT_MSG_LOCAL", "hi", "Bob Stone", "", "", "", "", 0, 0, "", 0, 11, "Player-1-BOB")
+check(probe.chat_CHAT_MSG_LOCAL and probe.chat_CHAT_MSG_LOCAL[1].text == "hi", "a kind of chat it doesn't know is kept too")
 Mock.Fire("PLAYER_TARGET_CHANGED")
 check(probe.units and probe.units[1].unitName[2] == "Ashbrook" and probe.done.target, "a target's name parts")
 Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate3")

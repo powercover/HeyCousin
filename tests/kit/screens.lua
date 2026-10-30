@@ -82,9 +82,13 @@ function Screens.crest(skin)
     return { frames = { HeyCousinSetup } }
 end
 
+-- the alerts step, reached with Next (the crest step has its check), with one setting changed (so
+-- Reset is on)
 function Screens.alerts(skin)
     local HC = Boot(skin)
-    HC.Setup.Show(2)
+    HC.Setup.Show(1)
+    ButtonWith(HeyCousinSetup, "Next"):Click()
+    ButtonWith(HeyCousinSetup, "Black sheep too"):Click()
     return { frames = { HeyCousinSetup } }
 end
 

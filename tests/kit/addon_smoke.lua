@@ -46,6 +46,13 @@ check(setup and setup:IsShown(), "the setup opens by itself the first time")
 check(next(setup.anchors) ~= nil, "the setup has a place on screen")
 NoErrors(HC, "boot")
 
+-- the setup's frame: a step bar, the look on top, back (or skip), reset and next
+check(ButtonWith(setup, "Crest") and ButtonWith(setup, "Alerts") and ButtonWith(setup, "Crest").node.kind == "primary",
+    "a step bar, on the first step")
+check(ButtonWith(setup, "Skip for now") ~= nil and ButtonWith(setup, "Back") == nil, "the first time: skip, no back")
+check(setup.look and setup.look.forward:IsVisible() and setup.look.name.text == "Pixel", "the look on top of the step")
+check(not ButtonWith(setup, "Reset"):IsEnabled(), "nothing to reset yet")
+
 -- the crest page
 local big = Crest(setup, 160)
 check(big and big.crest.shape == "Heater" and big.crest.symbol == "initial", "the setup starts on the default crest")
@@ -72,9 +79,34 @@ for _ = 1, 20 do dice:Click() end
 check(HC.Crest.Normalize(big.crest).shape == big.crest.shape, "the dice makes real crests")
 local motto = All(setup, function(f) return f.kind == "EditBox" and f:IsVisible() end)[1]
 motto:SetText("Family first!")
+check(ButtonWith(setup, "Reset"):IsEnabled(), "a changed step can be reset")
+check(type(HeyCousinDB.testCrest) == "table" and HeyCousinDB.testCrest.shape == big.crest.shape,
+    "the crest is saved as you make it")
+-- a new look on this step: the setup turns, and keeps what you made
+local made = HC.Crest.Normalize(big.crest)
+setup.look.forward:Click()
+NoErrors(HC, "look arrow")
+check(HC.Theme.Skin().key == "smooth" and HeyCousinDB.skin == "smooth", "the look arrow switches the look")
+setup = _G.HeyCousinSetup
+big = Crest(setup, 160)
+motto = All(setup, function(f) return f.kind == "EditBox" and f:IsVisible() end)[1]
+check(setup:IsShown() and big.crest.shape == made.shape and big.crest.field == made.field
+    and big.crest.symbol == made.symbol and big.crest.charge == made.charge, "the new look keeps the crest you made")
+check(motto:GetText() == "Family first!" and ButtonWith(setup, "Crest").node.kind == "primary",
+    "and your motto, on the same step")
+-- reset: the step as it was when the setup opened
+ButtonWith(setup, "Reset"):Click()
+check(big.crest.shape == "Heater" and big.crest.symbol == "initial" and motto:GetText() == "Family first.",
+    "reset puts the crest step back: " .. big.crest.shape .. ", " .. motto:GetText())
+check(not ButtonWith(setup, "Reset"):IsEnabled(), "then there's nothing to reset")
+All(setup, function(f) return f.direction == "RIGHT" and f:IsVisible() end)[1]:Click()
+motto:SetText("Family first!")
 ButtonWith(setup, "Next"):Click()
-check(type(HeyCousinDB.testCrest) == "table" and HeyCousinDB.testMotto == "Family first!",
-    "the crest and motto made in test mode are kept for Forever")
+check(type(HeyCousinDB.testCrest) == "table" and HeyCousinDB.testCrest.shape == "Round"
+    and HeyCousinDB.testMotto == "Family first!", "the crest and motto made in test mode are kept for Forever")
+check(ButtonWith(setup, "Alerts").node.kind == "primary" and ButtonWith(setup, "Crest").check:IsShown(),
+    "next: on the alerts, and the crest step has its check")
+check(ButtonWith(setup, "Back") ~= nil and ButtonWith(setup, "Skip for now") == nil, "back now, no skip")
 NoErrors(HC, "crest page")
 
 -- alerts and look
@@ -91,12 +123,23 @@ check(minimap:IsShown(), "and comes back")
 local bell = ButtonWith(setup, "Bell")
 bell:Click()
 check(HeyCousinDB.sound == "bell" and #Mock.sounds > 0, "a sound chip picks and plays it")
-local smooth = All(setup, function(f) return f.key == "smooth" and f.preview end)[1]
-smooth:Click()
-NoErrors(HC, "theme card")
-check(HC.Theme.Skin().key == "smooth" and HeyCousinDB.skin == "smooth", "a theme card switches the look")
+rows[2]:Click()
+check(HeyCousinDB.enemyAlerts == false and ButtonWith(setup, "Reset"):IsEnabled(), "changed alerts can be reset")
+ButtonWith(setup, "Reset"):Click()
+check(HeyCousinDB.enemyAlerts == true and HeyCousinDB.sound == "auto" and not ButtonWith(setup, "Reset"):IsEnabled(),
+    "reset puts the alerts back")
+-- the step bar goes to any step
+ButtonWith(setup, "Crest"):Click()
+check(Crest(setup, 160):IsVisible() and ButtonWith(setup, "Next") ~= nil, "a click on a step goes to it")
+ButtonWith(setup, "Alerts"):Click()
+-- the look, twice round, from the last step
+setup.look.forward:Click()
 setup = _G.HeyCousinSetup
-check(setup:IsShown() and ButtonWith(setup, "Done") ~= nil, "the setup comes back in the new look, on the same page")
+setup.look.forward:Click()
+NoErrors(HC, "look arrows")
+setup = _G.HeyCousinSetup
+check(HC.Theme.Skin().key == "smooth" and setup:IsShown() and ButtonWith(setup, "Done") ~= nil,
+    "the setup comes back in each look, on the same step")
 Settle()
 local done = ButtonWith(setup, "Done")
 if done then done:Click() else setup:Hide(); HeyCousinDB.setupDone = true end

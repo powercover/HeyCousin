@@ -580,15 +580,20 @@ function Theme.Fit(button, padding, min)
     button:SetWidth(math.max(min or 0, math.ceil(button.label:GetStringWidth() + extra + (padding or 16) * 2)))
 end
 
--- An icon on a button, left of its label.
-function Theme.ButtonIcon(button, icon)
+-- An icon on a button, left of its label (`side` "RIGHT": right of it, as on a Next button).
+function Theme.ButtonIcon(button, icon, side)
     button.icon = Theme.Texture(button, Theme.Icon(icon), "ARTWORK", 1)
     button.icon:SetSize(14, 14)
     local textColor = C[skin.buttonText and skin.buttonText[button.kind] or "text"] or C.text
     button.icon:SetVertexColor(textColor[1], textColor[2], textColor[3])
-    button.labelX, button.iconX = 9, 0
     button.icon:ClearAllPoints()
-    button.icon:SetPoint("RIGHT", button.label, "LEFT", -6, 0)
+    if side == "RIGHT" then
+        button.labelX, button.iconX = -9, 0
+        button.icon:SetPoint("LEFT", button.label, "RIGHT", 6, 0)
+    else
+        button.labelX, button.iconX = 9, 0
+        button.icon:SetPoint("RIGHT", button.label, "LEFT", -6, 0)
+    end
     Theme.PaintButton(button)
 end
 

@@ -82,6 +82,42 @@ function Screens.cousin(skin)
     return { frames = { HeyCousinWindow } }
 end
 
+-- the Tree tab: the made-up guild you lead, by generation, with Mira's card
+function Screens.tree(skin)
+    local HC = Boot(skin)
+    HC.Window.Show("tree")
+    local function Walk(frame)
+        if frame.member and frame.SetChosen and frame.member.first == "Mira" and frame:IsVisible() then
+            return frame
+        end
+        for _, child in ipairs(frame.children or {}) do
+            local found = Walk(child)
+            if found then
+                return found
+            end
+        end
+    end
+    local mira = Walk(HeyCousinWindow)
+    if mira then
+        mira:Click()
+    end
+    return { frames = { HeyCousinWindow } }
+end
+
+-- WoW Forever, before you're in a guild: the tree says how it grows
+function Screens.treeless(skin)
+    local HC = Boot(skin, "forever")
+    HC.Window.Show("tree")
+    return { frames = { HeyCousinWindow } }
+end
+
+-- the setup's last step for a guild master: the guild as a family
+function Screens.guild(skin)
+    local HC = Boot(skin)
+    HC.Setup.Show(3)
+    return { frames = { HeyCousinSetup } }
+end
+
 function Screens.stats(skin)
     local HC = Boot(skin)
     HC.Window.Show("stats")

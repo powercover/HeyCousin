@@ -271,6 +271,11 @@ local function SendToSelf()
                 "probe:" .. kind, "WHISPER", target) }
         end
     end
+    -- and one to your guild's addons: how it names you is how the family tree knows its guild master
+    if Utils.Call(IsInGuild) == true then
+        data.addon.sent.guild = { result = Answers(C_ChatInfo and C_ChatInfo.SendAddonMessage, PREFIX, "probe:guild",
+            "GUILD") }
+    end
 end
 
 -- Targets you by `name` (a secure button: only out of combat), then looks at what got targeted.

@@ -52,12 +52,16 @@ GetSubZoneText
 GetTime
 GetUnitName
 GetZoneText
+GuildControlGetNumRanks
+GuildControlGetRankName
 GuildRoster
 HeyCousinDB
 InCombatLockdown
 InspectFrame
 InviteUnit
+IsGuildLeader
 IsInGroup
+IsInGuild
 IsInInstance
 IsInRaid
 IsResting

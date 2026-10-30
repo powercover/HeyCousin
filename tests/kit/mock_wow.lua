@@ -299,7 +299,7 @@ local function Globals()
     Mock.filters, Mock.postCalls, Mock.accepted = {}, {}, 0
     Mock.inGroup, Mock.zone, Mock.map = false, "Elwynn Forest", 1429
     Mock.focus, Mock.all = nil, {}
-    Mock.units, Mock.players, Mock.roster = {}, {}, {}
+    Mock.units, Mock.players, Mock.roster, Mock.guild, Mock.throttle = {}, {}, {}, nil, 0
 
     function CreateFrame(kind, name, parent, template)
         local class = kind == "Button" and Button or kind == "EditBox" and EditBox or kind == "PlayerModel" and Model or Frame
@@ -350,7 +350,8 @@ local function Globals()
     function GameTooltip:SetItemByID(id) self.lines, self.colors = { "item " .. id }, { {} } end
 
     TooltipDataProcessor = { AddTooltipPostCall = function(kind, fn) Mock.postCalls[kind] = fn end }
-    Enum = { TooltipDataType = { Unit = 2 } }
+    Enum = { TooltipDataType = { Unit = 2 },
+        SendAddonMessageResult = { Success = 0, AddonMessageThrottle = 3, ChannelThrottle = 8 } }
     ChatFrameUtil = {
         AddMessageEventFilter = function(event, fn)
             Mock.filters[event] = Mock.filters[event] or {}
@@ -361,9 +362,16 @@ local function Globals()
     }
     C_ChatInfo = {
         RegisterAddonMessagePrefix = function(prefix) Mock.prefix = prefix end,
+        -- (Mock.throttle: how many messages the game holds back, as when a prefix sends too many)
         SendAddonMessage = function(prefix, text, channel, target)
-            assert(type(target) == "string" and channel == "WHISPER")
-            table.insert(Mock.addonSent, { prefix = prefix, text = text, target = target })
+            assert(type(text) == "string" and #text <= 255, "an addon message is 255 bytes at most")
+            assert(channel == "GUILD" or (type(target) == "string" and channel == "WHISPER"))
+            if Mock.throttle > 0 then
+                Mock.throttle = Mock.throttle - 1
+                return Enum.SendAddonMessageResult.AddonMessageThrottle
+            end
+            table.insert(Mock.addonSent, { prefix = prefix, text = text, channel = channel, target = target })
+            return Enum.SendAddonMessageResult.Success
         end,
     }
     C_PartyInfo = { InviteUnit = function(name) table.insert(Mock.invites, name) end }
@@ -433,7 +441,6 @@ local function Globals()
     function UnitLevel(unit) local u = U(unit); return u and u.level or 0 end
     function UnitSex(unit) local u = U(unit); return u and u.sex or 2 end
     function UnitFactionGroup(unit) local u = U(unit); return u and u.faction end
-    function GetGuildInfo(unit) local u = U(unit); return u and u.guild end
     function UnitExists(unit) return U(unit) ~= nil end
     function UnitInParty(unit) local u = U(unit); return u ~= nil and u.party == true end
     function UnitInRaid() return nil end
@@ -457,6 +464,20 @@ local function Globals()
         end
         if p then return p.class, p.class, p.race, p.race, p.sex or 2, p.name, p.surname end
     end
+    -- your guild: Mock.guild = { name =, rank = (yours, 0: you lead it), ranks = { its rank names } };
+    -- its members, Mock.roster[i] = { full, rank, level, class, zone, online, guid, days (since online) }
+    function IsInGuild() return Mock.guild ~= nil end
+    function IsGuildLeader() return Mock.guild ~= nil and Mock.guild.rank == 0 end
+    function GetGuildInfo(unit)
+        if unit == "player" then
+            local g = Mock.guild
+            if g then return g.name, g.ranks[g.rank + 1], g.rank end
+            return nil
+        end
+        local u = U(unit); return u and u.guild
+    end
+    function GuildControlGetNumRanks() return Mock.guild and #Mock.guild.ranks or 0 end
+    function GuildControlGetRankName(index) return Mock.guild and Mock.guild.ranks[index] end
     function GetUnitName(unit) local u = U(unit); if u then return u.surname and (u.name .. " " .. u.surname) or u.name end end
     function UnitFullName(unit) local u = U(unit); if u then return u.name, u.surname end end
     function GetRealmName() return "Forever" end
@@ -466,9 +487,11 @@ local function Globals()
     function GetNumGuildMembers() return #Mock.roster end
     function GetGuildRosterInfo(i)
         local m = Mock.roster[i]
-        return m.full, "Member", 2, m.level, m.class, m.zone, "", "", m.online, 0, m.class, 0, 0, false, false, 0, m.guid
+        local rank = m.rank or 2
+        local rankName = Mock.guild and Mock.guild.ranks[rank + 1] or "Member"
+        return m.full, rankName, rank, m.level, m.class, m.zone, "", "", m.online, 0, m.class, 0, 0, false, false, 0, m.guid
     end
-    function GetGuildRosterLastOnline() return 0, 0, 2, 0 end
+    function GetGuildRosterLastOnline(i) local m = Mock.roster[i]; return 0, 0, m and m.days or 2, 0 end
 end
 
 -- --- running -----------------------------------------------------------------------------------

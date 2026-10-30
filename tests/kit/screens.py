@@ -791,11 +791,13 @@ def main():
     pair("1-family.png", "family")
     pair("2-cousin.png", "cousin")
     pair("2b-stats.png", "stats")
+    pair("2c-tree.png", "tree")
     rows = [[shot(scene, skin)[0] for skin in SKINS] for scene in ("near", "new", "sheep", "ask")]
     sheet(rows, SKINS).save(os.path.join(out, "3-pop-ups.png"))
     print("drew 3-pop-ups.png")
     pair("4-setup-crest.png", "crest")
     pair("5-setup-alerts.png", "alerts")
+    pair("5b-setup-guild.png", "guild")
     bits = []
     for skin in SKINS:
         picture, parts = shot("world", skin)
@@ -811,6 +813,7 @@ def main():
         print("drew", name)
     pair("9-crests.png", "crests")
     pair("10-empty.png", "empty")
+    pair("10b-tree-empty.png", "treeless")
     pair("11-probe.png", "probe")
     for note in dict.fromkeys(notes):
         print("note:", note)

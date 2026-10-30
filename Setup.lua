@@ -65,9 +65,20 @@ local function Same(a, b)
     return true
 end
 
--- Your crest and motto: saved as you make them, so every crest on screen follows.
+-- Your crest and motto: saved as you make them, so every crest on screen follows (and your
+-- guild's, when you lead it as a family).
 local function Save()
     Kin.SetCrest(draft, Utils.Trim(motto or ""))
+    HC.Guild.CrestChanged()
+end
+
+-- Your guild's family, when you lead it: saved and shared with your guild once it's changed from
+-- what was saved last.
+local function SaveGuild()
+    if session and session.guild and not HC.Guild.Equal(session.guild, session.saved) then
+        HC.Guild.SetFamily(session.guild)
+        session.saved = Copy(session.guild)
+    end
 end
 
 -- Whether step `index` is changed from how it was when the setup opened.
@@ -77,6 +88,8 @@ local function Changed(index)
     end
     if index == 1 then
         return not Same(draft, session.start.crest) or Utils.Trim(motto or "") ~= Utils.Trim(session.start.motto)
+    elseif index == 3 then
+        return not HC.Guild.Equal(session.guild, session.start.guild)
     end
     for _, key in ipairs(ALERT_KEYS) do
         if not Same(Settings()[key], session.start.settings[key]) then
@@ -129,6 +142,13 @@ local function Page(parent)
     p:SetPoint("TOPLEFT", 0, -BAR)
     p:SetPoint("BOTTOMRIGHT")
     return p
+end
+
+local function Heading(parent, text, x, y)
+    local heading = Theme.Text(parent, "Headline")
+    heading:SetPoint("TOPLEFT", x, y)
+    heading:SetText(text)
+    return heading
 end
 
 local function Arrow(parent, direction, x, y, onClick)
@@ -355,12 +375,7 @@ end
 local function BuildAlertsPage(parent)
     local p = Page(parent)
     p.toggles, p.chips = {}, {}
-    local function Heading(text, x, y)
-        local heading = Theme.Text(p, "Headline")
-        heading:SetPoint("TOPLEFT", x, y)
-        heading:SetText(text)
-    end
-    Heading(L["On screen"], PAD, -60)
+    Heading(p, L["On screen"], PAD, -60)
     local rows = {
         { L["A pop-up when a cousin is near"], L["With a sound. Click it to target them."], "popup", true },
         { L["Black sheep too"], L["Cousins from the other faction."], "enemyAlerts", true },
@@ -388,7 +403,7 @@ local function BuildAlertsPage(parent)
         end
         return y - 30
     end
-    Heading(L["Sound"], 322, -60)
+    Heading(p, L["Sound"], 322, -60)
     local sounds = { { "auto", L["Theme's"] }, { "chime", L["Chime"] }, { "bell", L["Bell"] }, { "boop", L["Boop"] },
         { "none", L["None"] } }
     local chips = {}
@@ -408,7 +423,7 @@ local function BuildAlertsPage(parent)
         chips[#chips + 1] = chip
     end
     local chatsY = Rows(chips, -84) - 10
-    Heading(L["Learn from these chats"], 322, chatsY)
+    Heading(p, L["Learn from these chats"], 322, chatsY)
     local chats = { { "say", L["Say and yell"] }, { "channel", L["Trade and general"] }, { "guild", L["Guild"] },
         { "group", L["Group"] }, { "whisper", L["Whispers"] } }
     local chatChips = {}
@@ -424,6 +439,106 @@ local function BuildAlertsPage(parent)
         for _, chip in ipairs(p.chips) do
             chip:Refresh()
         end
+    end
+    return p
+end
+
+-- --- page 3: your guild, when you lead it ------------------------------------------------------
+
+local function BuildGuildPage(parent)
+    local p = Page(parent)
+    local name = HC.Guild.Mine()
+    local title = Heading(p, name or L["Your guild"], PAD, -60)
+    title:SetPoint("RIGHT", p, "LEFT", 300, 0)
+    local metal = Theme.Metal()
+    title:SetTextColor(metal[1], metal[2], metal[3])
+    local row = Theme.ToggleRow(p, 286, L["Our guild is a family"], L["Everyone in it shows on the Tree tab."],
+        function()
+            -- (a new crest color repaints it, the setup open or not)
+            return session ~= nil and session.guild ~= nil and session.guild.on
+        end, function(value)
+            session.guild.on = value
+            p.Refresh()
+            SaveGuild()
+            UpdateReset()
+        end)
+    row:SetPoint("TOPLEFT", PAD - 8, -86)
+    p.switch = row.toggle
+    -- what the family is, while it is one
+    local fields = CreateFrame("Frame", nil, p)
+    fields:SetAllPoints()
+    p.fields = fields
+    local function Field(label, y, width, most, key)
+        local text = Theme.Text(fields, "Small", C.text2)
+        text:SetPoint("TOPLEFT", PAD, y)
+        text:SetText(label)
+        local box = Theme.EditBox(fields, width, nil, nil, most)
+        box:SetPoint("TOPLEFT", PAD, y - 16)
+        box.onChange = function(value)
+            session.guild[key] = value
+            UpdateReset()
+        end
+        -- saved when you're done typing
+        box.edit:HookScript("OnEditFocusLost", SaveGuild)
+        return box
+    end
+    p.surname = Field(L["Family name"], -146, 200, HC.Guild.NAME_MAX, "surname")
+    p.welcome = Field(L["Welcome line"], -206, 278, HC.Guild.WELCOME_MAX, "welcome")
+    p.welcome.hint:SetText(L["For new cousins, as they join"])
+    p.crest = Crest.Create(fields, 56)
+    p.crest:SetPoint("TOPLEFT", PAD, -270)
+    local crestText = Theme.Text(fields, "Small", C.text3)
+    crestText:SetPoint("TOPLEFT", PAD + 68, -280)
+    crestText:SetWidth(210)
+    crestText:SetWordWrap(true)
+    crestText:SetSpacing(2)
+    crestText:SetText(L["The family wears your crest, from the first step."])
+    -- each rank with its word, the guild master's first
+    Heading(fields, L["A word for each rank"], 322, -60)
+    p.words = {}
+    for index, rank in ipairs(HC.Guild.Ranks()) do
+        local y = -86 - (index - 1) * 34
+        local label = Theme.Text(fields, "Small", C.text2)
+        label:SetPoint("TOPRIGHT", fields, "TOPLEFT", 416, y - 9)
+        label:SetWidth(94)
+        label:SetJustifyH("RIGHT")
+        label:SetText(rank)
+        local box = Theme.EditBox(fields, 174, HC.Guild.DefaultWord(index - 1), nil, HC.Guild.WORD_MAX)
+        box:SetPoint("TOPLEFT", 424, y)
+        box.onChange = function(value)
+            session.guild.words[index] = value
+            UpdateReset()
+        end
+        box.edit:HookScript("OnEditFocusLost", SaveGuild)
+        p.words[index] = box
+    end
+    -- while it's no family
+    p.off = Theme.Text(p, "Body", C.text3)
+    p.off:SetPoint("TOPLEFT", 322, -90)
+    p.off:SetWidth(270)
+    p.off:SetWordWrap(true)
+    p.off:SetSpacing(3)
+    p.off:SetText(L["Turn it on to give your family a name, a word for each rank and a welcome line."])
+    local note = Theme.Text(p, "Small", C.text3)
+    note:SetPoint("TOPLEFT", PAD, -352)
+    note:SetWidth(270)
+    note:SetWordWrap(true)
+    note:SetSpacing(2)
+    note:SetText(L["Members with Hey Cousin! get all this from your addon, by themselves."]
+        .. (HC.TestMode.active and ("\n" .. L["(Test mode: a made-up guild you lead.)"]) or ""))
+    -- shows the family as it is in the draft (after a Reset)
+    function p.Refresh()
+        local family = session.guild
+        p.switch:Refresh(true)
+        fields:SetShown(family.on)
+        p.off:SetShown(not family.on)
+        p.surname.edit:SetText(family.surname)
+        p.welcome.edit:SetText(family.welcome)
+        for index, box in ipairs(p.words) do
+            local word = family.words[index]
+            box.edit:SetText(Utils.IsUsableString(word) and word or HC.Guild.DefaultWord(index - 1))
+        end
+        p.crest:SetCrest(Kin.Crest(), Utils.Trim(family.surname))
     end
     return p
 end
@@ -462,6 +577,10 @@ local function ShowPage(index)
     window.next:SetText(last and L["Done"] or L["Next"])
     Theme.SetArt(window.next.icon, Theme.Icon(last and "Check" or "ChevronRight"))
     Theme.Fit(window.next, 20, 110)
+    -- the guild's step shows your crest as it is now
+    if index == 3 then
+        pages[3].Refresh()
+    end
     UpdateReset()
 end
 
@@ -469,6 +588,7 @@ end
 local function Go(index)
     if index ~= page then
         Save()
+        SaveGuild()
         ShowPage(index)
     end
 end
@@ -480,6 +600,10 @@ local function Reset()
         motto = session.start.motto
         mottoBox.edit:SetText(motto)
         Edited()
+    elseif page == 3 then
+        session.guild = Copy(session.start.guild)
+        pages[3].Refresh()
+        SaveGuild()
     else
         for _, key in ipairs(ALERT_KEYS) do
             Settings()[key] = Copy(session.start.settings[key])
@@ -603,6 +727,12 @@ local function Build()
         { name = L["Crest"], title = L["Your house"] },
         { name = L["Alerts"], title = L["Alerts"] },
     }
+    -- the guild's family is its guild master's to give, on a step with a row for each rank
+    window.guild = session.guild ~= nil
+    window.ranks = table.concat(HC.Guild.Ranks(), "\n")
+    if window.guild then
+        window.steps[3] = { name = L["Guild"], title = L["Your guild"] }
+    end
     window.title = Theme.Text(window, "Title")
     window.title:SetPoint("TOPLEFT", PAD, -20)
     local metal = Theme.Metal()
@@ -610,6 +740,9 @@ local function Build()
     BuildLook()
     BuildSteps()
     pages = { BuildCrestPage(window), BuildAlertsPage(window) }
+    if window.guild then
+        pages[3] = BuildGuildPage(window)
+    end
     -- along the bottom: back (or skip, the first time), and reset beside next (done at the end)
     window.skip = Theme.Button(window, L["Skip for now"], "ghost", 120, 32)
     window.skip:SetPoint("BOTTOMLEFT", PAD, 18)
@@ -644,6 +777,7 @@ local function Build()
     window:HookScript("OnHide", function()
         mottoBox.edit:ClearFocus()
         Save()
+        SaveGuild()
         if not rebuilding then
             session = nil
         end
@@ -667,11 +801,33 @@ local function Begin()
     session = { page = 1, visited = {}, start = { crest = Copy(draft), motto = motto, settings = settings } }
 end
 
+-- Your guild's family in the setup, from when you lead your guild (the guild's step comes with it).
+local function BeginGuild()
+    if not session.guild and HC.Guild.Leads() then
+        session.guild = HC.Guild.Draft()
+        session.start.guild, session.saved = Copy(session.guild), Copy(session.guild)
+    end
+end
+
+-- The setup built again (in a new look, or with the guild's step come or gone): the session stays.
+local function Drop()
+    rebuilding = true
+    window:Hide()
+    rebuilding = false
+    window, pages, pickers, mottoBox, openPicker = nil, nil, nil, nil, nil
+end
+
 -- Opens the setup on `startPage`: else an open setup stays where it is, and a new one starts on
 -- the first step.
 function Setup.Show(startPage)
     if not session then
         Begin()
+    end
+    BeginGuild()
+    -- built again when the guild's step came, or its ranks changed
+    if window and (window.guild ~= (session.guild ~= nil)
+        or window.guild and window.ranks ~= table.concat(HC.Guild.Ranks(), "\n")) then
+        Drop()
     end
     if not window then
         Build()
@@ -686,7 +842,8 @@ function Setup.Show(startPage)
     end
     Paint()
     pages[2].Refresh()
-    ShowPage(startPage or session.page)
+    -- (a step that isn't there, as the guild's for a member: the first)
+    ShowPage(pages[startPage or session.page] and (startPage or session.page) or 1)
     window:Show()
 end
 
@@ -704,10 +861,7 @@ Theme.OnSkin(function()
         return
     end
     local shown = window:IsShown()
-    rebuilding = true
-    window:Hide()
-    rebuilding = false
-    window, pages, pickers, mottoBox, openPicker = nil, nil, nil, nil, nil
+    Drop()
     if shown then
         Setup.Show()
     end

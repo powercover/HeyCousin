@@ -71,6 +71,7 @@ end
 local function PrintHelp()
     Utils.Print(string.format(L["Version %s by %s"], HC.VERSION, HC.AUTHOR))
     Utils.Print("/cousin - " .. L["your family"])
+    Utils.Print("/cousin tree - " .. L["your guild as a family tree"])
     Utils.Print("/cousin setup - " .. L["your crest, alerts and look"])
     Utils.Print("/cousin test - " .. L["a pop-up to try"])
     Utils.Print("/cousin theme - " .. L["the next look"])
@@ -83,6 +84,8 @@ local function HandleSlash(message)
     local command = Utils.Trim(message):lower()
     if command == "" then
         HC.Window.Toggle()
+    elseif command == "tree" then
+        HC.Window.Show("tree")
     elseif command == "setup" then
         HC.Setup.Show()
     elseif command == "test" then
@@ -137,6 +140,7 @@ frame:SetScript("OnEvent", Utils.Protect("event", function(_, event, arg1)
         HC.Chat.Start()
         HC.Radar.Start()
         HC.Layer.Start()
+        HC.Guild.Start()
     elseif event == "PLAYER_ENTERING_WORLD" then
         -- the first time: the setup, a moment after the world shows
         if not welcomed and not HeyCousinDB.setupDone then

@@ -32,10 +32,12 @@ Crest.lua
 Names.lua
 Kin.lua
 Gear.lua
+Guild.lua
 TestMode.lua
 Alert.lua
 Radar.lua
 Layer.lua
+Tree.lua
 Window.lua
 Tooltip.lua
 Chat.lua

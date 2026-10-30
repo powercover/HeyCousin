@@ -131,7 +131,33 @@ check(HeyCousinDB.enemyAlerts == true and HeyCousinDB.sound == "auto" and not Bu
 -- the step bar goes to any step
 ButtonWith(setup, "Crest"):Click()
 check(Crest(setup, 160):IsVisible() and ButtonWith(setup, "Next") ~= nil, "a click on a step goes to it")
-ButtonWith(setup, "Alerts"):Click()
+NoErrors(HC, "alerts")
+
+-- the guild's step: you lead the made-up guild, so it's yours to make a family
+ButtonWith(setup, "Guild"):Click()
+check(ButtonWith(setup, "Guild").node.kind == "primary" and ButtonWith(setup, "Done") ~= nil, "the guild's step, the last")
+local function Boxes(root)
+    return All(root, function(f) return f.kind == "EditBox" and f:IsVisible() end)
+end
+local fields = Boxes(setup)
+check(#fields == 6 and fields[1]:GetText() == "Ashbrook" and fields[3]:GetText() == "Elder"
+    and fields[6]:GetText() == "Little cousin", "a family name, a welcome line, and a word for each of the 4 ranks")
+check(not ButtonWith(setup, "Reset"):IsEnabled(), "nothing changed on it yet")
+fields[5]:SetText("Kin")
+fields[5]:ClearFocus()
+check(HC.Guild.Family().words[3] == "Kin" and ButtonWith(setup, "Reset"):IsEnabled(), "a new word, saved when you're done typing")
+local stamp = HC.Guild.Family().stamp
+fields[5]:ClearFocus()
+fields[1]:ClearFocus()
+check(HC.Guild.Family().stamp == stamp, "done typing with no change: nothing saved again")
+local guildRow = All(setup, function(f) return f.toggle ~= nil and f:IsVisible() end)[1]
+guildRow:Click()
+check(not HC.Guild.Family().given and #Boxes(setup) == 0, "turned off: no family, no fields")
+guildRow:Click()
+check(HC.Guild.Family().given and #Boxes(setup) == 6, "and on again")
+ButtonWith(setup, "Reset"):Click()
+check(HC.Guild.Family().words[3] == "Cousin" and Boxes(setup)[5]:GetText() == "Cousin", "reset: the words as they were")
+NoErrors(HC, "guild step")
 -- the look, twice round, from the last step
 setup.look.forward:Click()
 setup = _G.HeyCousinSetup
@@ -194,6 +220,56 @@ for _, key in ipairs({ "name", "level", "zone", "seen", "seen" }) do
 end
 Settle()
 NoErrors(HC, "window")
+
+-- the Tree tab: the made-up guild by generation, you on top
+ButtonWith(window, "Tree"):Click()
+Settle()
+local function Tree()
+    return All(window, function(f) return f.member ~= nil and f.SetChosen ~= nil and f:IsVisible() end)
+end
+local boxes = Tree()
+check(#boxes == 14 and not search:IsVisible() and not Rows()[1], "the tree has the whole guild, and nothing else: " .. #boxes)
+-- (a box's level shows when it fits: the mock's text is wider than the game's, so only the word is
+-- checked here; screens.py measures the real fonts)
+check(boxes[1].member.me and boxes[1].line.text:find("Elder", 1, true) == 1, "you on top, its Elder: " .. boxes[1].line.text)
+check(boxes[2].name.text == "Lia" and boxes[2].line.text:find("Parent", 1, true) == 1, "then the Parents: " .. boxes[2].line.text)
+check(boxes[5].name.text == "Elowen" and boxes[5].dot:IsShown(), "the Cousins, the ones online first")
+local function Box(name)
+    for _, box in ipairs(Tree()) do
+        if box.name.text == name then return box end
+    end
+end
+check(Box("Pip") and Box("Pip").line.text:find("Little cousin", 1, true) == 1, "the guild master's own word for a rank")
+local treeTab = boxes[1]:GetParent():GetParent():GetParent()
+check(treeTab.title.text == "Ashbrook Kin" and treeTab.count.text:find("14 in the family", 1, true)
+    and treeTab.welcome.text:find("Welcome home", 1, true), "the guild's name, its count and its welcome line")
+-- a click shows their card
+local cardOf = All(window, function(f) return f.member ~= nil and f.page ~= nil end)[1]
+check(cardOf.member.me and not cardOf.whisper:IsShown(), "your own card first, nothing to send yourself")
+Box("Mira"):Click()
+check(cardOf.member.first == "Mira" and Box("Mira").chosen and cardOf.line.text:find("Cousin  ·  Member", 1, true)
+    and cardOf.line.text:find("Elwynn Forest, now", 1, true), "a click shows their card: " .. cardOf.line.text)
+check(cardOf.whisper:IsEnabled() and cardOf.page:IsShown(), "online: whisper; a relative: their page")
+Box("Pip"):Click()
+check(not cardOf.whisper:IsEnabled() and not cardOf.page:IsShown() and cardOf.line.text:find("Last online 2 days ago", 1, true),
+    "offline and only known from the guild: " .. cardOf.line.text)
+Box("Corin"):Click()
+check(cardOf.name.text == "Corin Fairwind" and cardOf.line.text:find("In-law", 1, true), "an in-law: their whole name on their card")
+Box("Juniper"):Click()
+local lines = #Mock.chat
+cardOf.whisper:Click()
+check(#Mock.chat == lines + 1 and Mock.chat[#Mock.chat]:find("Test mode", 1, true), "test mode: made-up cousins can't be whispered")
+Box("Mira"):Click()
+cardOf.page:Click()
+Settle()
+check(page:IsShown() and page.first == "Mira" and ButtonWith(window, "Family").kind == "primary", "their page, on the family tab")
+ButtonWith(window, "Tree"):Click()
+Settle()
+check(Box("Mira").chosen and not page:IsShown(), "back on the tree, Mira still chosen")
+ButtonWith(window, "Family words"):Click()
+check(_G.HeyCousinSetup:IsShown() and ButtonWith(_G.HeyCousinSetup, "Done") ~= nil, "the guild master's words: the setup's guild step")
+_G.HeyCousinSetup:Hide()
+NoErrors(HC, "tree")
 
 -- the next look, with the window open: it's built again in it
 SlashCmdList.HEYCOUSIN("theme")
@@ -259,7 +335,7 @@ check(_G.HeyCousinWindow:IsShown(), "the family stays open through the looks")
 HC.Setup.Show(1)
 Hover(_G.HeyCousinSetup)
 Round("looks with the setup's first step")
-HC.Setup.Show(2)
+HC.Setup.Show(3)
 Hover(_G.HeyCousinSetup)
 Round("looks with the setup's last step")
 check(_G.HeyCousinSetup:IsShown() and ButtonWith(_G.HeyCousinSetup, "Done") ~= nil, "the setup stays on its step")
@@ -503,6 +579,131 @@ check(wrenPage:IsShown() and wrenPage.heading.text == "Meetings (107)" and wrenP
 _G.HeyCousinWindow:Hide()
 Mock.units.nameplate3 = nil
 NoErrors(HC, "meetings")
+
+-- your guild as a family: most of it shares your surname, so it's one by itself
+local RANKS = { "Guild Master", "Officer", "Member", "Initiate" }
+Mock.guild = { name = "Ashbrook Kin", rank = 2, ranks = RANKS }
+Mock.roster = {
+    { full = "Ogre Ashbrook", rank = 0, level = 14, class = "WARRIOR", zone = "Elwynn Forest", online = true, guid = "Player-1-OGRE" },
+    { full = "Lia Ashbrook", rank = 1, level = 60, class = "PRIEST", online = false, days = 3, guid = "Player-1-LIA" },
+    { full = "Rowan Ashbrook", rank = 2, level = 20, class = "WARRIOR", zone = "Elwynn Forest", online = true, guid = "Player-1-ME" },
+    { full = "Mira Ashbrook", rank = 2, level = 23, class = "MAGE", zone = "Elwynn Forest", online = true, guid = "Player-1-MIRA" },
+    { full = "Ann Other", rank = 3, level = 10, class = "ROGUE", online = false, guid = "Player-1-ANN" },
+}
+local sentBefore = #Mock.addonSent
+Mock.Fire("PLAYER_GUILD_UPDATE")
+Mock.Fire("GUILD_ROSTER_UPDATE")
+Settle()
+local hello = Mock.addonSent[sentBefore + 1]
+check(hello and hello.channel == "GUILD" and hello.text == "2:H:0" and #Mock.addonSent == sentBefore + 1,
+    "once a session, your addon says hello to your guild's")
+local generations, family = HC.Guild.Tree()
+check(family.surname == "Ashbrook" and not family.given and #generations == 3 and #generations[3].members == 3
+    and generations[3].members[1].first == "Mira" and generations[3].members[2].me,
+    "a family by itself: Elder, Parent, and every Cousin (an in-law too), the ones online first")
+HC.Window.Show("tree")
+Settle()
+local treeBoxes = All(_G.HeyCousinWindow, function(f) return f.member ~= nil and f.SetChosen ~= nil and f:IsVisible() end)
+check(#treeBoxes == 5 and treeBoxes[1].line.text:find("Elder", 1, true) == 1, "the Tree tab shows them all")
+-- the guild master's words, from their addon (in two parts); a member's are not theirs to give
+local payload = "1~Ashbrook~Round.Fess.azure.argent.or.charge.Heart~^^Kid^Little cousin^^^^^^~Welcome home, cousin!~"
+local function Given(sender, stamp, parts)
+    for index, part in ipairs(parts) do
+        Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", string.format("2:F:%d:%d:%d:%s", stamp, index, #parts, part), "GUILD", sender)
+    end
+end
+Given("Mira Ashbrook", 5000, { payload })
+Given("Ogre", 5000, { payload })
+check(not HC.Guild.Family().given, "only the guild master's addon gives the family its words, by their whole name")
+local saidBefore = #Mock.chat
+Given("Ogre Ashbrook", 5000, { payload:sub(1, 30), payload:sub(31) })
+family = HC.Guild.Family()
+check(family.given and family.words[1] == "Elder" and family.words[3] == "Kid" and family.words[4] == "Little cousin"
+    and family.crest.shape == "Round" and family.crest.charge == "Heart" and family.welcome == "Welcome home, cousin!",
+    "the guild master's words, crest and welcome line")
+check(#Mock.chat == saidBefore + 2 and Mock.chat[saidBefore + 1]:find("Welcome to the Ashbrook family!", 1, true),
+    "the family greets you")
+Given("Ogre Ashbrook", 4000, { (payload:gsub("Kid", "Baby")) })
+check(HC.Guild.Family().words[3] == "Kid", "older words don't come back")
+generations = HC.Guild.Tree()
+check(#generations == 4 and generations[3].word == "Kid" and generations[4].word == "Little cousin"
+    and generations[4].members[1].first == "Ann", "a generation for each word")
+Given("Ogre Ashbrook", 6000, { "1~Ash|cffff0000%0Abrook~~~" })
+check(HC.Guild.Family().surname == "Ashcffff0000brook" and HC.Guild.Family().words[3] == "Cousin",
+    "no codes or line breaks in the guild master's words: " .. HC.Guild.Family().surname)
+check(#Mock.chat == saidBefore + 2, "the greeting comes once")
+Settle()
+NoErrors(HC, "the guild master's words")
+-- you lead the guild: your words go to every member's addon, a moment after your last change
+Mock.guild.rank, Mock.roster[1].rank, Mock.roster[3].rank = 0, 2, 0
+Mock.Fire("GUILD_ROSTER_UPDATE")
+local sentNow = #Mock.addonSent
+HC.Guild.SetFamily({ on = true, surname = "Ashbrook", words = { "", "", "Kid" }, welcome = "Hi" })
+HC.Guild.SetFamily({ on = true, surname = "Ashbrook", words = { "", "", "Kin" }, welcome = "Hi!" })
+Mock.Advance(6)
+local shared = Mock.addonSent[#Mock.addonSent]
+check(#Mock.addonSent == sentNow + 1 and shared.channel == "GUILD" and shared.text:find("^2:F:%d+:1:1:1~Ashbrook~")
+    and shared.text:find("~^^Kin^", 1, true) and shared.text:find("~Hi!~$"), "your words go to the guild once: " .. shared.text)
+-- a burst of hellos gets one answer, and no more for a minute, whoever asks
+sentNow = #Mock.addonSent
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "2:H:0", "GUILD", "Mira Ashbrook")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "2:H:0", "GUILD", "Lia Ashbrook")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "2:H:0", "GUILD", "Bob Stone")
+Mock.Advance(6)
+check(#Mock.addonSent == sentNow + 1, "three hellos, one answer: " .. (#Mock.addonSent - sentNow))
+for _ = 1, 10 do
+    Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "2:H:0", "GUILD", "Mira Ashbrook")
+    Mock.Advance(5)
+end
+check(#Mock.addonSent == sentNow + 1, "hello after hello: no more answers for a minute: " .. (#Mock.addonSent - sentNow))
+-- you make it no family: a guild that shares a surname isn't one by itself then
+HC.Guild.SetFamily({ on = false, surname = "Ashbrook", words = {}, welcome = "" })
+check(HC.Guild.Family().surname == nil and not HC.Guild.Draft().on and #HC.Guild.Tree()[3].members == 2,
+    "no family: only you and your relatives (no in-laws)")
+-- a long family in Russian goes in parts, each in the game's limit (one held back by the game goes
+-- again), and comes back whole
+local long = { on = true, surname = "Ашбрук", words = { "Старейшина", "Родитель", "Двоюродные", "Малыши" },
+    welcome = "Добро пожаловать домой, кузен! Спроси родителя, если нужна помощь, и заходи к нам." }
+Mock.Advance(6)
+sentNow = #Mock.addonSent
+Mock.throttle = 1
+HC.Guild.SetFamily(long)
+Mock.Advance(6)
+check(#Mock.addonSent == sentNow and Mock.throttle == 0, "the game held the first part back")
+Mock.Advance(3)
+local parts = {}
+for i = sentNow + 1, #Mock.addonSent do parts[#parts + 1] = Mock.addonSent[i].text end
+check(#parts == 2 and parts[1]:find("^2:F:%d+:1:2:") and parts[2]:find("^2:F:%d+:2:2:"), "then both parts went: " .. #parts)
+Mock.guild = { name = "Other Kin", rank = 2, ranks = RANKS }
+Mock.roster[1].rank, Mock.roster[3].rank = 0, 2
+Mock.Fire("GUILD_ROSTER_UPDATE")
+saidBefore = #Mock.chat
+Given("Ogre Ashbrook", 1000, { "1~Ashbrook~~~~o" })
+check(#Mock.chat == saidBefore and not HC.Guild.Family().given, "no family from the guild master: no greeting")
+for _, text in ipairs(parts) do
+    Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", text, "GUILD", "Ogre Ashbrook")
+end
+family = HC.Guild.Family()
+check(family.surname == "Ашбрук" and family.words[1] == "Старейшина" and family.words[4] == "Малыши"
+    and family.welcome == long.welcome and #Mock.chat == saidBefore + 2, "it comes back whole in another guild, with a greeting: "
+    .. tostring(family.surname) .. ", " .. (#Mock.chat - saidBefore) .. " lines: " .. tostring(Mock.chat[#Mock.chat]))
+-- back in your own guild, as its master: your addon tells the members online by itself
+Mock.guild = { name = "Ashbrook Kin", rank = 0, ranks = RANKS }
+Mock.roster[1].rank, Mock.roster[3].rank = 2, 0
+sentNow = #Mock.addonSent
+Mock.Fire("GUILD_ROSTER_UPDATE")
+Mock.Advance(6)
+check(#Mock.addonSent == sentNow + 2 and Mock.addonSent[sentNow + 1].text:find("^2:F:%d+:1:2:"),
+    "the guild master's addon tells the members online, by itself: " .. (#Mock.addonSent - sentNow))
+-- out of a guild: the tree waits
+Mock.guild, Mock.roster = nil, {}
+Mock.Fire("PLAYER_GUILD_UPDATE")
+Settle()
+local treeTab = treeBoxes[1]:GetParent():GetParent():GetParent()
+check(treeTab.title.text == "" and All(treeTab, function(f) return f.title and f.title.text == "No guild yet" and f:IsVisible() end)[1],
+    "no guild: the tree says how it grows")
+_G.HeyCousinWindow:Hide()
+NoErrors(HC, "guild")
 
 -- === Broken saved data ========================================================================
 

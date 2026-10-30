@@ -21,7 +21,7 @@ local LEVEL_X, ZONE_X, SEEN_W = 206, 248, 76
 local LIST_TOP = 166
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 
-local window, list, page, stats, empty
+local window, list, page, stats, empty, tree
 local tabs, search, header
 -- Each column has its natural order (newest first, A to Z, highest level first); a second click
 -- on it turns the list around.
@@ -244,6 +244,9 @@ local function Invite(full)
         InviteUnit(full)
     end
 end
+
+-- (the Tree tab's card has these buttons too)
+Window.Whisper, Window.Invite = Whisper, Invite
 
 -- Where a meeting was: "Goldshire, Elwynn Forest".
 local function Place(meeting)
@@ -779,12 +782,12 @@ local function Build()
         end
     end)
 
-    tabs = Theme.Tabs(window, { { key = "family", label = L["Family"] }, { key = "stats", label = L["Stats"] } },
-        function()
+    tabs = Theme.Tabs(window, { { key = "family", label = L["Family"] }, { key = "tree", label = L["Tree"] },
+        { key = "stats", label = L["Stats"] } }, function()
             Window.Refresh()
-        end, 200, 30)
+        end, 282, 30)
     tabs:SetPoint("TOPLEFT", PAD, -96)
-    search = Theme.EditBox(window, 190, L["Search"], "Search", 24)
+    search = Theme.EditBox(window, 168, L["Search"], "Search", 24)
     search:SetPoint("TOPRIGHT", -PAD, -96)
     search.onChange = function(text)
         query = Utils.Trim(text)
@@ -827,6 +830,7 @@ local function Build()
 
     BuildPage()
     BuildStats()
+    tree = HC.Tree.Build(window, PAD, LIST_TOP - 28, 42)
 
     -- the line along the bottom
     window.footer = Theme.Text(window, "Small", C.text3)
@@ -899,19 +903,24 @@ function Window.Refresh(keep)
         return
     end
     PaintHeader()
-    local onStats = tabs.selected == "stats"
-    local onPage = not onStats and opened ~= nil and PaintPage(keep)
+    local onStats, onTree = tabs.selected == "stats", tabs.selected == "tree"
+    local onPage = tabs.selected == "family" and opened ~= nil and PaintPage(keep)
     if not onPage then
         page:Hide()
     end
-    search:SetShown(not onStats and not onPage)
+    local onList = tabs.selected == "family" and not onPage
+    search:SetShown(onList)
     for _, column in ipairs(window.columns) do
-        column:SetShown(not onStats and not onPage)
+        column:SetShown(onList)
         local color = sort.key == column.key and C.text2 or C.text3
         column.label:SetTextColor(color[1], color[2], color[3])
         column.arrow:SetShown(sort.key == column.key)
     end
-    if onStats or onPage then
+    tree:SetShown(onTree)
+    if onTree then
+        HC.Tree.Paint(keep)
+    end
+    if not onList then
         list:Hide()
         empty:Hide()
         stats:SetShown(onStats)
@@ -988,7 +997,7 @@ Theme.OnSkin(function()
     end
     local shown = window:IsShown()
     window:Hide()
-    window, list, page, stats, empty, tabs, search, header = nil, nil, nil, nil, nil, nil, nil, nil
+    window, list, page, stats, empty, tree, tabs, search, header = nil, nil, nil, nil, nil, nil, nil, nil, nil
     if shown then
         Window.Show()
     end

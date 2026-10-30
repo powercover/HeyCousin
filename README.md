@@ -17,14 +17,19 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - **The family window**: everyone you met, who is near you now, the family's stats, and a page for
   each cousin: every time you met (where, when, how, both your levels, what they said, their gear
   when you were close), with Whisper, Invite and **Join their layer**.
+- **The family tree**: your guild as a family, each rank a generation, the Elder on top. A guild
+  where most share one surname is a family by itself; its guild master can give the family a word
+  for each rank (Elder, Parent, Cousin, or their own) and a welcome line, and every member who
+  runs Hey Cousin! gets them by themselves.
 - **The setup**: make your crest (shape, pattern, colors, a symbol, or roll the dice), write a
-  motto, and pick your alerts and your look.
+  motto, and pick your alerts and your look; a guild master makes their guild a family.
 - **Two looks**: Pixel (chunky and cartoonish) and Smooth (dark and gold).
 - **Test mode on Retail**: a made-up family, so you can try everything before WoW Forever opens.
 
 ## Commands
 
 - `/cousin` (or `/heycousin`): your family
+- `/cousin tree`: your guild as a family tree
 - `/cousin setup`: your crest, alerts and look
 - `/cousin test`: a pop-up to try
 - `/cousin theme`: the next look

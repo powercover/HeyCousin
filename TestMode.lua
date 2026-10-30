@@ -3,7 +3,7 @@ local _, HC = ...
 -- Retail has no surnames, so there the addon runs in test mode with a made-up family: the
 -- window, the pop-up and the crest can all be tried before WoW Forever opens. The family is never
 -- saved. The crest and motto you make here are, and they wait for your Forever house.
-HC.TestMode = { active = false, SURNAME = "Ashbrook" }
+HC.TestMode = { active = false, SURNAME = "Ashbrook", GUILD = "Ashbrook Kin" }
 
 local TestMode = HC.TestMode
 local Utils = HC.Utils
@@ -49,6 +49,19 @@ local SAID = { "Hey cousin!", "Same surname, same family!", "Need a hand with th
 local WAYS = { "nameplate", "mouseover", "target", "group", "say", "nameplate" }
 local ROBES, TROUSERS, BOOTS, WEAPONS = { 56, 57, 6098 }, { 39, 44, 48, 52 }, { 40, 43, 47, 51, 55 },
     { 25, 35, 36, 37, 2092, 2361 }
+
+-- The made-up guild you lead: its ranks, and who's in it by rank (0: the guild master, you). A
+-- relative from the family above comes as they are; the others are known only from the guild,
+-- and one of them is an in-law (another surname).
+local GUILD_RANKS = { "Guild Master", "Officer", "Member", "Initiate" }
+local GUILD = {
+    { first = "Lia", rank = 1 }, { first = "Thane", rank = 1 }, { first = "Isla", rank = 1 },
+    { first = "Mira", rank = 2 }, { first = "Elowen", rank = 2 }, { first = "Fenn", rank = 2 }, { first = "Odo", rank = 2 },
+    { first = "Tamsin", rank = 2 }, { first = "Hollis", rank = 2 }, { first = "Bram", rank = 2 },
+    { first = "Corin", rank = 2, surname = "Fairwind", class = "HUNTER", level = 18, ago = 3 * HOUR },
+    { first = "Pip", rank = 3, class = "ROGUE", level = 9, ago = 2 * DAY },
+    { first = "Juniper", rank = 3, class = "PRIEST", level = 14, ago = 20 * MINUTE, zone = "Stormwind City" },
+}
 
 -- The same made-up numbers every time for a name: the pictures (screens.py) stay the same.
 local function Dice(name)
@@ -158,6 +171,44 @@ end
 
 function TestMode.Surnames()
     return SURNAMES
+end
+
+function TestMode.GuildRanks()
+    return { unpack(GUILD_RANKS) }
+end
+
+-- The made-up guild's members, as Guild.Members gives a real guild's: online when seen within the
+-- hour.
+function TestMode.Guild()
+    local relatives = TestMode.House().relatives
+    local now = time()
+    local first = TestMode.Me()
+    local _, class = Utils.Call(UnitClass, "player")
+    local members = { {
+        full = HC.Names.Full(first, TestMode.SURNAME), first = first, surname = TestMode.SURNAME, rank = 0,
+        rankName = GUILD_RANKS[1], level = Utils.Call(UnitLevel, "player"), class = class, zone = Utils.Zone(),
+        online = true, me = true,
+    } }
+    for _, row in ipairs(GUILD) do
+        local relative = relatives[row.first]
+        local seen = relative and relative.lastSeen or now - row.ago
+        local member = {
+            first = row.first, surname = row.surname or TestMode.SURNAME, rank = row.rank, rankName = GUILD_RANKS[row.rank + 1],
+            class = relative and relative.class or row.class, level = relative and relative.level or row.level,
+            online = now - seen < HOUR,
+        }
+        member.full = HC.Names.Full(member.first, member.surname)
+        member.zone = member.online and (relative and relative.zone or row.zone) or nil
+        member.seen = not member.online and seen or nil
+        members[#members + 1] = member
+    end
+    return members
+end
+
+-- The made-up guild's family, as you (its guild master) gave it: its Initiates are Little cousins.
+function TestMode.GuildFamily()
+    return { stamp = 1, surname = TestMode.SURNAME, words = { "", "", "", L["Little cousin"] },
+        welcome = L["Welcome home, cousin! Ask a Parent if you need a hand."] }
 end
 
 -- A pop-up with a made-up cousin, round after round: one near you, a new one, a black sheep, and

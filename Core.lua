@@ -7,15 +7,29 @@ local Utils = HC.Utils
 local L = HC.L
 local frame = CreateFrame("Frame")
 
--- WoW Forever, or Retail in test mode: Retail has no surnames, so the addon shows made-up cousins
+-- WoW Forever, or Retail in test mode: Retail has no surnames, so the addon shows a made-up family
 -- there.
 HC.IsForever = Utils.IsForever()
 
+local DEFAULTS = {
+    debug = false,
+    language = "auto",
+    skin = "pixel",
+    setupDone = false,
+    popup = true,
+    enemyAlerts = true,
+    sound = "auto",
+    cooldown = 30,
+    chatCrest = true,
+    tooltipLine = true,
+    showMinimap = true,
+    minimapAngle = 200,
+    lockMinimap = false,
+    chats = { say = true, channel = true, guild = true, group = true, whisper = true },
+}
+
 local function SavedDefaults()
-    HeyCousinDB = Utils.CopyDefaults(HeyCousinDB, {
-        debug = false,
-        language = "auto",
-    })
+    HeyCousinDB = Utils.CopyDefaults(HeyCousinDB, DEFAULTS)
 end
 
 -- What the game tells the addon about the client and this character: the first thing to check
@@ -40,6 +54,7 @@ function HC.PrintStatus()
     if ok then
         Utils.Print(string.format(L["Your name: %s, then %s"], Utils.Shown(name), Utils.Shown(second)))
     end
+    Utils.Print(string.format(L["Your layer: %s"], Utils.Shown(HC.Layer.Current())))
 end
 
 -- The errors the addon caught (Utils.Protect), the newest last.
@@ -55,15 +70,29 @@ end
 
 local function PrintHelp()
     Utils.Print(string.format(L["Version %s by %s"], HC.VERSION, HC.AUTHOR))
-    Utils.Print(L["Commands: /heycousin or /cousin, then:"])
-    Utils.Print("  status - " .. L["what the game tells the addon about you"])
-    Utils.Print("  debug - " .. L["the errors the addon caught, in chat (on or off)"])
+    Utils.Print("/cousin - " .. L["your family"])
+    Utils.Print("/cousin setup - " .. L["your crest, alerts and look"])
+    Utils.Print("/cousin test - " .. L["a pop-up to try"])
+    Utils.Print("/cousin theme - " .. L["the next look"])
+    Utils.Print("/cousin status - " .. L["what the game tells the addon about you"])
+    Utils.Print("/cousin debug - " .. L["the errors the addon caught, in chat (on or off)"])
 end
 
 local function HandleSlash(message)
     local command = Utils.Trim(message):lower()
-    if command == "" or command == "help" then
-        PrintHelp()
+    if command == "" then
+        HC.Window.Toggle()
+    elseif command == "setup" then
+        HC.Setup.Show()
+    elseif command == "test" then
+        if HC.TestMode.active then
+            HC.TestMode.Pop()
+        else
+            HC.Alert.Preview()
+        end
+    elseif command == "theme" or command == "look" then
+        HC.Theme.SetSkin(HC.Theme.Next(HC.Theme.Skin().key))
+        Utils.Print(string.format(L["Look: %s"], HC.Theme.Skin().name))
     elseif command == "status" then
         HC.PrintStatus()
     elseif command == "debug" then
@@ -73,22 +102,52 @@ local function HandleSlash(message)
         if HeyCousinDB.debug then
             PrintErrors()
         end
+    elseif command == "help" then
+        PrintHelp()
     else
         Utils.Print(L["Unknown command."])
         PrintHelp()
     end
 end
 
+local welcomed = false
+
 -- Every game event the addon reacts to; an error in one is noted (Utils.Protect), never shown.
 frame:SetScript("OnEvent", Utils.Protect("event", function(_, event, arg1)
-    if event == "ADDON_LOADED" and arg1 == addonName then
+    if event == "ADDON_LOADED" then
+        if arg1 ~= addonName then
+            return
+        end
         SavedDefaults()
-        -- The chosen language first: everything built from here on speaks it.
+        -- The chosen language and look first: everything built from here on has them.
         HC.Locale.Apply()
+        HC.Theme.Use(HeyCousinDB.skin)
+        if not HC.IsForever then
+            HC.TestMode.Start()
+        end
+        HC.Kin.ApplyAccent()
+    elseif event == "PLAYER_LOGIN" then
+        HC.Minimap.Apply()
+        HC.Tooltip.Start()
+        HC.Chat.Start()
+        HC.Radar.Start()
+        HC.Layer.Start()
+    elseif event == "PLAYER_ENTERING_WORLD" then
+        -- the first time: the setup, a moment after the world shows
+        if not welcomed and not HeyCousinDB.setupDone then
+            welcomed = true
+            Utils.After(4, "welcome", function()
+                if not InCombatLockdown() and not HeyCousinDB.setupDone then
+                    HC.Setup.Show()
+                end
+            end)
+        end
     end
 end))
 
 frame:RegisterEvent("ADDON_LOADED")
+frame:RegisterEvent("PLAYER_LOGIN")
+frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 SLASH_HEYCOUSIN1 = "/heycousin"
 SLASH_HEYCOUSIN2 = "/cousin"

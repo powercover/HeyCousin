@@ -31,12 +31,12 @@ CHECKS = {
                     ["not translated yet"]),
     "locale_glyphs": ([PY, "locale_glyphs.py"], None, []),
     "standard_toc": ([PY, "link.py", "--check"], "standard toc: ok", []),
-    "core": ([PY, "run51.py", "core_smoke.lua"], "core checks passed", []),
+    "addon": ([PY, "run51.py", "mock_wow.lua", "addon_smoke.lua"], "addon checks passed", []),
 }
 if BOTH:
     CHECKS.update({
         "syntax55": ([PY, "syntax_check.py"], ", 0 errors", []),
-        "core55": ([PY, "run55.py", "core_smoke.lua"], "core checks passed", []),
+        "addon55": ([PY, "run55.py", "mock_wow.lua", "addon_smoke.lua"], "addon checks passed", []),
     })
 if ONLY:
     CHECKS = {k: v for k, v in CHECKS.items() if k in ONLY}

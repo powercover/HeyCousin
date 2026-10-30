@@ -3,7 +3,7 @@
 import re, sys, glob, os
 root = os.environ.get("HC_ROOT", os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")))
 problems = 0
-for path in sorted(glob.glob(os.path.join(root, "*.lua"))):
+for path in sorted(glob.glob(os.path.join(root, "*.lua")) + glob.glob(os.path.join(root, "Skins", "*.lua"))):
     lines = open(path, encoding="utf-8").read().split("\n")
     defined = {}
     forward = set()

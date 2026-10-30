@@ -6,7 +6,7 @@ from lupa import LuaRuntime
 os.chdir(os.environ.get("HC_ROOT", os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))))
 lua = LuaRuntime()
 check = lua.eval("function(path) local chunk, err = loadfile(path) if chunk then return nil end return err end")
-files = sorted(glob.glob("*.lua") + glob.glob("Locales/*.lua"))
+files = sorted(glob.glob("*.lua") + glob.glob("Skins/*.lua") + glob.glob("Locales/*.lua"))
 errors = [(path, check(path)) for path in files]
 errors = [(path, err) for path, err in errors if err]
 for path, err in errors:

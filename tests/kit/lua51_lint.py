@@ -26,7 +26,8 @@ BASELINE = os.path.join(HERE, "lua51_globals.txt")
 
 # Globals the addon is meant to create: saved variables, key bindings, slash commands.
 ALLOWED_WRITES_PREFIXES = ("BINDING_", "SLASH_")
-ALLOWED_WRITES = {"HeyCousinDB"}
+ALLOWED_WRITES = {"HeyCousinDB", "HeyCousin_OnAddonCompartmentClick", "HeyCousin_OnAddonCompartmentEnter",
+                  "HeyCousin_OnAddonCompartmentLeave"}
 
 GETGLOBAL, SETGLOBAL = 5, 7
 
@@ -104,7 +105,8 @@ class Reader:
 
 
 def files():
-    found = sorted(glob.glob(os.path.join(ROOT, "*.lua"))) + sorted(glob.glob(os.path.join(ROOT, "Locales", "*.lua")))
+    found = (sorted(glob.glob(os.path.join(ROOT, "*.lua"))) + sorted(glob.glob(os.path.join(ROOT, "Skins", "*.lua")))
+             + sorted(glob.glob(os.path.join(ROOT, "Locales", "*.lua"))))
     return [p for p in found if os.path.isfile(p)]
 
 

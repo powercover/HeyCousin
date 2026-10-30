@@ -54,6 +54,6 @@ for path in sorted(glob.glob(os.path.join(ROOT, "Locales", "*.lua"))):
 
 # The English text: every quoted string in the addon's Lua files.
 english = []
-for path in glob.glob(os.path.join(ROOT, "*.lua")):
+for path in glob.glob(os.path.join(ROOT, "*.lua")) + glob.glob(os.path.join(ROOT, "Skins", "*.lua")):
     english += re.findall(r'"((?:[^"\\]|\\.)*)"', open(path, encoding="utf-8").read())
 report("English (source)", english, ["latin"])

@@ -7,6 +7,10 @@
 ## SavedVariables: HeyCousinDB
 ## AllowLoadGameType: camelot
 ## Category: Social
+## IconTexture: Interface\AddOns\HeyCousin\Media\Icon
+## AddonCompartmentFunc: HeyCousin_OnAddonCompartmentClick
+## AddonCompartmentFuncOnEnter: HeyCousin_OnAddonCompartmentEnter
+## AddonCompartmentFuncOnLeave: HeyCousin_OnAddonCompartmentLeave
 
 Locales\Locales.lua
 Locales\deDE.lua
@@ -21,4 +25,19 @@ Locales\ukUA.lua
 Locales\zhCN.lua
 Locales\zhTW.lua
 Utils.lua
+Theme.lua
+Skins\Pixel.lua
+Skins\Smooth.lua
+Crest.lua
+Names.lua
+Kin.lua
+TestMode.lua
+Alert.lua
+Radar.lua
+Layer.lua
+Window.lua
+Tooltip.lua
+Chat.lua
+Minimap.lua
+Setup.lua
 Core.lua

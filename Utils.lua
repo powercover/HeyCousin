@@ -99,6 +99,103 @@ function Utils.IsForever()
     return Utils.IsUsableNumber(interface) and interface >= 16000 and interface < 17000
 end
 
+-- Whether `unit`'s identity is hidden from addons right now (Midnight's rules, in protected
+-- content). Missing API: not hidden.
+function Utils.UnitHidden(unit)
+    local secrets = C_Secrets
+    if secrets and type(secrets.ShouldUnitIdentityBeSecret) == "function" then
+        local ok, hidden = pcall(secrets.ShouldUnitIdentityBeSecret, unit)
+        return not ok or hidden == true
+    end
+    return false
+end
+
+-- The zone you're in, by name.
+function Utils.Zone()
+    local zone = Utils.Call(GetRealZoneText) or Utils.Call(GetZoneText)
+    return Utils.IsUsableString(zone) and zone or nil
+end
+
+-- A class's color as { r, g, b } (a neutral gray for an unknown class).
+function Utils.ClassColor(classFile)
+    local color
+    if type(classFile) == "string" then
+        if C_ClassColor and type(C_ClassColor.GetClassColor) == "function" then
+            color = Utils.Call(C_ClassColor.GetClassColor, classFile)
+        end
+        color = color or (RAID_CLASS_COLORS and RAID_CLASS_COLORS[classFile])
+    end
+    if type(color) == "table" and type(color.r) == "number" then
+        return { color.r, color.g, color.b }
+    end
+    return { 0.72, 0.68, 0.6 }
+end
+
+-- Puts a class's icon on `texture`: the game's round atlas where it has one, else the old
+-- character-creation sheet. False when the game has neither.
+function Utils.SetClassIcon(texture, classFile)
+    if type(classFile) ~= "string" then
+        return false
+    end
+    local atlas = "classicon-" .. classFile:lower()
+    if C_Texture and type(C_Texture.GetAtlasInfo) == "function" and Utils.Call(C_Texture.GetAtlasInfo, atlas) then
+        texture:SetAtlas(atlas)
+        return true
+    end
+    local coords = CLASS_ICON_TCOORDS and CLASS_ICON_TCOORDS[classFile]
+    if type(coords) == "table" then
+        texture:SetTexture("Interface\\GLUES\\CHARACTERCREATE\\UI-CHARACTERCREATE-CLASSES")
+        texture:SetTexCoord(coords[1], coords[2], coords[3], coords[4])
+        return true
+    end
+    return false
+end
+
+-- A class's name in the game's language (female names where the language has them).
+function Utils.ClassName(classFile, sex)
+    local names = sex == 3 and LOCALIZED_CLASS_NAMES_FEMALE or LOCALIZED_CLASS_NAMES_MALE
+    return type(names) == "table" and names[classFile] or nil
+end
+
+-- How long ago `stamp` (time()) was, in a few letters: "now", "5 min", "2 h", "3 days".
+function Utils.Ago(stamp)
+    if type(stamp) ~= "number" or stamp <= 0 then
+        return ""
+    end
+    local seconds = math.max(0, time() - stamp)
+    if seconds < 90 then
+        return L["now"]
+    elseif seconds < 3600 then
+        return string.format(L["%d min"], math.floor(seconds / 60 + 0.5))
+    elseif seconds < 86400 then
+        return string.format(L["%d h"], math.floor(seconds / 3600 + 0.5))
+    end
+    local days = math.floor(seconds / 86400 + 0.5)
+    return days == 1 and L["1 day"] or string.format(L["%d days"], days)
+end
+
+-- `fn` once, `delay` seconds from now, its errors caught.
+function Utils.After(delay, label, fn)
+    if C_Timer and type(C_Timer.After) == "function" then
+        C_Timer.After(delay, Utils.Protect(label, fn))
+    end
+end
+
+-- A function that runs `fn` once, `delay` seconds after the last of any burst of calls.
+function Utils.Debounce(delay, label, fn)
+    local waiting = false
+    local protected = Utils.Protect(label, function()
+        waiting = false
+        fn()
+    end)
+    return function()
+        if not waiting and C_Timer and type(C_Timer.After) == "function" then
+            waiting = true
+            C_Timer.After(delay, protected)
+        end
+    end
+end
+
 -- --- saved settings and text -------------------------------------------------------------------
 
 function Utils.CopyDefaults(target, defaults)

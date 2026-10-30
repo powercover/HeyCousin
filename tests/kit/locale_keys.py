@@ -16,8 +16,15 @@ ROOT = os.environ.get("HC_ROOT", os.path.abspath(os.path.join(os.path.dirname(os
 os.chdir(ROOT)
 
 LUA_STRING = r'"((?:[^"\\]|\\.)*)"'
-# Labels kept in tables and translated where they're shown (L[option.label] and the like).
-TABLE_LABELS = []
+# Labels kept in tables and translated where they're shown (L[option.label] and the like): the
+# shapes and patterns (Setup.lua), the tinctures' names (Crest.TINCTURES), the symbols
+# (Crest.CHARGES).
+TABLE_LABELS = [
+    "Shield", "Round", "Kite", "Banner", "Plain", "Split", "Halves", "Diagonal", "Quarters", "Chevron", "Cross",
+    "Red", "Wine", "Orange", "Gold", "Green", "Teal", "Sky", "Blue", "Purple", "Rose", "Black", "Silver",
+    "Heart", "Star", "Crown", "Tree", "Sword", "Key", "Moon", "Sun", "Flower", "Mushroom", "Skull", "Axe", "Tower",
+    "Flame", "Bolt", "Anchor", "Cup", "Bell",
+]
 
 
 def unescape(text):
@@ -26,7 +33,7 @@ def unescape(text):
 
 def code_keys():
     keys = set(TABLE_LABELS)
-    for path in glob.glob("*.lua"):
+    for path in glob.glob("*.lua") + glob.glob("Skins/*.lua"):
         source = open(path, encoding="utf-8").read()
         for match in re.finditer(r'\bL\[' + LUA_STRING + r'\]', source):
             keys.add(unescape(match.group(1)))

@@ -20,9 +20,12 @@ What runs:
   and placeholders (a missing translation fails only with `--release`), characters the game's fonts
   can't draw (reads the game's font cache).
 - `link.py --check`: Retail's test-mode TOC, if there is one, still matches `HeyCousin.toc`.
-- `core_smoke.lua`: the addon loaded as the TOC lists it, on mocked game functions: saved settings,
-  chat commands, Forever or Retail, secret names, caught errors (`run51.py` runs it on 5.1,
+- `addon_smoke.lua` on `mock_wow.lua` (a small game in plain Lua, where only real methods exist): the
+  whole addon loaded as the TOC lists it, on Retail (test mode) and Forever, in both themes: the
+  setup, the window, the pop-up and its combat rule, the radar, chat, tooltips, layers, secret
+  names, broken saved data. An error the addon catches fails it too (`run51.py` runs it on 5.1,
   `run55.py` on 5.5).
+- `make_media.py`: draws every theme's art and makes the sounds (`--preview DIR` for a look).
 
 Tools:
 

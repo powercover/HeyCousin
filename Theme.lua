@@ -956,7 +956,8 @@ end
 -- --- windows -----------------------------------------------------------------------------------
 
 -- A floating window: moved by dragging, closed with Escape, kept where it was left
--- (HeyCousinDB.windows). It fades in.
+-- (HeyCousinDB.windows), and placed there as it's made (a frame with no place never shows). It
+-- fades in.
 function Theme.Window(name, width, height)
     local window = CreateFrame("Frame", name, UIParent)
     window:SetSize(width, height)
@@ -990,6 +991,7 @@ function Theme.Window(name, width, height)
             self:SetPoint("CENTER", UIParent, "CENTER", 0, 40)
         end
     end
+    window:Restore()
     window:SetScript("OnDragStart", window.StartMoving)
     window:SetScript("OnDragStop", function(self)
         self:StopMovingOrSizing()

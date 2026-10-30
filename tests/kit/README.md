@@ -35,4 +35,9 @@ Tools:
   the project folder itself. `--retail` links Retail's too, for the test mode, and writes the
   `HeyCousin_Standard.toc` Retail reads there (never committed: the release stays Forever only).
 - `bump_version.py OLD NEW`: the version in the TOC and `Core.lua`.
+- `screens.py [OUT]`: pictures of every screen in both themes (the family, stats, pop-ups, setup,
+  minimap, tooltip, chat, crests, the name test), drawn from the addon's own frames on the mock
+  game (`screens.lua` opens them) into `screens/` (not committed). It prints texts that don't fit,
+  run into each other or spill out of their buttons. The game packs its fonts, so Georgia stands in
+  for Friz Quadrata and Morpheus; the minimap, chat, tooltip, class icons and 3D models are stand-ins.
 - `edits.py`: exact-match edits that keep a file's line endings.

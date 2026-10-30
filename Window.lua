@@ -15,6 +15,8 @@ local WIDTH, HEIGHT = 500, 600
 local PAD = 18
 local ROW = 38
 local CARD = 138
+-- the list's columns from a row's left, and the room the seen column keeps at its right
+local LEVEL_X, ZONE_X, SEEN_W = 206, 248, 76
 local LIST_TOP = 166
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 
@@ -141,10 +143,11 @@ local function NewRow(parent)
     row.level = Theme.Text(row, "Body", C.text2)
     row.level:SetJustifyH("RIGHT")
     row.level:SetWidth(30)
-    row.level:SetPoint("LEFT", 262, 0)
+    row.level:SetPoint("LEFT", LEVEL_X, 0)
+    -- the zone takes the room up to the seen column; a long one ends in "..."
     row.zone = Theme.Text(row, "Small", C.text2)
-    row.zone:SetWidth(118)
-    row.zone:SetPoint("LEFT", 306, 0)
+    row.zone:SetPoint("LEFT", ZONE_X, 0)
+    row.zone:SetPoint("RIGHT", -SEEN_W, 0)
     row.seen = Theme.Text(row, "Small", C.text3)
     row.seen:SetJustifyH("RIGHT")
     row.seen:SetPoint("RIGHT", -12, 0)
@@ -182,16 +185,18 @@ local function PaintRow(row, item)
     local color = Utils.ClassColor(relative.class)
     row.avatar.icon:SetShown(Utils.SetClassIcon(row.avatar.icon, relative.class))
     row.avatar.ring:SetVertexColor(color[1], color[2], color[3], 0.9)
-    row.name:SetText(item.first)
-    row.name:SetTextColor(color[1], color[2], color[3])
-    row.name:SetWidth(math.min(150, math.ceil(row.name:GetStringWidth()) + 2))
     local sheep = not item.me and Kin.IsBlackSheep(relative)
     row.sheep:SetShown(sheep)
     row.tag:SetShown(item.me == true)
+    row.tag:SetText(item.me and L["(you)"] or "")
+    -- the name and its tag stay left of the level column; a long name ends in "..."
+    local tag = sheep and row.sheep:GetWidth() + 8 or item.me and math.ceil(row.tag:GetStringWidth()) + 6 or 0
+    row.name:SetText(item.first)
+    row.name:SetTextColor(color[1], color[2], color[3])
+    row.name:SetWidth(math.min(LEVEL_X - 54 - tag, math.ceil(row.name:GetStringWidth()) + 2))
     if sheep then
         row.sheep:SetPoint("LEFT", row.name, "RIGHT", 8, 0)
     elseif item.me then
-        row.tag:SetText(L["(you)"])
         row.tag:SetPoint("LEFT", row.name, "RIGHT", 6, 0)
     end
     row.level:SetText(relative.level and tostring(relative.level) or "")
@@ -510,7 +515,6 @@ end
 
 local function Build()
     window = Theme.Window("HeyCousinWindow", WIDTH, HEIGHT)
-    window:Restore()
 
     -- your house
     header = {}
@@ -551,8 +555,8 @@ local function Build()
         HeaderButton("zone", L["Zone"]), HeaderButton("seen", L["Seen"]),
     }
     columns[1]:SetPoint("TOPLEFT", PAD + 46, -142)
-    columns[2]:SetPoint("TOPLEFT", PAD + 272, -142)
-    columns[3]:SetPoint("TOPLEFT", PAD + 306, -142)
+    columns[2]:SetPoint("TOPLEFT", PAD + LEVEL_X + 10, -142)
+    columns[3]:SetPoint("TOPLEFT", PAD + ZONE_X, -142)
     columns[4]:SetPoint("TOPRIGHT", -PAD - 12, -142)
     window.columns = columns
 

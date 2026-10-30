@@ -76,9 +76,13 @@ end
 local function ColorPicker(parent, label, field, x)
     local button = Theme.Button(parent, label, "secondary", 116, 30)
     button:SetPoint("TOPLEFT", parent, "TOPLEFT", x, -294)
+    -- the color in a dark rim, so it shows on a button of its own color
+    button.rim = Theme.Texture(button, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 0, C.ink)
+    button.rim:SetSize(16, 16)
+    button.rim:SetPoint("LEFT", 8, 0)
     button.chip = Theme.Texture(button, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 1)
     button.chip:SetSize(12, 12)
-    button.chip:SetPoint("LEFT", 10, 0)
+    button.chip:SetPoint("CENTER", button.rim, "CENTER")
     button.labelX = 8
     local strip = Strip(parent, 1)
     strip.swatches = {}
@@ -313,11 +317,22 @@ local function BuildAlertsPage(parent)
     for index, key in ipairs(Theme.ORDER) do
         ThemeCard(p, key, -86 - (index - 1) * 80)
     end
+    -- chips in rows across the column, as many as fit on each; returns the y under the last row
+    local function Rows(chips, y)
+        local x = 322
+        for _, chip in ipairs(chips) do
+            if x > 322 and x + chip:GetWidth() > WIDTH - PAD then
+                x, y = 322, y - 30
+            end
+            chip:SetPoint("TOPLEFT", x, y)
+            x = x + chip:GetWidth() + 4
+        end
+        return y - 30
+    end
     local soundsY = -86 - #Theme.ORDER * 80 - 6
     Heading(L["Sound"], 322, soundsY)
     local sounds = { { "auto", L["Theme's"] }, { "chime", L["Chime"] }, { "bell", L["Bell"] }, { "boop", L["Boop"] },
         { "none", L["None"] } }
-    local x = 322
     local chips = {}
     for _, spec in ipairs(sounds) do
         local chip = Theme.Chip(p, spec[2], function()
@@ -331,24 +346,17 @@ local function BuildAlertsPage(parent)
                 HC.Alert.PlaySound()
             end
         end)
-        chip:SetPoint("TOPLEFT", x, soundsY - 24)
-        x = x + chip:GetWidth() + 4
         chips[#chips + 1] = chip
     end
-    local chatsY = soundsY - 64
+    local chatsY = Rows(chips, soundsY - 24) - 10
     Heading(L["Learn from these chats"], 322, chatsY)
     local chats = { { "say", L["Say and yell"] }, { "channel", L["Trade and general"] }, { "guild", L["Guild"] },
         { "group", L["Group"] }, { "whisper", L["Whispers"] } }
-    x = 322
-    local y = chatsY - 24
+    local chatChips = {}
     for _, spec in ipairs(chats) do
-        local chip = Theme.Chip(p, spec[2], ChatSetting(spec[1]))
-        if x + chip:GetWidth() > WIDTH - PAD then
-            x, y = 322, y - 30
-        end
-        chip:SetPoint("TOPLEFT", x, y)
-        x = x + chip:GetWidth() + 4
+        chatChips[#chatChips + 1] = Theme.Chip(p, spec[2], ChatSetting(spec[1]))
     end
+    Rows(chatChips, chatsY - 24)
     return p
 end
 

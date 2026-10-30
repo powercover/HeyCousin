@@ -1,7 +1,8 @@
 -- A small World of Warcraft for the smoke tests: frames, textures, fonts, animations, timers,
 -- events, units and the game functions the addon calls, in plain Lua. Only methods listed here
 -- exist: calling another fails, as a mistyped one would in the game. Mock.Boot loads the addon
--- as the game does (the TOC's files in order, then its loading events).
+-- as the game does (the TOC's files in order, then its loading events). Frames keep their
+-- anchors, layers, colors and texts, for screens.py, which draws them.
 if not unpack then unpack = table.unpack end
 
 Mock = {}
@@ -29,9 +30,19 @@ local Font = Class()
 
 -- --- regions -----------------------------------------------------------------------------------
 
+local serial = 0
 local function New(class, parent)
-    local object = setmetatable({ parent = parent, shown = true, alpha = 1, points = 0, scripts = {}, hooks = {} }, class)
+    serial = serial + 1
+    local object = setmetatable({ parent = parent, shown = true, alpha = 1, points = 0, anchors = {}, serial = serial,
+        scripts = {}, hooks = {} }, class)
     return object
+end
+
+-- A frame's textures and font strings, in the order they were made.
+local function Add(frame, region)
+    frame.regions = frame.regions or {}
+    table.insert(frame.regions, region)
+    return region
 end
 
 function Region:SetSize(w, h) self.w, self.h = w, h end
@@ -39,12 +50,25 @@ function Region:SetWidth(w) self.w = w end
 function Region:SetHeight(h) self.h = h end
 function Region:GetWidth() return self.w or (self.points >= 2 and 300) or 0 end
 function Region:GetHeight() return self.h or (self.points >= 2 and 300) or 0 end
+-- (point [, relativeTo [, relativePoint]] [, x, y]), as the game takes them; a point set again
+-- replaces the old one.
 function Region:SetPoint(point, ...)
     assert(type(point) == "string", "SetPoint needs a point")
     self.points = self.points + 1
+    local to, at, x, y = ...
+    if type(to) == "number" then
+        to, at, x, y = nil, nil, to, at
+    elseif type(at) == "number" then
+        at, x, y = nil, at, x
+    end
+    self.anchors[point:upper()] = { to = to, at = (at or point):upper(), x = x or 0, y = y or 0 }
 end
-function Region:ClearAllPoints() self.points = 0 end
-function Region:SetAllPoints() self.points = 2 end
+function Region:ClearAllPoints() self.points = 0; self.anchors = {} end
+function Region:SetAllPoints(to)
+    self.points = 2
+    self.anchors = { TOPLEFT = { to = to, at = "TOPLEFT", x = 0, y = 0 },
+        BOTTOMRIGHT = { to = to, at = "BOTTOMRIGHT", x = 0, y = 0 } }
+end
 function Region:SetShown(shown) if shown then self:Show() else self:Hide() end end
 function Region:IsShown() return self.shown end
 function Region:IsVisible()
@@ -64,7 +88,7 @@ function Region:GetCenter() return 400, 300 end
 function Region:GetEffectiveScale() return 1 end
 function Region:SetScale(s) self.scale = s end
 function Region:CreateAnimationGroup() return New(Group, self) end
-function Region:SetDrawLayer(layer, sublevel) self.layer = layer end
+function Region:SetDrawLayer(layer, sublevel) self.layer, self.sublevel = layer, sublevel end
 
 -- scripts and hooks
 function Mock.Run(object, name, ...)
@@ -95,12 +119,18 @@ function Frame:RegisterEvent(event)
 end
 function Frame:UnregisterEvent(event) if Mock.events[event] then Mock.events[event][self] = nil end end
 function Frame:UnregisterAllEvents() for _, frames in pairs(Mock.events) do frames[self] = nil end end
-function Frame:CreateTexture(_, layer) local t = New(Texture, self); t.layer = layer; return t end
-function Frame:CreateFontString(_, layer) local t = New(FontString, self); t.layer = layer; t.text = ""; return t end
+function Frame:CreateTexture(_, layer, _, sublevel)
+    local t = Add(self, New(Texture, self))
+    t.layer, t.sublevel = layer, sublevel
+    return t
+end
+function Frame:CreateFontString(_, layer) local t = Add(self, New(FontString, self)); t.layer = layer; t.text = ""; return t end
 function Frame:CreateMaskTexture() return New(Mask, self) end
 function Frame:SetFrameStrata(strata) self.strata = strata end
-function Frame:SetFrameLevel(level) self.level = level end
-function Frame:GetFrameLevel() return self.level or 1 end
+-- (the mock's own fields have names the addon's frames don't use: a row's .level is its text)
+function Frame:SetFrameLevel(level) self.frameLevel = level end
+-- one above its parent, as the game makes them, unless it was set
+function Frame:GetFrameLevel() return self.frameLevel or (self.parent and self.parent:GetFrameLevel() + 1) or 0 end
 function Frame:SetToplevel() end
 function Frame:SetClampedToScreen() end
 function Frame:EnableMouse(on) self.mouse = on end
@@ -109,9 +139,9 @@ function Frame:SetMovable() end
 function Frame:RegisterForDrag() end
 function Frame:StartMoving() self.moving = true end
 function Frame:StopMovingOrSizing() self.moving = false end
-function Frame:SetClipsChildren() end
+function Frame:SetClipsChildren(on) self.clips = on end
 function Frame:IsForbidden() return false end
-function Frame:GetName() return self.name end
+function Frame:GetName() return self.frameName end
 function Frame:SetAttribute(key, value)
     assert(not Mock.combat or not self.secure, "ADDON_ACTION_BLOCKED: SetAttribute on a secure frame in combat")
     self.attributes = self.attributes or {}
@@ -152,7 +182,7 @@ function Button:Click(which)
 end
 
 function EditBox:SetFontObject(font) self.font = font end
-function EditBox:SetTextColor() end
+function EditBox:SetTextColor(r, g, b, a) self.textColor = { r, g, b, a } end
 function EditBox:SetAutoFocus() end
 function EditBox:SetMaxLetters(n) self.max = n end
 function EditBox:SetText(text) self.text = text; Mock.Run(self, "OnTextChanged", false) end
@@ -168,7 +198,7 @@ function Model:SetPortraitZoom(zoom) assert(type(zoom) == "number"); self.zoom =
 function Texture:SetTexture(file, wrapH, wrapV, filter)
     assert(file == nil or type(file) == "string" or type(file) == "number", "SetTexture needs a file")
     assert(filter == nil or filter == "LINEAR" or filter == "NEAREST" or filter == "TRILINEAR", "bad filter " .. tostring(filter))
-    self.file = file
+    self.file, self.filter = file, filter
     if type(file) == "string" then Mock.textures[file] = true end
     return true
 end
@@ -189,15 +219,16 @@ function FontString:SetText(text)
     self.text = text and tostring(text) or ""
 end
 function FontString:GetText() return self.text end
-function FontString:SetTextColor(r, g, b)
+function FontString:SetTextColor(r, g, b, a)
     assert(type(r) == "number" and type(g) == "number" and type(b) == "number", "SetTextColor needs numbers")
+    self.textColor = { r, g, b, a }
 end
-function FontString:SetJustifyH() end
-function FontString:SetJustifyV() end
-function FontString:SetWordWrap() end
-function FontString:SetSpacing() end
-function FontString:SetShadowColor() end
-function FontString:SetShadowOffset() end
+function FontString:SetJustifyH(justify) self.justifyH = justify end
+function FontString:SetJustifyV(justify) self.justifyV = justify end
+function FontString:SetWordWrap(wrap) self.wrap = wrap end
+function FontString:SetSpacing(spacing) self.spacing = spacing end
+function FontString:SetShadowColor(r, g, b, a) self.shadowColor = { r, g, b, a } end
+function FontString:SetShadowOffset(x, y) self.shadowOffset = { x, y } end
 function FontString:GetStringWidth()
     local plain = (self.text or ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("|T.-|t", "XX")
     return #plain * 6
@@ -220,14 +251,18 @@ function Font:SetFont(file, height, flags)
 end
 function Font:GetFont() return self.file, self.height, self.flags end
 function Font:CopyFontObject(other) self.file, self.height, self.flags = other.file, other.height, other.flags end
-function Font:SetShadowColor() end
-function Font:SetShadowOffset() end
-function Font:SetTextColor() end
+function Font:SetShadowColor(r, g, b, a) self.shadowColor = { r, g, b, a } end
+function Font:SetShadowOffset(x, y) self.shadowOffset = { x, y } end
+function Font:SetTextColor(r, g, b, a) self.textColor = { r, g, b, a } end
 function Font:GetFontObjectForAlphabet(alphabet) return self.members and self.members[alphabet] end
 
 local function FontObject(file, height)
     return setmetatable({ file = file, height = height, flags = "" }, Font)
 end
+
+-- the classes, for screens.py: it measures and lays out the frames as the game would
+Mock.classes = { Region = Region, Frame = Frame, Button = Button, EditBox = EditBox, Model = Model, Texture = Texture,
+    FontString = FontString, Mask = Mask }
 
 -- --- the world ---------------------------------------------------------------------------------
 
@@ -245,7 +280,7 @@ local function Globals()
     function CreateFrame(kind, name, parent, template)
         local class = kind == "Button" and Button or kind == "EditBox" and EditBox or kind == "PlayerModel" and Model or Frame
         local frame = New(class, parent)
-        frame.name, frame.kind = name, kind
+        frame.frameName, frame.kind = name, kind
         frame.secure = template ~= nil and template:find("Secure") ~= nil
         if parent then
             parent.children = parent.children or {}
@@ -275,11 +310,17 @@ local function Globals()
     end
 
     GameTooltip = CreateFrame("Frame", "GameTooltip")
-    GameTooltip.lines = {}
-    function GameTooltip:SetOwner() self.lines = {} end
-    function GameTooltip:SetText(text) self.lines = { text } end
-    function GameTooltip:AddLine(text) table.insert(self.lines, text) end
-    function GameTooltip:AddDoubleLine(a, b) table.insert(self.lines, a .. " | " .. b) end
+    GameTooltip.lines, GameTooltip.colors = {}, {}
+    function GameTooltip:SetOwner() self.lines, self.colors = {}, {} end
+    function GameTooltip:SetText(text, r, g, b) self.lines, self.colors = { text }, { { r, g, b } } end
+    function GameTooltip:AddLine(text, r, g, b)
+        table.insert(self.lines, text)
+        table.insert(self.colors, { r, g, b })
+    end
+    function GameTooltip:AddDoubleLine(a, b, r, g, bl)
+        table.insert(self.lines, a .. " | " .. b)
+        table.insert(self.colors, { r, g, bl })
+    end
     function GameTooltip:GetUnit() return self.unitName, self.unit end
     function GameTooltip:NumLines() return #self.lines end
 

@@ -341,6 +341,8 @@ local function SecureButton(parent, kind, label)
     local face = Theme.Button(button, label, "primary", 176, 30)
     face:SetAllPoints()
     face:EnableMouse(false)
+    -- as wide as its label: the pixel font is wide
+    button:SetWidth(math.max(176, math.ceil(face.label:GetStringWidth()) + 32))
     button:SetScript("PostClick", Utils.Protect("probe target", function(_, _, down)
         if not down then
             Utils.After(0.3, "probe target", function()
@@ -352,8 +354,7 @@ local function SecureButton(parent, kind, label)
 end
 
 local function Build()
-    window = Theme.Window("HeyCousinProbe", 460, 520)
-    window:Restore()
+    window = Theme.Window("HeyCousinProbe", 460, 556)
     local title = Theme.Text(window, "Title")
     title:SetPoint("TOPLEFT", 20, -20)
     title:SetText(L["Name test"])
@@ -384,14 +385,16 @@ local function Build()
     end
     local first, surname = Me()
     window.targetSelf = SecureButton(window, "targetSelf", L["Target me (whole name)"])
-    window.targetSelf:SetPoint("BOTTOMLEFT", 20, 64)
+    -- a row each: their labels are long
+    window.targetSelf:SetPoint("BOTTOMLEFT", 20, 102)
     window.targetSelf:SetAttribute("macrotext1", "/cleartarget\n/targetexact " .. Names.Full(first, surname))
     window.targetFirst = SecureButton(window, "targetFirst", L["Target me (first name)"])
-    window.targetFirst:SetPoint("LEFT", window.targetSelf, "RIGHT", 8, 0)
+    window.targetFirst:SetPoint("BOTTOMLEFT", 20, 64)
     window.targetFirst:SetAttribute("macrotext1", "/cleartarget\n/targetexact " .. first)
     local whisper = Theme.Button(window, L["Whisper myself"], "secondary", 176, 30)
     whisper:SetPoint("BOTTOMLEFT", 20, 26)
     Theme.ButtonIcon(whisper, "Whisper")
+    Theme.Fit(whisper, 16, 176)
     Theme.OnClick(whisper, "probe whisper", WhisperSelf)
     local stop = Theme.Button(window, L["Stop"], "secondary", 100, 30)
     stop:SetPoint("BOTTOMRIGHT", -20, 26)
@@ -399,7 +402,7 @@ local function Build()
         Probe.Stop()
     end)
     window.footer = Theme.Text(window, "Small", C.text3)
-    window.footer:SetPoint("BOTTOMLEFT", 20, 104)
+    window.footer:SetPoint("BOTTOMLEFT", 20, 142)
     window.footer:SetPoint("RIGHT", window, "RIGHT", -20, 0)
     window.footer:SetWordWrap(true)
 end
@@ -418,7 +421,7 @@ function Probe.Paint()
         local color = ok and C.text2 or C.text
         row.text:SetTextColor(color[1], color[2], color[3])
     end
-    window.footer:SetText(string.format(L["%d of %d done. When you're done, log out or type /reload, then tell Claude."],
+    window.footer:SetText(string.format(L["%d of %d done. When you're done, log out or type /reload: the game writes it all down."],
         count, #STEPS))
 end
 
@@ -468,7 +471,7 @@ function Probe.Stop()
     if window and window:IsShown() and not InCombatLockdown() then
         window:Hide()
     end
-    Utils.Print(L["Name test off. Log out or type /reload so the game writes it down, then tell Claude."])
+    Utils.Print(L["Name test off. Log out or type /reload so the game writes it down."])
 end
 
 function Probe.Toggle()

@@ -42,6 +42,8 @@ check(minimap.badge.text.text == "13", "the minimap badge counts the made-up fam
 Mock.Advance(5)
 local setup = _G.HeyCousinSetup
 check(setup and setup:IsShown(), "the setup opens by itself the first time")
+-- a frame with no place never shows in the game
+check(next(setup.anchors) ~= nil, "the setup has a place on screen")
 NoErrors(HC, "boot")
 
 -- the crest page
@@ -106,7 +108,7 @@ NoErrors(HC, "alerts and look")
 -- the family window
 SlashCmdList.HEYCOUSIN("")
 local window = _G.HeyCousinWindow
-check(window and window:IsShown(), "/cousin opens the family")
+check(window and window:IsShown() and next(window.anchors) ~= nil, "/cousin opens the family")
 Settle()
 local function Rows()
     return All(window, function(f) return f.item ~= nil and f:IsShown() end)

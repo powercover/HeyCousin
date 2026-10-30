@@ -162,9 +162,27 @@ local function Guard(frame, what)
     end
     assert(not Secure(frame), "ADDON_ACTION_BLOCKED: " .. what .. " on a frame with a secure button, in combat")
 end
+-- The mouse, as the game moves it: a click points at its button first (OnLeave on the frame it
+-- left, OnEnter on this one), and a frame hidden under the mouse, or with a parent, gets OnLeave.
+function Mock.Point(frame)
+    if Mock.focus == frame then return end
+    local left = Mock.focus
+    Mock.focus = frame
+    if left then Mock.Run(left, "OnLeave") end
+    if frame then Mock.Run(frame, "OnEnter") end
+end
+
 local FrameShow, FrameHide = Frame.Show, Frame.Hide
 function Frame:Show() Guard(self, "Show"); FrameShow(self) end
-function Frame:Hide() Guard(self, "Hide"); FrameHide(self) end
+function Frame:Hide()
+    Guard(self, "Hide")
+    FrameHide(self)
+    local under = Mock.focus
+    while under do
+        if under == self then Mock.Point(nil); break end
+        under = under.parent
+    end
+end
 
 function Button:RegisterForClicks() end
 function Button:IsEnabled() return self.enabled ~= false end
@@ -177,6 +195,7 @@ function Button:Enable() self:SetEnabled(true) end
 function Button:Disable() self:SetEnabled(false) end
 function Button:Click(which)
     if not self:IsEnabled() then return end
+    Mock.Point(self)
     Mock.Run(self, "OnClick", which or "LeftButton", false)
     Mock.Run(self, "PostClick", which or "LeftButton", false)
 end
@@ -275,6 +294,7 @@ local function Globals()
     Mock.chat, Mock.addonSent, Mock.sounds, Mock.invites, Mock.opened, Mock.tells = {}, {}, {}, {}, {}, {}
     Mock.filters, Mock.postCalls, Mock.accepted = {}, {}, 0
     Mock.inGroup, Mock.zone, Mock.map = false, "Elwynn Forest", 1429
+    Mock.focus = nil
     Mock.units, Mock.players, Mock.roster = {}, {}, {}
 
     function CreateFrame(kind, name, parent, template)

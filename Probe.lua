@@ -38,6 +38,8 @@ local frame = CreateFrame("Frame")
 local running, stopAt
 local seen = {}
 local window
+-- built in a look that's gone (the look changed during a fight): built again before it shows
+local stale = false
 
 local function Data()
     return HeyCousinDB.probe
@@ -355,6 +357,7 @@ end
 
 local function Build()
     window = Theme.Window("HeyCousinProbe", 460, 556)
+    stale = false
     local title = Theme.Text(window, "Title")
     title:SetPoint("TOPLEFT", 20, -20)
     title:SetText(L["Name test"])
@@ -474,16 +477,23 @@ function Probe.Stop()
     Utils.Print(L["Name test off. Log out or type /reload so the game writes it down."])
 end
 
+-- On, off, or the checklist again while it runs (built anew after a new look).
 function Probe.Toggle()
-    if running then
-        if window and not window:IsShown() and not InCombatLockdown() then
-            Probe.Paint()
-            window:Show()
-        else
-            Probe.Stop()
-        end
-    else
+    if not running then
         Probe.Start()
+    elseif window and window:IsShown() then
+        Probe.Stop()
+    elseif InCombatLockdown() then
+        Utils.Print(L["Not during a fight."])
+    else
+        if not window or stale then
+            if window then
+                window:Hide()
+            end
+            Build()
+        end
+        Probe.Paint()
+        window:Show()
     end
 end
 
@@ -491,10 +501,21 @@ function Probe.Running()
     return running == true
 end
 
--- A new theme: the window is built again in it, the next time it opens.
+-- A new theme: the window is built again in it (now if it's open; after a fight, the next time).
 Theme.OnSkin(function()
-    if window and not InCombatLockdown() then
-        window:Hide()
-        window = nil
+    if not window then
+        return
+    end
+    if InCombatLockdown() then
+        stale = true
+        return
+    end
+    local shown = window:IsShown()
+    window:Hide()
+    window = nil
+    if shown then
+        Build()
+        Probe.Paint()
+        window:Show()
     end
 end)

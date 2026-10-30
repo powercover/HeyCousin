@@ -432,6 +432,10 @@ end
 
 -- The step bar: the step you're on is lit, the ones you've been to have a check.
 local function PaintSteps()
+    -- (a step under the mouse gets OnLeave as the setup closes: it may be over by then)
+    if not window or not session then
+        return
+    end
     for index, item in ipairs(window.stepBar) do
         local current = index == page
         local been = not current and session.visited[index] == true

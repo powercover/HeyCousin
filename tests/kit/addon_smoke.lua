@@ -219,6 +219,45 @@ for _, line in ipairs(GameTooltip.lines) do family = family or (line:find("Famil
 check(family ~= nil, "your tooltip has the family line")
 NoErrors(HC, "tooltip")
 
+-- Every window open with the mouse on one of its buttons, round all the looks twice: each window
+-- is built again in the new look, and the game gives the old one's buttons a last OnLeave.
+local function Hover(root)
+    local button = root and All(root, function(f) return f.skin ~= nil and f.label ~= nil and f:IsVisible() end)[1]
+    check(button ~= nil, "a theme button to point at")
+    if button then Mock.Point(button) end
+end
+local function Round(where)
+    local start = HC.Theme.Skin().key
+    for _ = 1, #HC.Theme.ORDER * 2 do
+        SlashCmdList.HEYCOUSIN("theme")
+        Settle()
+    end
+    check(HC.Theme.Skin().key == start, where .. ": round the looks, back to " .. start)
+    NoErrors(HC, where)
+end
+HC.Window.Show("family")
+Hover(_G.HeyCousinWindow)
+Round("looks with the family open")
+check(_G.HeyCousinWindow:IsShown(), "the family stays open through the looks")
+HC.Setup.Show(1)
+Hover(_G.HeyCousinSetup)
+Round("looks with the setup's first step")
+HC.Setup.Show(2)
+Hover(_G.HeyCousinSetup)
+Round("looks with the setup's last step")
+check(_G.HeyCousinSetup:IsShown() and ButtonWith(_G.HeyCousinSetup, "Done") ~= nil, "the setup stays on its step")
+Mock.Point(ButtonWith(_G.HeyCousinSetup, "Crest"))
+_G.HeyCousinSetup:Hide()
+NoErrors(HC, "the setup closing with the mouse on a step")
+HC.Alert.Show({ first = "Isla", relative = HC.TestMode.House().relatives.Isla, unit = "player", test = true })
+Settle()
+Hover(_G.HeyCousinAlert)
+Round("looks with a pop-up showing")
+HC.Layer.ShowAsk("Elowen Ashbrook", true)
+Settle()
+Hover(_G.HeyCousinAsk)
+Round("looks with the layer ask showing")
+
 -- === WoW Forever: the radar, chat, tooltips, layers ===========================================
 
 HC = Mock.Boot("forever", { setupDone = true })
@@ -372,6 +411,18 @@ check(probe.stopped and not _G.HeyCousinProbe:IsShown(), "it stops")
 Mock.Fire("CHAT_MSG_SAY", "after", "Lia Ashbrook", "", "", "", "", 0, 0, "", 0, 9, "Player-1-LIA")
 check(#probe.chat_CHAT_MSG_SAY == 2, "and records nothing after")
 NoErrors(HC, "name test")
+-- the checklist through the looks, and back with /cousin probe after one
+SlashCmdList.HEYCOUSIN("probe")
+Hover(_G.HeyCousinProbe)
+Round("looks with the name test open")
+check(_G.HeyCousinProbe:IsShown() and HC.Probe.Running(), "the checklist stays open through the looks")
+_G.HeyCousinProbe:Hide()
+SlashCmdList.HEYCOUSIN("theme")
+SlashCmdList.HEYCOUSIN("probe")
+check(_G.HeyCousinProbe:IsShown() and HC.Probe.Running(), "/cousin probe brings the checklist back in a new look")
+SlashCmdList.HEYCOUSIN("theme")
+SlashCmdList.HEYCOUSIN("probe stop")
+NoErrors(HC, "name test and looks")
 
 -- a secret name (protected content) is never used
 Mock.units.target = { name = Mock.SECRET, surname = "Ashbrook", guid = "Player-9-SEC", class = "MAGE", faction = "Alliance" }

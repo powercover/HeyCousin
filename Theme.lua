@@ -517,7 +517,17 @@ local function State(button)
     return "normal"
 end
 
+-- A widget remembers the theme it was made in. A new theme builds the windows again, and the old
+-- ones are hidden, but the game still sends them a last OnLeave (the mouse was on the arrow that
+-- switched the theme): a widget from a theme that's gone is not painted any more.
+local function Gone(widget)
+    return widget.skin ~= nil and widget.skin ~= skin
+end
+
 function Theme.PaintButton(button)
+    if Gone(button) then
+        return
+    end
     local state = State(button)
     skin.PaintButton(button, state)
     local press = state == "down" and (skin.press or 1) or 0
@@ -533,7 +543,7 @@ end
 function Theme.Button(parent, text, kind, width, height)
     local button = CreateFrame("Button", nil, parent)
     button:SetSize(width or 120, height or 30)
-    button.kind = kind or "secondary"
+    button.kind, button.skin = kind or "secondary", skin
     skin.DecorateButton(button)
     button.label = Theme.Text(button, "Button")
     button.label:SetJustifyH("CENTER")
@@ -620,10 +630,12 @@ end
 function Theme.Arrow(parent, direction, size)
     local button = CreateFrame("Button", nil, parent)
     button:SetSize(size or 40, size or 40)
-    button.direction = direction
+    button.direction, button.skin = direction, skin
     skin.DecorateArrow(button, direction)
     local function Paint(self)
-        skin.PaintArrow(self, self.pressed and "down" or self.hovered and "hover" or "normal")
+        if not Gone(self) then
+            skin.PaintArrow(self, self.pressed and "down" or self.hovered and "hover" or "normal")
+        end
     end
     button:SetScript("OnEnter", function(self)
         self.hovered = true
@@ -680,9 +692,12 @@ end
 -- An on/off control (a check box in Pixel, a switch in Smooth).
 function Theme.Toggle(parent, get, set)
     local toggle = CreateFrame("Button", nil, parent)
+    toggle.skin = skin
     skin.DecorateToggle(toggle)
     function toggle:Refresh(instant)
-        skin.PaintToggle(self, get() == true, instant)
+        if not Gone(self) then
+            skin.PaintToggle(self, get() == true, instant)
+        end
     end
     toggle:SetScript("OnClick", Utils.Protect("toggle", function(self)
         set(not get())
@@ -753,9 +768,12 @@ function Theme.Swatch(parent, color, size)
     local swatch = CreateFrame("Button", nil, parent)
     size = size or 22
     swatch:SetSize(size + 6, size + 6)
+    swatch.skin = skin
     skin.DecorateSwatch(swatch, color, size)
     function swatch:SetChosen(chosen)
-        skin.PaintSwatch(self, chosen)
+        if not Gone(self) then
+            skin.PaintSwatch(self, chosen)
+        end
     end
     swatch:SetChosen(false)
     return swatch

@@ -16,13 +16,15 @@ local listeners = {}
 -- --- colors ------------------------------------------------------------------------------------
 
 -- The colors every theme gives: filled in place when a theme is taken up, so the tables the
--- other files hold (Theme.C.text) always have the theme's.
+-- other files hold (Theme.C.text) always have the theme's. tip, tip2 and tip3 are for the game's
+-- tooltips, dark in every theme: a theme's text unless it says (a light theme's text is dark).
 local C = {}
 for _, key in ipairs({ "ink", "bg", "surface", "raised", "hover", "selected", "line", "gold", "text", "text2", "text3",
-    "buttonText", "near", "enemy" }) do
+    "buttonText", "near", "enemy", "tip", "tip2", "tip3" }) do
     C[key] = { 1, 1, 1 }
 end
 Theme.C = C
+local TIPS = { tip = "text", tip2 = "text2", tip3 = "text3" }
 
 function Theme.Hex(color)
     return string.format("%02x%02x%02x", math.floor(color[1] * 255 + 0.5), math.floor(color[2] * 255 + 0.5),
@@ -44,6 +46,22 @@ end
 
 function Theme.Metal()
     return metal
+end
+
+-- The color of titles: your crest's metal, or the theme's own where the metal wouldn't show (on
+-- a light theme's parchment).
+function Theme.Title()
+    return skin and skin.title or metal
+end
+
+-- A class's color as it reads on the theme's panels: on a light theme, dark enough to read.
+function Theme.Readable(color)
+    if not (skin and skin.light) then
+        return color
+    end
+    local light = 0.3 * color[1] + 0.59 * color[2] + 0.11 * color[3]
+    local scale = light > 0.42 and 0.42 / light or 1
+    return { color[1] * scale, color[2] * scale, color[3] * scale }
 end
 
 -- A frame that wears your crest's colors registers a painter; a new crest repaints them all.
@@ -224,6 +242,10 @@ local function Take(key)
         if target then
             target[1], target[2], target[3], target[4] = color[1], color[2], color[3], color[4]
         end
+    end
+    for name, from in pairs(TIPS) do
+        local color = skin.colors[name] or skin.colors[from]
+        C[name][1], C[name][2], C[name][3], C[name][4] = color[1], color[2], color[3], color[4]
     end
     for _, name in ipairs(FONT_KEYS) do
         if fonts[name] then
@@ -479,10 +501,10 @@ function Theme.Tip(frame, title, line)
             return
         end
         GameTooltip:SetOwner(self, "ANCHOR_TOP")
-        GameTooltip:SetText(heading, C.text[1], C.text[2], C.text[3])
+        GameTooltip:SetText(heading, C.tip[1], C.tip[2], C.tip[3])
         local text = type(line) == "function" and line(self) or line
         if text then
-            GameTooltip:AddLine(text, C.text2[1], C.text2[2], C.text2[3], true)
+            GameTooltip:AddLine(text, C.tip2[1], C.tip2[2], C.tip2[3], true)
         end
         GameTooltip:Show()
     end)

@@ -7,30 +7,33 @@ local function RGB(r, g, b)
     return { r / 255, g / 255, b / 255 }
 end
 
--- Forever: WoW Forever's own look, the classic game's windows: dark stone in carved bronze frames
--- with rivets at the corners, the game's red buttons with gold text, gold Morpheus titles and Friz
--- Quadrata for the rest. Its art (Media/Forever, drawn by make_media.py) is smooth; the crests,
--- symbols and icons are Smooth's.
+-- Forever: WoW Forever's own look, the classic game's books and quest log: parchment pages in
+-- carved stone frames with a gold line and gold studs, dark brown ink, dark red Morpheus titles, the
+-- game's red buttons with gold text, a red cloth banner. A light theme (`light`): class colors are
+-- darkened to read on parchment, and the game's tooltips keep light text (tip, tip2, tip3). Its art
+-- (Media/Forever, drawn by make_media.py) is smooth; the crests, symbols and icons are Smooth's.
 local skin = {
     key = "forever", folder = "Forever", filter = "LINEAR", press = 1, iconButton = "secondary",
-    letters = "font", crest = "smooth", sound = "bell", ribbonText = "gold", ribbonTextY = 0,
+    letters = "font", crest = "smooth", sound = "bell", ribbonText = "buttonText", ribbonTextY = 1, light = true,
+    title = RGB(104, 26, 10),
     badgeTint = { 0.72, 0.1, 0.06 },
     displayFiles = { roman = "Fonts\\MORPHEUS.TTF", russian = "Fonts\\MORPHEUS_CYR.TTF" },
-    buttonText = { primary = "gold", secondary = "text", ghost = "text2" },
+    buttonText = { primary = "buttonText", secondary = "text", ghost = "text2" },
     colors = {
-        ink = RGB(10, 9, 8), bg = RGB(17, 15, 13), surface = RGB(30, 26, 22), raised = RGB(40, 34, 28),
-        hover = RGB(58, 48, 38), selected = RGB(70, 54, 30), line = RGB(62, 50, 34), gold = RGB(255, 209, 0),
-        text = RGB(240, 234, 220), text2 = RGB(200, 188, 164), text3 = RGB(146, 136, 118),
-        buttonText = RGB(255, 209, 0), near = RGB(64, 214, 92), enemy = RGB(232, 64, 44),
+        ink = RGB(44, 28, 14), bg = RGB(206, 178, 130), surface = RGB(226, 204, 160), raised = RGB(218, 194, 148),
+        hover = RGB(204, 174, 124), selected = RGB(192, 156, 100), line = RGB(150, 114, 72), gold = RGB(132, 84, 12),
+        text = RGB(48, 30, 14), text2 = RGB(88, 60, 34), text3 = RGB(124, 96, 66),
+        buttonText = RGB(255, 209, 0), near = RGB(28, 128, 44), enemy = RGB(170, 30, 18),
+        tip = RGB(255, 255, 255), tip2 = RGB(226, 218, 200), tip3 = RGB(160, 152, 136),
     },
     fonts = {
-        Title = { height = 24, display = true },
-        Headline = { height = 17, display = true },
-        Big = { height = 30, display = true },
-        Body = { height = 12 },
-        Small = { height = 11 },
-        Tiny = { height = 9 },
-        Button = { height = 12 },
+        Title = { height = 24, display = true, shadow = false },
+        Headline = { height = 17, display = true, shadow = false },
+        Big = { height = 30, display = true, shadow = false },
+        Body = { height = 12, shadow = false },
+        Small = { height = 11, shadow = false },
+        Tiny = { height = 9, shadow = false },
+        Button = { height = 12, shadow = false },
     },
 }
 skin.name = HC.L["Forever"]
@@ -153,8 +156,9 @@ function skin.Dot(parent, size, color, pulse)
     return dot
 end
 
+-- a red cloth banner with gold edges
 function skin.Ribbon(ribbon)
-    Theme.Panel(ribbon, "card")
+    Theme.Strip(ribbon, Theme.Art("Ribbon"), "ARTWORK", 0.125, ribbon:GetHeight() / 2)
 end
 
 -- a class icon cut round, in a metal ring of the class color (as the game's portraits)

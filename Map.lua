@@ -202,7 +202,7 @@ local function Tip(pin)
         return
     end
     local member = spot.member
-    local color = Utils.ClassColor(member.class)
+    local color = Utils.ClassColor(member.class, true)
     GameTooltip:SetOwner(pin, "ANCHOR_RIGHT")
     GameTooltip:SetText(member.full, color[1], color[2], color[3])
     local parts = { spot.word }
@@ -210,7 +210,7 @@ local function Tip(pin)
     if member.level and className then
         parts[#parts + 1] = string.format(L["Level %d %s"], member.level, className)
     end
-    GameTooltip:AddLine(table.concat(parts, "  ·  "), C.text2[1], C.text2[2], C.text2[3])
+    GameTooltip:AddLine(table.concat(parts, "  ·  "), C.tip2[1], C.tip2[2], C.tip2[3])
     GameTooltip:Show()
 end
 
@@ -284,7 +284,7 @@ function Map.Refresh()
                     pin.spot, pin.x, pin.y = { member = kin.member, word = kin.word }, x, y
                     pin:SetFrameLevel(level)
                     pin.crest:SetCrest(crest, surname)
-                    local color = Utils.ClassColor(kin.member.class)
+                    local color = Utils.ClassColor(kin.member.class, true)
                     pin.bar:SetVertexColor(color[1], color[2], color[3])
                     pin.name:SetText(kin.member.first or full)
                     pin.name:SetTextColor(color[1], color[2], color[3])

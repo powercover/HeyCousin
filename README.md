@@ -27,7 +27,7 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
   beside map addons that keep the game's map (Mapster, Leatrix Maps, TomTom, HandyNotes, Questie).
 - **The setup**: make your crest (shape, pattern, colors, a symbol, or roll the dice), write a
   motto, pick your alerts, the family map and your look; a guild master makes their guild a family.
-- **Three looks**: Forever (the game's own classic windows: bronze frames, red buttons), Pixel
+- **Three looks**: Forever (the classic game's parchment pages in stone frames, red buttons), Pixel
   (chunky and cartoonish) and Smooth (dark and gold).
 - **12 languages**: English, German, French, Italian, Spanish (Spain and Latin America), Brazilian
   Portuguese, Russian, Ukrainian, Korean, and Chinese (simplified and traditional).

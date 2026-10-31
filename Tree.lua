@@ -320,7 +320,7 @@ function Tree.Build(window, left, top, bottom)
 end
 
 local function PaintHeader(family, total, online)
-    local metal = Theme.Metal()
+    local metal = Theme.Title()
     tree.title:SetTextColor(metal[1], metal[2], metal[3])
     tree.title:SetText(family and family.guild or "")
     tree.count:SetText(family and (string.format(L["%d in the family"], total) .. "  ·  "

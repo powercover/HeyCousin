@@ -835,38 +835,95 @@ def f_framed(band, groove, body, radius=6, studs=False, metal=(BRONZE_HI, BRONZE
     return f_shrink(img, size)
 
 
+PARCH_HI = (240, 222, 182)
+PARCH = (224, 200, 152)
+PARCH_LO = (204, 174, 124)
+INK_BROWN = (92, 58, 30)
+STONE_HI = (178, 170, 156)
+STONE_GRAY = (120, 112, 100)
+STONE_DARK = (70, 64, 56)
+GOLD_LINE = (214, 170, 70)
+
+
+def f_parchment(img, box, radius, top=PARCH_HI, bottom=PARCH_LO, burn=4.0):
+    """Parchment in `box`: light above, darker below, and burnt brown along its edges."""
+    mask = f_shape(64, box, radius)
+    f_layer(img, mask, f_gradient(64, top, bottom))
+    edge = Image.eval(mask, lambda v: 255 - v).filter(ImageFilter.GaussianBlur(burn * SS))
+    edge = ImageChops.multiply(edge, mask)
+    f_layer(img, Image.eval(edge, lambda v: min(255, int(v * 1.6))), (150, 104, 54))
+
+
 def forever_ui(tex):
     out = {}
-    out["Panel"] = f_framed(7, 1, (STONE, STONE_LO), radius=7, studs=True)
-    out["Card"] = f_framed(4, 1, ((40, 34, 28), (26, 22, 19)), radius=5,
-                           metal=((196, 160, 96), (92, 64, 30)))
-    out["Tile"] = f_framed(3, 1, ((36, 31, 26), (26, 22, 19)), radius=5,
-                           metal=((120, 96, 60), (60, 44, 24)))
-    out["Frame"] = f_framed(6, 1, (STONE_LO, STONE_LO), radius=6)
-    # an inset: dark, a shade along its top, a little light along its bottom
+    # a window: parchment in a carved stone frame, a gold line inside it, gold studs at the corners
+    panel = f_canvas()
+    f_layer(panel, f_shape(64, (0, 0, 64, 64), 6), (26, 22, 18))
+    f_layer(panel, f_shape(64, (1, 1, 63, 63), 5), f_gradient(64, STONE_HI, STONE_DARK))
+    f_layer(panel, f_shape(64, (7, 7, 57, 57), 2), (36, 30, 24))
+    f_layer(panel, f_shape(64, (8, 8, 56, 56), 2), GOLD_LINE)
+    f_layer(panel, f_shape(64, (9, 9, 55, 55), 1), (60, 40, 22))
+    f_parchment(panel, (10, 10, 54, 54), 1)
+    for cx, cy in ((5, 5), (59, 5), (5, 59), (59, 59)):
+        f_layer(panel, f_shape(64, (cx - 4, cy - 4, cx + 4, cy + 4), 1), (40, 28, 14))
+        f_layer(panel, f_shape(64, (cx - 3, cy - 3, cx + 3, cy + 3), 1), f_gradient(64, BRONZE_HI, BRONZE))
+    out["Panel"] = f_shrink(panel)
+    # a card, a tile: parchment a shade darker, in a brown ink line
+    for name, line, top, bottom in (("Card", INK_BROWN, (232, 210, 166), (214, 186, 136)),
+                                    ("Tile", (150, 116, 72), (234, 214, 172), (220, 194, 146))):
+        img = f_canvas()
+        f_layer(img, f_shape(64, (0, 0, 64, 64), 6), line)
+        f_parchment(img, (2, 2, 62, 62), 5, top, bottom, burn=3.0)
+        out[name] = f_shrink(img)
+    # a portrait's frame: carved stone around a dark window
+    frame = f_canvas()
+    f_layer(frame, f_shape(64, (0, 0, 64, 64), 5), (26, 22, 18))
+    f_layer(frame, f_shape(64, (1, 1, 63, 63), 4), f_gradient(64, STONE_HI, STONE_DARK))
+    f_layer(frame, f_shape(64, (6, 6, 58, 58), 2), GOLD_LINE)
+    f_layer(frame, f_shape(64, (7, 7, 57, 57), 2), (24, 20, 16))
+    out["Frame"] = f_shrink(frame)
+    # an inset (a text box): darker parchment, shaded along its top
     well = f_canvas()
-    f_layer(well, f_shape(64, (0, 0, 64, 64), 5), (54, 46, 36))
-    f_layer(well, f_shape(64, (0, 0, 64, 62), 5), (6, 5, 4))
-    f_layer(well, f_shape(64, (2, 3, 62, 62), 4), ((14, 12, 10)))
+    f_layer(well, f_shape(64, (0, 0, 64, 64), 5), (140, 104, 62))
+    f_layer(well, f_shape(64, (1, 1, 63, 63), 4), (176, 144, 98))
+    f_layer(well, f_shape(64, (2, 4, 62, 62), 4), f_gradient(64, (204, 176, 128), (216, 192, 146)))
     out["Well"] = f_shrink(well)
-    # the classic red buttons with a gold band, and dark ones; pressed, they turn their light down
-    red, dark, off = (RED_HI, RED_LO), ((60, 51, 42), (30, 26, 22)), ((96, 92, 86), (54, 52, 49))
-    for name, body, metal in (("Button", red, None), ("ButtonHover", ((236, 70, 46), (120, 16, 10)), None),
+    # the classic red buttons with a gold band; the others parchment in a bronze band; pressed,
+    # they turn their light down
+    for name, body, metal in (("Button", (RED_HI, RED_LO), None), ("ButtonHover", ((236, 70, 46), (120, 16, 10)), None),
                               ("ButtonDown", ((110, 14, 8), (176, 34, 22)), None),
-                              ("ButtonOff", off, ((150, 144, 132), (80, 76, 70))),
-                              ("Dark", dark, None), ("DarkHover", ((84, 72, 58), (42, 36, 30)), None),
-                              ("DarkDown", ((26, 22, 19), (52, 44, 36)), None),
-                              ("DarkOff", ((52, 50, 47), (36, 35, 33)), ((96, 92, 86), (56, 54, 50)))):
+                              ("ButtonOff", ((150, 140, 124), (112, 104, 92)), ((170, 160, 144), (100, 94, 84))),
+                              ("Dark", ((242, 226, 188), (212, 184, 134)), None),
+                              ("DarkHover", ((250, 238, 206), (226, 202, 156)), None),
+                              ("DarkDown", ((204, 174, 124), (228, 206, 162)), None),
+                              ("DarkOff", ((208, 196, 172), (186, 174, 152)), ((170, 160, 144), (110, 104, 94)))):
         out[name] = f_framed(5, 0, body, radius=10, metal=metal or (BRONZE_HI, BRONZE_LO))
-    # a check box: a bronze-rimmed well, with a gold check when it's on
-    out["CheckOff"] = f_framed(6, 1, ((10, 9, 8), (22, 19, 16)), radius=6)
+    # a check box: a bronze-rimmed inset, with a dark red check when it's on
+    out["CheckOff"] = f_framed(6, 1, ((196, 168, 120), (220, 196, 150)), radius=6)
     on = f_canvas()
     on.alpha_composite(out["CheckOff"].resize(on.size, Image.LANCZOS))
     draw = ImageDraw.Draw(on)
     tick = [(18 * SS, 33 * SS), (28 * SS, 44 * SS), (47 * SS, 20 * SS)]
-    draw.line(tick, fill=BRONZE_DARK + (255,), width=11 * SS, joint="curve")
-    draw.line(tick, fill=GOLD_TEXT + (255,), width=6 * SS, joint="curve")
+    draw.line(tick, fill=(60, 14, 6, 255), width=11 * SS, joint="curve")
+    draw.line(tick, fill=(176, 30, 18, 255), width=6 * SS, joint="curve")
     out["CheckOn"] = f_shrink(on)
+    # a title banner: red cloth with gold edges and cut ends (a 3-slice: the ends keep their shape)
+    banner = Image.new("RGBA", (128 * SS, 32 * SS), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(banner)
+    s = SS
+    shape = [(0, 2 * s), (128 * s, 2 * s), (120 * s, 16 * s), (128 * s, 30 * s), (0, 30 * s), (8 * s, 16 * s)]
+    draw.polygon(shape, fill=(60, 26, 10, 255))
+    inner = [(4 * s, 4 * s), (124 * s, 4 * s), (117 * s, 16 * s), (124 * s, 28 * s), (4 * s, 28 * s), (11 * s, 16 * s)]
+    draw.polygon(inner, fill=GOLD_LINE + (255,))
+    cloth = [(6 * s, 6 * s), (122 * s, 6 * s), (115 * s, 16 * s), (122 * s, 26 * s), (6 * s, 26 * s), (13 * s, 16 * s)]
+    mask = Image.new("L", banner.size, 0)
+    ImageDraw.Draw(mask).polygon(cloth, fill=255)
+    n = banner.size[1]
+    t = np.linspace(0, 1, n)[:, None, None]
+    rows = np.array((186, 36, 24), float) * (1 - t) + np.array((116, 16, 10), float) * t
+    grad = np.broadcast_to(rows, (n, banner.size[0], 3)).astype(np.uint8)
+    banner.paste(Image.fromarray(np.dstack([grad, np.full(grad.shape[:2], 255, np.uint8)]), "RGBA"), (0, 0), mask)
+    out["Ribbon"] = banner.resize((128, 32), Image.LANCZOS)
     # an arrow to flip through choices: a round bronze button, a gold chevron pointing left
     for name, inner, chevron in (("Arrow", STONE, (232, 190, 64)), ("ArrowHover", (58, 48, 38), GOLD_TEXT)):
         img = f_canvas()

@@ -679,7 +679,7 @@ end
 local function PaintStats()
     local data = Kin.Stats(5)
     local total, nearby = Kin.Counts()
-    local metal, accent = Theme.Metal(), Theme.Accent()
+    local metal, accent = Theme.Title(), Theme.Accent()
     for index, value in ipairs({ total, data.meetings, nearby }) do
         local tile = stats.tiles[index]
         tile.value:SetText(tostring(value))
@@ -872,7 +872,7 @@ local function PaintHeader()
     local first = Names.Me()
     local total, nearby, sheep = Kin.Counts()
     header.crest:SetCrest(house and house.crest, surname)
-    local metal = Theme.Metal()
+    local metal = Theme.Title()
     header.title:SetTextColor(metal[1], metal[2], metal[3])
     if surname then
         header.title:SetText(string.format(L["House %s"], surname))

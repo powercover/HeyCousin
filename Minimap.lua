@@ -72,7 +72,7 @@ local function ShowTooltip(owner)
     local house, surname = Kin.House()
     local total, nearby = Kin.Counts()
     GameTooltip:SetOwner(owner, "ANCHOR_LEFT")
-    GameTooltip:SetText(L["Hey Cousin!"], C.text[1], C.text[2], C.text[3])
+    GameTooltip:SetText(L["Hey Cousin!"], C.tip[1], C.tip[2], C.tip[3])
     if house and surname then
         local metal = Theme.Metal()
         GameTooltip:AddLine(string.format(L["House %s"], surname), metal[1], metal[2], metal[3])
@@ -80,15 +80,15 @@ local function ShowTooltip(owner)
         if nearby > 0 then
             line = line .. ", " .. string.format(L["%d near you now"], nearby)
         end
-        GameTooltip:AddLine(line, C.text2[1], C.text2[2], C.text2[3])
+        GameTooltip:AddLine(line, C.tip2[1], C.tip2[2], C.tip2[3])
     end
     GameTooltip:AddLine(" ")
-    GameTooltip:AddDoubleLine(L["Click"], L["Your family"], C.text3[1], C.text3[2], C.text3[3], C.text2[1], C.text2[2],
-        C.text2[3])
-    GameTooltip:AddDoubleLine(L["Right-click"], L["Setup"], C.text3[1], C.text3[2], C.text3[3], C.text2[1], C.text2[2],
-        C.text2[3])
-    GameTooltip:AddDoubleLine(L["Drag"], L["Move this button"], C.text3[1], C.text3[2], C.text3[3], C.text2[1],
-        C.text2[2], C.text2[3])
+    GameTooltip:AddDoubleLine(L["Click"], L["Your family"], C.tip3[1], C.tip3[2], C.tip3[3], C.tip2[1], C.tip2[2],
+        C.tip2[3])
+    GameTooltip:AddDoubleLine(L["Right-click"], L["Setup"], C.tip3[1], C.tip3[2], C.tip3[3], C.tip2[1], C.tip2[2],
+        C.tip2[3])
+    GameTooltip:AddDoubleLine(L["Drag"], L["Move this button"], C.tip3[1], C.tip3[2], C.tip3[3], C.tip2[1],
+        C.tip2[2], C.tip2[3])
     GameTooltip:Show()
 end
 

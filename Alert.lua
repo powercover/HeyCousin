@@ -224,7 +224,7 @@ local function Paint(item)
     local house, surname = Kin.House()
     local crest = house and house.crest or Crest.Normalize(nil)
     local sheep = Kin.IsBlackSheep(relative)
-    local metal, accent = Theme.Metal(), Theme.Accent()
+    local metal, accent = Theme.Title(), Theme.Accent()
 
     if sheep then
         local faction = _G[FACTIONS[relative.faction] or ""] or relative.faction or ""

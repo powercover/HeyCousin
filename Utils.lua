@@ -116,8 +116,9 @@ function Utils.Zone()
     return Utils.IsUsableString(zone) and zone or nil
 end
 
--- A class's color as { r, g, b } (a neutral gray for an unknown class).
-function Utils.ClassColor(classFile)
+-- A class's color as { r, g, b } (a neutral gray for an unknown class), as it reads on the theme's
+-- panels; `raw`: the game's own.
+function Utils.ClassColor(classFile, raw)
     local color
     if type(classFile) == "string" then
         if C_ClassColor and type(C_ClassColor.GetClassColor) == "function" then
@@ -125,10 +126,10 @@ function Utils.ClassColor(classFile)
         end
         color = color or (RAID_CLASS_COLORS and RAID_CLASS_COLORS[classFile])
     end
-    if type(color) == "table" and type(color.r) == "number" then
-        return { color.r, color.g, color.b }
-    end
-    return { 0.72, 0.68, 0.6 }
+    local rgb = type(color) == "table" and type(color.r) == "number" and { color.r, color.g, color.b }
+        or { 0.72, 0.68, 0.6 }
+    -- (on the addon's panels; `raw`: as the game has it, for the game's own surfaces)
+    return (raw or not HC.Theme) and rgb or HC.Theme.Readable(rgb)
 end
 
 -- Puts a class's icon on `texture`: the game's round atlas where it has one, else the old

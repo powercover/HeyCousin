@@ -27,10 +27,12 @@ function Screens.Kind(object)
     end
 end
 
--- the shown button whose label reads `text`, under `root` (as the smoke test finds them)
+-- the shown button whose label reads `text` (English, or its translation: screens.py --lang),
+-- under `root` (as the smoke test finds them)
 local function ButtonWith(root, text)
+    local translated = Screens.HC and Screens.HC.L[text] or text
     for _, child in ipairs(root.children or {}) do
-        if child.label and child.label.text == text and child:IsVisible() then
+        if child.label and (child.label.text == text or child.label.text == translated) and child:IsVisible() then
             return child
         end
         local found = ButtonWith(child, text)
@@ -40,10 +42,11 @@ local function ButtonWith(root, text)
     end
 end
 
-local function Boot(skin, client, saved)
+local function Boot(skin, client, saved, player)
     saved = saved or {}
-    saved.skin, saved.setupDone = skin, true
-    local HC = Mock.Boot(client or "retail", saved)
+    -- (screens.py --lang: the addon speaks that language)
+    saved.skin, saved.setupDone, saved.language = skin, true, Screens.LANGUAGE
+    local HC = Mock.Boot(client or "retail", saved, player)
     for class, color in pairs(Screens.CLASS_COLORS) do
         RAID_CLASS_COLORS[class] = { r = color[1], g = color[2], b = color[3] }
         CLASS_ICON_TCOORDS[class] = Screens.CLASS_CELLS[class]
@@ -204,6 +207,15 @@ end
 function Screens.near(skin) return Pop(skin, "Mira", false) end
 function Screens.new(skin) return Pop(skin, "Tamsin", true) end
 function Screens.sheep(skin) return Pop(skin, "Bru", false) end
+
+-- a black sheep who joined the Alliance (you're Horde): the longer faction name
+function Screens.alliance(skin)
+    local HC = Boot(skin, nil, nil, { name = "Rowan", class = "WARRIOR", race = "Orc", level = 20, sex = 2,
+        faction = "Horde", guid = "Player-1-ME" })
+    HC.Kin.MarkNear("Bru")
+    HC.Alert.Show({ first = "Bru", relative = HC.TestMode.House().relatives.Bru, new = false, unit = "player", test = true })
+    return { frames = { HeyCousinAlert } }
+end
 
 function Screens.ask(skin)
     local HC = Boot(skin)

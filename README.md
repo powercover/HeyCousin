@@ -28,6 +28,8 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - **The setup**: make your crest (shape, pattern, colors, a symbol, or roll the dice), write a
   motto, pick your alerts, the family map and your look; a guild master makes their guild a family.
 - **Two looks**: Pixel (chunky and cartoonish) and Smooth (dark and gold).
+- **12 languages**: English, German, French, Italian, Spanish (Spain and Latin America), Brazilian
+  Portuguese, Russian, Ukrainian, Korean, and Chinese (simplified and traditional).
 - **Test mode on Retail**: a made-up family, so you can try everything before WoW Forever opens.
 
 ## Commands

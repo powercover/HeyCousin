@@ -11,7 +11,7 @@ local Kin = HC.Kin
 local L = HC.L
 local C = Theme.C
 
-local WIDTH, HEIGHT = 440, 92
+local WIDTH, HEIGHT = 470, 92
 local SHOW_FOR = 8      -- seconds on screen; pointing at it holds it
 local QUEUE_MAX = 5
 local STALE = 90        -- a waiting pop-up older than this is dropped
@@ -241,9 +241,12 @@ local function Paint(item)
         toast.title:SetText(L["A cousin is near!"])
         toast.title:SetTextColor(metal[1], metal[2], metal[3])
     end
-    toast.mark:SetShown(sheep or item.new == true)
+    -- the star or the sheep after the title, with room kept for it before the close button
+    local marked = sheep or item.new == true
+    toast.mark:SetShown(marked)
+    toast.title:SetPoint("RIGHT", toast, "RIGHT", marked and -66 or -44, 0)
     toast.mark:ClearAllPoints()
-    toast.mark:SetPoint("LEFT", toast.title, "LEFT", toast.title:GetStringWidth() + 6, 0)
+    toast.mark:SetPoint("LEFT", toast.title, "LEFT", math.min(toast.title:GetStringWidth(), toast.title:GetWidth()) + 6, 0)
 
     local full = Names.Full(item.first, surname)
     local line = Theme.Paint(full, Utils.ClassColor(relative.class))

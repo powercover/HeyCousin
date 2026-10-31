@@ -35,9 +35,14 @@ Tools:
   the project folder itself. `--retail` links Retail's too, for the test mode, and writes the
   `HeyCousin_Standard.toc` Retail reads there (never committed: the release stays Forever only).
 - `bump_version.py OLD NEW`: the version in the TOC and `Core.lua`.
-- `screens.py [OUT]`: pictures of every screen in both themes (the family, stats, pop-ups, setup,
-  minimap, tooltip, chat, crests, the name test), drawn from the addon's own frames on the mock
-  game (`screens.lua` opens them) into `screens/` (not committed). It prints texts that don't fit,
-  run into each other or spill out of their buttons. The game packs its fonts, so Georgia stands in
-  for Friz Quadrata and Morpheus; the minimap, chat, tooltip, class icons and 3D models are stand-ins.
+- `screens.py [OUT] [--lang CODE]`: pictures of every screen in both themes (the family, a
+  cousin's page, the tree, stats, pop-ups, the setup's steps, minimap, tooltip, chat, crests, the
+  name test, the family map), drawn from the addon's own frames on the mock game (`screens.lua`
+  opens them) into `screens/` (not committed); `--lang` draws them in a translation, into
+  `screens/CODE/`. It prints texts that don't fit, run into each other or spill out of their
+  buttons. The game packs its fonts, so Georgia stands in for Friz Quadrata and Morpheus, and
+  Windows' Malgun Gothic, YaHei and JhengHei for the game's Korean and Chinese; the minimap, the
+  world map, chat, tooltip, class icons and 3D models are stand-ins.
+- `locale_texts.py [--missing CODE]`: every text the addon shows, for translators, with the line of
+  code that shows it, grouped by file; `--missing` lists only the ones a translation lacks.
 - `edits.py`: exact-match edits that keep a file's line endings.

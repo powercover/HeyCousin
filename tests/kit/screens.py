@@ -23,6 +23,9 @@ ROOT = os.environ.get("HC_ROOT", os.path.abspath(os.path.join(HERE, "..", ".."))
 WINFONTS = os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts")
 BODY, DISPLAY, CHAT = (os.path.join(WINFONTS, name) for name in ("georgia.ttf", "georgiab.ttf", "arial.ttf"))
 PIXEL_FONT = os.path.join(ROOT, "Media", "Fonts", "HeyCousinPixel.ttf")
+# Korean and Chinese: the game draws them in its own fonts (a font family's other members), and so
+# does the Pixel theme; Windows' fonts stand in
+KOREAN, HANS, HANT = (os.path.join(WINFONTS, name) for name in ("malgun.ttf", "msyh.ttc", "msjh.ttc"))
 UI_W, UI_H = 1366, 768  # the game's screen at UI scale 1: 768 points high
 SKINS = ("pixel", "smooth")
 
@@ -144,6 +147,7 @@ def overlap(a, b):
 
 class Painter:
     def __init__(self):
+        self.lang = None
         self.lua = LuaRuntime(unpack_returned_tuples=True)
         os.chdir(ROOT)
         self.lua.execute(LUA_SETUP)
@@ -246,18 +250,34 @@ class Painter:
             self.fonts[key] = ImageFont.truetype(path, size)
         return self.fonts[key]
 
+    def cjk(self, text):
+        """The stand-in font for a Korean or Chinese text (screens.py --lang), else None."""
+        han = False
+        for char in text:
+            code = ord(char)
+            if 0xAC00 <= code <= 0xD7AF or 0x3130 <= code <= 0x318F:
+                return KOREAN
+            han = han or 0x3000 <= code <= 0x9FFF or 0xFF00 <= code <= 0xFFEF
+        if not han:
+            return None
+        return KOREAN if self.lang == "koKR" else HANT if self.lang == "zhTW" else HANS
+
     def text_of(self, obj, edit=False):
         """What a font string (or a text box) shows, and in which font."""
         font = obj["font"]
         member = font
-        if font is not None and font["members"] is not None and font["members"]["roman"] is not None:
-            member = font["members"]["roman"]
+        cjk = self.cjk(str(obj["text"] or ""))
+        # (Korean and Chinese take their alphabet's member: the theme makes them a little taller)
+        alphabet = {KOREAN: "korean", HANS: "simplifiedchinese", HANT: "traditionalchinese"}.get(cjk, "roman")
+        if font is not None and font["members"] is not None:
+            member = font["members"][alphabet] or font["members"]["roman"] or font
         file = (member and member["file"]) or "Fonts\\FRIZQT__.TTF"
         low = file.replace("/", "\\").lower()
         if low.startswith("interface\\addons\\heycousin\\"):
             path = os.path.join(ROOT, *file.replace("/", "\\").split("\\")[3:])
         else:
             path = DISPLAY if "morpheus" in low else BODY
+        path = cjk or path
         shadow = obj["shadowOffset"] if obj["shadowOffset"] is not None else (member and member["shadowOffset"])
         return {
             "text": str(obj["text"] or ""), "path": path, "height": (member and member["height"]) or 12,
@@ -283,7 +303,8 @@ class Painter:
             elif width is None or not info["wrap"]:
                 rows[-1].append(("t", value, tint, font.getlength(value) / self.scale))
             else:
-                for word in re.split(r"( +)", value):
+                # (Chinese has no spaces: the game breaks a line between any two of its characters)
+                for word in re.split(r"( +|[　-〿㐀-鿿＀-￯])", value):
                     if not word:
                         continue
                     size = font.getlength(word) / self.scale
@@ -651,7 +672,7 @@ class Painter:
         for index, text in enumerate(lines):
             tint = color(tints[index] if index < len(tints) else None)[:3]
             infos.append((text, 14 if index == 0 else 12, tint))
-        sizes = [self.text_size({"text": t, "path": BODY, "height": h, "flags": "", "color": (1, 1, 1, 1),
+        sizes = [self.text_size({"text": t, "path": self.cjk(t) or BODY, "height": h, "flags": "", "color": (1, 1, 1, 1),
                                  "shadow": (0, 0), "shadowColor": (0, 0, 0, 1), "justifyH": "LEFT",
                                  "justifyV": "TOP", "wrap": False, "spacing": 0}, None) for t, h, _ in infos]
         width = max(w for w, _ in sizes) + 20
@@ -667,18 +688,39 @@ class Painter:
         self.blit(np.asarray(panel, dtype=np.float32) / 255, x0, y0)
         top = box[3] - 9
         for (text, size, tint), (_, h) in zip(infos, sizes):
-            self.plain_text(text, box[0] + 10, top, BODY, size, tint, shadow=False)
+            self.plain_text(text, box[0] + 10, top, self.cjk(text) or BODY, size, tint, shadow=False)
             top -= h + 2
         return box
 
-    def check(self, scene, inks):
-        """Notes texts that run into each other, and labels wider than their buttons."""
-        for index, (frame, region, ink) in enumerate(inks):
+    def root_of(self, frame, roots):
+        """The window (one of the scene's `roots`) that `frame` is in, if any."""
+        while frame is not None:
+            for root in roots:
+                if frame["serial"] == root["serial"]:
+                    return root
+            frame = frame["parent"]
+        return None
+
+    def check(self, scene, inks, roots=()):
+        """Notes texts that run into each other, labels wider than their buttons, and texts that run
+        out of their window."""
+        for index, (frame, region, ink, clip) in enumerate(inks):
+            root = self.root_of(frame, roots)
+            edge = root is not None and self.rect(root)
+            if clip is not None:
+                # (a clip is in pixels: back to points, the way px() went)
+                s = self.scale
+                clip = (clip[0] / s, UI_H - clip[3] / s, clip[2] / s, UI_H - clip[1] / s)
+            seen = ink if clip is None else (max(ink[0], clip[0]), max(ink[1], clip[1]), min(ink[2], clip[2]),
+                                             min(ink[3], clip[3]))
+            if edge and seen[0] < seen[2] and seen[1] < seen[3] and (seen[0] < edge[0] - 1 or seen[2] > edge[2] + 1
+                                                                     or seen[1] < edge[1] - 1 or seen[3] > edge[3] + 1):
+                self.notes.append(f"{scene}: {str(region['text'])[:40]!r} runs out of its window")
             box = self.rect(frame)
             if self.kind(frame) == "Button" and (ink[0] < box[0] - 1 or ink[2] > box[2] + 1):
                 self.notes.append(f"{scene}: {str(region['text'])[:40]!r} is wider than its button "
                                   f"({ink[2] - ink[0]:.0f} > {box[2] - box[0]:.0f})")
-            for other_frame, other, other_ink in inks[index + 1:]:
+            for other_frame, other, other_ink, _ in inks[index + 1:]:
                 if other_frame["serial"] == frame["serial"] and overlap(ink, other_ink):
                     self.notes.append(f"{scene}: {str(region['text'])[:30]!r} runs into {str(other['text'])[:30]!r}")
 
@@ -725,10 +767,11 @@ class Painter:
                 if self.kind(region) == "Texture":
                     self.draw_texture(region, region_box, a, self.own_clip(frame, clip))
                 else:
-                    ink = self.draw_text(self.text_of(region), region_box, a, self.own_clip(frame, clip), scene)
+                    own = self.own_clip(frame, clip)
+                    ink = self.draw_text(self.text_of(region), region_box, a, own, scene)
                     if ink:
-                        inks.append((frame, region, ink))
-        self.check(scene, inks)
+                        inks.append((frame, region, ink, own))
+        self.check(scene, inks, [] if result["full"] else items(result["frames"]))
         if result["tooltip"]:
             parts["tooltip"] = self.px(self.tooltip())
         for error in items(self.G.Screens.HC.errors):
@@ -771,9 +814,18 @@ def sheet(rows, columns, gap=36):
 
 
 def main():
-    out = os.path.abspath(sys.argv[1]) if len(sys.argv) > 1 else os.path.join(HERE, "screens")
+    # --lang CODE: every screen in that language (its translation, Locales/CODE.lua), in screens/CODE/
+    args = sys.argv[1:]
+    lang = None
+    if "--lang" in args:
+        at = args.index("--lang")
+        lang = args[at + 1]
+        del args[at:at + 2]
+    out = os.path.abspath(args[0]) if args else os.path.join(HERE, "screens", *([lang] if lang else []))
     os.makedirs(out, exist_ok=True)
     painter = Painter()
+    painter.lang = lang
+    painter.G.Screens.LANGUAGE = lang
     notes = []
 
     def shot(scene, skin, scale=2):
@@ -792,7 +844,7 @@ def main():
     pair("2-cousin.png", "cousin")
     pair("2b-stats.png", "stats")
     pair("2c-tree.png", "tree")
-    rows = [[shot(scene, skin)[0] for skin in SKINS] for scene in ("near", "new", "sheep", "ask")]
+    rows = [[shot(scene, skin)[0] for skin in SKINS] for scene in ("near", "new", "sheep", "alliance", "ask")]
     sheet(rows, SKINS).save(os.path.join(out, "3-pop-ups.png"))
     print("drew 3-pop-ups.png")
     pair("4-setup-crest.png", "crest")

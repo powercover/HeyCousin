@@ -34,8 +34,9 @@ end
 
 local HC = Mock.Boot("retail", nil)
 check(HC.IsForever == false and HC.TestMode.active == true, "Retail runs the test mode")
-check(HeyCousinDB.skin == "pixel" and HeyCousinDB.setupDone == false, "defaults: the Pixel look, no setup yet")
-check(HC.Theme.Skin().key == "pixel", "Pixel is the look in use")
+check(HeyCousinDB.skin == "forever" and HeyCousinDB.setupDone == false, "defaults: the Forever look, no setup yet")
+check(HC.Theme.Skin().key == "forever" and HC.Theme.ORDER[2] == "pixel" and HC.Theme.ORDER[3] == "smooth",
+    "Forever is the look in use, then Pixel, then Smooth")
 local minimap = _G.HeyCousinMinimapButton
 check(minimap and minimap:IsShown(), "the minimap crest shows")
 check(minimap.badge.text.text == "13", "the minimap badge counts the made-up family: " .. tostring(minimap.badge.text.text))
@@ -50,7 +51,7 @@ NoErrors(HC, "boot")
 check(ButtonWith(setup, "Crest") and ButtonWith(setup, "Alerts") and ButtonWith(setup, "Crest").node.kind == "primary",
     "a step bar, on the first step")
 check(ButtonWith(setup, "Skip for now") ~= nil and ButtonWith(setup, "Back") == nil, "the first time: skip, no back")
-check(setup.look and setup.look.forward:IsVisible() and setup.look.name.text == "Pixel", "the look on top of the step")
+check(setup.look and setup.look.forward:IsVisible() and setup.look.name.text == "Forever", "the look on top of the step")
 check(not ButtonWith(setup, "Reset"):IsEnabled(), "nothing to reset yet")
 
 -- the crest page
@@ -86,7 +87,7 @@ check(type(HeyCousinDB.testCrest) == "table" and HeyCousinDB.testCrest.shape == 
 local made = HC.Crest.Normalize(big.crest)
 setup.look.forward:Click()
 NoErrors(HC, "look arrow")
-check(HC.Theme.Skin().key == "smooth" and HeyCousinDB.skin == "smooth", "the look arrow switches the look")
+check(HC.Theme.Skin().key == "pixel" and HeyCousinDB.skin == "pixel", "the look arrow switches the look")
 setup = _G.HeyCousinSetup
 big = Crest(setup, 160)
 motto = All(setup, function(f) return f.kind == "EditBox" and f:IsVisible() end)[1]
@@ -175,7 +176,7 @@ setup = _G.HeyCousinSetup
 setup.look.forward:Click()
 NoErrors(HC, "look arrows")
 setup = _G.HeyCousinSetup
-check(HC.Theme.Skin().key == "smooth" and setup:IsShown() and ButtonWith(setup, "Done") ~= nil,
+check(HC.Theme.Skin().key == "forever" and setup:IsShown() and ButtonWith(setup, "Done") ~= nil,
     "the setup comes back in each look, on the same step")
 Settle()
 local done = ButtonWith(setup, "Done")
@@ -798,7 +799,7 @@ HC = Mock.Boot("forever", { skin = "nope", chats = "x", setupDone = true, window
 house = HC.Kin.House()
 check(house.crest.shape == "Heater" and house.crest.symbol == "initial" and type(house.relatives) == "table",
     "a broken saved house is mended")
-check(HC.Theme.Skin().key == "pixel", "an unknown look falls back to Pixel")
+check(HC.Theme.Skin().key == "forever", "an unknown look falls back to Forever")
 SlashCmdList.HEYCOUSIN("")
 Settle()
 SlashCmdList.HEYCOUSIN("setup")

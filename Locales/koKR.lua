@@ -29,6 +29,8 @@ HC.Locale.Register("koKR", {
     ["(secret)"] = "(비밀 값)",
 
     -- The looks
+    ["Forever"] = "Forever",
+    ["The game's own classic look."] = "게임 고유의 클래식 스타일이에요.",
     ["Pixel"] = "픽셀",
     ["Chunky and cartoonish."] = "두툼하고 만화 같은 느낌.",
     ["Smooth"] = "매끈",

@@ -8,7 +8,7 @@ local Utils = HC.Utils
 local MEDIA = "Interface\\AddOns\\" .. addonName .. "\\Media\\"
 Theme.MEDIA = MEDIA
 Theme.SKINS, Theme.ORDER = {}, {}
-Theme.DEFAULT = "pixel"
+Theme.DEFAULT = "forever"
 
 local skin
 local listeners = {}

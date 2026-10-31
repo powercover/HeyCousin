@@ -22,7 +22,7 @@ import tempfile
 import wave
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 ROOT = os.environ.get("HC_ROOT", os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")))
 MEDIA = os.path.join(ROOT, "Media")
@@ -768,6 +768,157 @@ def smooth_ui():
     return tex
 
 
+# --- the Forever theme (WoW Forever's own look: the classic game's windows) ---------------------
+
+BRONZE_HI = (240, 206, 128)
+BRONZE = (184, 136, 62)
+BRONZE_LO = (100, 68, 30)
+BRONZE_DARK = (34, 24, 14)
+STONE = (30, 26, 22)
+STONE_LO = (17, 15, 13)
+RED_HI = (200, 40, 26)
+RED_LO = (92, 10, 6)
+GOLD_TEXT = (255, 209, 0)
+
+
+def f_canvas(size=64):
+    return Image.new("RGBA", (size * SS, size * SS), (0, 0, 0, 0))
+
+
+def f_shrink(img, size=64):
+    return img.resize((size, size), Image.LANCZOS)
+
+
+def f_gradient(size, top, bottom):
+    """A picture of `size` (in art pixels) going from `top` to `bottom`, down."""
+    n = size * SS
+    t = np.linspace(0, 1, n)[:, None, None]
+    rows = np.array(top, float) * (1 - t) + np.array(bottom, float) * t
+    img = np.broadcast_to(rows, (n, n, 3)).astype(np.uint8)
+    return Image.fromarray(np.dstack([img, np.full((n, n), 255, np.uint8)]), "RGBA")
+
+
+def f_shape(size, box, radius, ellipse=False):
+    """A mask (L) of a rounded box (or an ellipse) in art pixels."""
+    mask = Image.new("L", (size * SS, size * SS), 0)
+    draw = ImageDraw.Draw(mask)
+    b = tuple(v * SS for v in box)
+    if ellipse:
+        draw.ellipse(b, fill=255)
+    else:
+        draw.rounded_rectangle(b, radius=radius * SS, fill=255)
+    return mask
+
+
+def f_layer(img, mask, fill):
+    """Paints `fill` (a color, or a picture of the same size) on `img` through `mask`."""
+    if isinstance(fill, tuple):
+        fill = Image.new("RGBA", img.size, fill + (255,))
+    img.paste(fill, (0, 0), mask)
+
+
+def f_framed(band, groove, body, radius=6, studs=False, metal=(BRONZE_HI, BRONZE_LO), size=64):
+    """A window, card or button: a dark outline, a beveled metal band (light above, dark below), a
+    dark groove, and the body (a color, or a (top, bottom) gradient); rivets in the corners."""
+    img = f_canvas(size)
+    f_layer(img, f_shape(size, (0, 0, size, size), radius), BRONZE_DARK)
+    f_layer(img, f_shape(size, (1, 1, size - 1, size - 1), radius - 1), f_gradient(size, *metal))
+    f_layer(img, f_shape(size, (band, band, size - band, size - band), max(1, radius - band)), BRONZE_DARK)
+    fill = f_gradient(size, *body) if isinstance(body[0], tuple) else body
+    inset = band + groove
+    f_layer(img, f_shape(size, (inset, inset, size - inset, size - inset), max(1, radius - inset)), fill)
+    if studs:
+        for cx, cy in ((4, 4), (size - 4, 4), (4, size - 4), (size - 4, size - 4)):
+            f_layer(img, f_shape(size, (cx - 3, cy - 3, cx + 3, cy + 3), 0, ellipse=True), BRONZE_DARK)
+            f_layer(img, f_shape(size, (cx - 2, cy - 2, cx + 2, cy + 2), 0, ellipse=True),
+                    f_gradient(size, BRONZE_HI, BRONZE))
+    return f_shrink(img, size)
+
+
+def forever_ui(tex):
+    out = {}
+    out["Panel"] = f_framed(7, 1, (STONE, STONE_LO), radius=7, studs=True)
+    out["Card"] = f_framed(4, 1, ((40, 34, 28), (26, 22, 19)), radius=5,
+                           metal=((196, 160, 96), (92, 64, 30)))
+    out["Tile"] = f_framed(3, 1, ((36, 31, 26), (26, 22, 19)), radius=5,
+                           metal=((120, 96, 60), (60, 44, 24)))
+    out["Frame"] = f_framed(6, 1, (STONE_LO, STONE_LO), radius=6)
+    # an inset: dark, a shade along its top, a little light along its bottom
+    well = f_canvas()
+    f_layer(well, f_shape(64, (0, 0, 64, 64), 5), (54, 46, 36))
+    f_layer(well, f_shape(64, (0, 0, 64, 62), 5), (6, 5, 4))
+    f_layer(well, f_shape(64, (2, 3, 62, 62), 4), ((14, 12, 10)))
+    out["Well"] = f_shrink(well)
+    # the classic red buttons with a gold band, and dark ones; pressed, they turn their light down
+    red, dark, off = (RED_HI, RED_LO), ((60, 51, 42), (30, 26, 22)), ((96, 92, 86), (54, 52, 49))
+    for name, body, metal in (("Button", red, None), ("ButtonHover", ((236, 70, 46), (120, 16, 10)), None),
+                              ("ButtonDown", ((110, 14, 8), (176, 34, 22)), None),
+                              ("ButtonOff", off, ((150, 144, 132), (80, 76, 70))),
+                              ("Dark", dark, None), ("DarkHover", ((84, 72, 58), (42, 36, 30)), None),
+                              ("DarkDown", ((26, 22, 19), (52, 44, 36)), None),
+                              ("DarkOff", ((52, 50, 47), (36, 35, 33)), ((96, 92, 86), (56, 54, 50)))):
+        out[name] = f_framed(5, 0, body, radius=10, metal=metal or (BRONZE_HI, BRONZE_LO))
+    # a check box: a bronze-rimmed well, with a gold check when it's on
+    out["CheckOff"] = f_framed(6, 1, ((10, 9, 8), (22, 19, 16)), radius=6)
+    on = f_canvas()
+    on.alpha_composite(out["CheckOff"].resize(on.size, Image.LANCZOS))
+    draw = ImageDraw.Draw(on)
+    tick = [(18 * SS, 33 * SS), (28 * SS, 44 * SS), (47 * SS, 20 * SS)]
+    draw.line(tick, fill=BRONZE_DARK + (255,), width=11 * SS, joint="curve")
+    draw.line(tick, fill=GOLD_TEXT + (255,), width=6 * SS, joint="curve")
+    out["CheckOn"] = f_shrink(on)
+    # an arrow to flip through choices: a round bronze button, a gold chevron pointing left
+    for name, inner, chevron in (("Arrow", STONE, (232, 190, 64)), ("ArrowHover", (58, 48, 38), GOLD_TEXT)):
+        img = f_canvas()
+        f_layer(img, f_shape(64, (2, 2, 62, 62), 0, ellipse=True), BRONZE_DARK)
+        f_layer(img, f_shape(64, (3, 3, 61, 61), 0, ellipse=True), f_gradient(64, BRONZE_HI, BRONZE_LO))
+        f_layer(img, f_shape(64, (9, 9, 55, 55), 0, ellipse=True), BRONZE_DARK)
+        f_layer(img, f_shape(64, (10, 10, 54, 54), 0, ellipse=True), f_gradient(64, inner, STONE_LO))
+        draw = ImageDraw.Draw(img)
+        points = [(37 * SS, 20 * SS), (25 * SS, 32 * SS), (37 * SS, 44 * SS)]
+        draw.line(points, fill=BRONZE_DARK + (255,), width=10 * SS, joint="curve")
+        draw.line(points, fill=chevron + (255,), width=6 * SS, joint="curve")
+        out[name] = f_shrink(img)
+    # tinted: a color chip and the ring around the chosen one, a gem of a dot, a round badge, the
+    # class ring around a portrait (lighter above), and a circle to cut portraits round
+    chip = f_canvas()
+    f_layer(chip, f_shape(64, (8, 8, 56, 56), 6), (0, 0, 0))
+    f_layer(chip, f_shape(64, (11, 11, 53, 53), 4), f_gradient(64, (255, 255, 255), (200, 200, 200)))
+    out["Swatch"] = f_shrink(chip)
+    pick_mask = ImageChops.subtract(f_shape(64, (1, 1, 63, 63), 9), f_shape(64, (6, 6, 58, 58), 6))
+    pick = f_canvas()
+    f_layer(pick, pick_mask, (255, 255, 255))
+    out["SwatchPick"] = f_shrink(pick)
+    gem = f_canvas()
+    f_layer(gem, f_shape(64, (4, 4, 60, 60), 0, ellipse=True), (70, 70, 70))
+    f_layer(gem, f_shape(64, (8, 8, 56, 56), 0, ellipse=True), f_gradient(64, (255, 255, 255), (150, 150, 150)))
+    f_layer(gem, f_shape(64, (18, 14, 34, 28), 0, ellipse=True), (255, 255, 255))
+    out["Dot"] = f_shrink(gem)
+    circle = f_canvas()
+    f_layer(circle, f_shape(64, (1, 1, 63, 63), 0, ellipse=True), (255, 255, 255))
+    out["Circle"] = f_shrink(circle)
+    out["Badge"] = out["Circle"]
+    ring_mask = ImageChops.subtract(f_shape(64, (1, 1, 63, 63), 0, ellipse=True),
+                                    f_shape(64, (7, 7, 57, 57), 0, ellipse=True))
+    ring = f_canvas()
+    f_layer(ring, ring_mask, f_gradient(64, (255, 255, 255), (150, 150, 150)))
+    out["Ring"] = f_shrink(ring)
+    # the minimap button: the game's round bronze rim around a dark disc
+    plate = f_canvas()
+    f_layer(plate, f_shape(64, (0, 0, 64, 64), 0, ellipse=True), BRONZE_DARK)
+    f_layer(plate, f_shape(64, (2, 2, 62, 62), 0, ellipse=True), f_gradient(64, BRONZE_HI, BRONZE_LO))
+    f_layer(plate, f_shape(64, (8, 8, 56, 56), 0, ellipse=True), BRONZE_DARK)
+    f_layer(plate, f_shape(64, (9, 9, 55, 55), 0, ellipse=True), f_gradient(64, (44, 38, 32), STONE_LO))
+    out["Plate"] = f_shrink(plate)
+    result = {"Forever/UI/" + key: image for key, image in out.items()}
+    # the soft shadow, the icons, the crests and their symbols: Smooth's
+    for key, image in tex.items():
+        for part in ("UI/Shadow", "UI/Icon", "Crest/", "Charge/"):
+            if key.startswith("Smooth/" + part):
+                result["Forever/" + key[len("Smooth/"):]] = image
+    return result
+
+
 def shared_ui():
     out = {}
     n = 128 * SS
@@ -1007,6 +1158,10 @@ def theme_previews(tex):
     img.alpha_composite(tint(nine(tex["Smooth/UI/RoundLine"], 56, 24, 8, resample=Image.LANCZOS), (217, 174, 84), 0.6),
                         (62, 20))
     out["Smooth/UI/Preview"] = img
+    img = nine(tex["Forever/UI/Panel"], w, h, 16, resample=Image.LANCZOS)
+    img.alpha_composite(crest.resize((48, 48), Image.LANCZOS), (10, 8))
+    img.alpha_composite(nine(tex["Forever/UI/Button"], 56, 24, 8, resample=Image.LANCZOS), (62, 20))
+    out["Forever/UI/Preview"] = img
     return out
 
 
@@ -1017,6 +1172,7 @@ def main():
     tex.update(pixel_glyphs())
     tex.update(smooth_crests())
     tex.update(smooth_ui())
+    tex.update(forever_ui(tex))
     tex.update(shared_ui())
     tex.update(addon_icon())
     tex.update(theme_previews(tex))

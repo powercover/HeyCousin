@@ -29,6 +29,8 @@ HC.Locale.Register("frFR", {
     ["(secret)"] = "(secret)",
 
     -- The looks
+    ["Forever"] = "Forever",
+    ["The game's own classic look."] = "Le style classique du jeu lui-même.",
     ["Pixel"] = "Pixel",
     ["Chunky and cartoonish."] = "Gros pixels, façon dessin animé.",
     ["Smooth"] = "Lisse",

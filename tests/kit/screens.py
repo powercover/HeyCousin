@@ -27,7 +27,7 @@ PIXEL_FONT = os.path.join(ROOT, "Media", "Fonts", "HeyCousinPixel.ttf")
 # does the Pixel theme; Windows' fonts stand in
 KOREAN, HANS, HANT = (os.path.join(WINFONTS, name) for name in ("malgun.ttf", "msyh.ttc", "msjh.ttc"))
 UI_W, UI_H = 1366, 768  # the game's screen at UI scale 1: 768 points high
-SKINS = ("pixel", "smooth")
+SKINS = ("forever", "pixel", "smooth")
 
 POINTS = {"TOPLEFT": ("l", "t"), "TOP": ("c", "t"), "TOPRIGHT": ("r", "t"), "LEFT": ("l", "m"),
           "CENTER": ("c", "m"), "RIGHT": ("r", "m"), "BOTTOMLEFT": ("l", "b"), "BOTTOM": ("c", "b"),
@@ -857,7 +857,7 @@ def main():
         bits.append([picture.crop((max(0, box[0] - 60), max(0, box[1] - 60), min(picture.width, box[2] + 60),
                                    min(picture.height, box[3] + 60)))
                      for box in (parts["minimap"], parts["tooltip"], parts["chat"])])
-    rows = [[bits[0][i], bits[1][i]] for i in range(3)]
+    rows = [[bit[i] for bit in bits] for i in range(3)]
     sheet(rows, SKINS).save(os.path.join(out, "6-minimap-tooltip-chat.png"))
     print("drew 6-minimap-tooltip-chat.png")
     for index, skin in enumerate(SKINS):

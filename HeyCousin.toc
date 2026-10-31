@@ -26,6 +26,7 @@ Locales\zhCN.lua
 Locales\zhTW.lua
 Utils.lua
 Theme.lua
+Skins\Forever.lua
 Skins\Pixel.lua
 Skins\Smooth.lua
 Crest.lua

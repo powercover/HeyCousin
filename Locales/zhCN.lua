@@ -29,6 +29,8 @@ HC.Locale.Register("zhCN", {
     ["(secret)"] = "（保密）",
 
     -- The looks
+    ["Forever"] = "Forever",
+    ["The game's own classic look."] = "游戏自己的经典外观。",
     ["Pixel"] = "像素",
     ["Chunky and cartoonish."] = "厚实又卡通。",
     ["Smooth"] = "平滑",

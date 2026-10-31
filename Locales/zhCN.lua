@@ -24,8 +24,8 @@ HC.Locale.Register("zhCN", {
     ["Dec"] = "12月",
     ["Today, %s"] = "今天 %s",
     ["Yesterday, %s"] = "昨天 %s",
-    ["%s %d, %s"] = "%s%d日 %s",
-    ["%s %d %d"] = "%s%d日，%d年",
+    ["{month} {day}, {time}"] = "{month}{day}日 {time}",
+    ["{month} {day} {year}"] = "{year}年{month}{day}日",
     ["(secret)"] = "（保密）",
 
     -- The looks
@@ -44,6 +44,7 @@ HC.Locale.Register("zhCN", {
     ["Heart"] = "爱心",
     ["Star"] = "星星",
     ["Crown"] = "王冠",
+    ["A tree"] = "一棵树",
     ["Sword"] = "宝剑",
     ["Key"] = "钥匙",
     ["Moon"] = "月亮",
@@ -168,7 +169,7 @@ HC.Locale.Register("zhCN", {
     ["Join their layer"] = "加入对方位面",
     ["Not met yet: known from the guild"] = "还没见过：通过公会认识",
     ["Met once"] = "见过1次",
-    ["first seen %s"] = "初次见到：%s",
+    ["first seen: %s"] = "初次见到：%s",
     ["Meetings (%d)"] = "见面记录（%d）",
     ["Meetings"] = "见面记录",
     ["Meetings are kept from now on: the next one shows here."] = "从现在起会记录每次见面：下一次会显示在这里。",

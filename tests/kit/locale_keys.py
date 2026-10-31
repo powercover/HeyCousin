@@ -22,7 +22,7 @@ LUA_STRING = r'"((?:[^"\\]|\\.)*)"'
 TABLE_LABELS = [
     "Shield", "Round", "Kite", "Banner", "Plain", "Split", "Halves", "Diagonal", "Quarters", "Chevron", "Cross",
     "Red", "Wine", "Orange", "Gold", "Green", "Teal", "Sky", "Blue", "Purple", "Rose", "Black", "Silver",
-    "Heart", "Star", "Crown", "Tree", "Sword", "Key", "Moon", "Sun", "Flower", "Mushroom", "Skull", "Axe", "Tower",
+    "Heart", "Star", "Crown", "Tree", "A tree", "Sword", "Key", "Moon", "Sun", "Flower", "Mushroom", "Skull", "Axe", "Tower",
     "Flame", "Bolt", "Anchor", "Cup", "Bell",
     "Seen near you", "You pointed at them", "You targeted them", "In your group", "Talked near you", "Whispered you",
     "In a dungeon", "In a raid", "In a battleground", "In an arena", "In a scenario",
@@ -77,6 +77,10 @@ def check(release):
                 continue
             if placeholders(key) != placeholders(value):
                 print(f"{path}: placeholders differ for {key!r}: {placeholders(key)} vs {placeholders(value)}")
+                problems += 1
+            # a date's pieces ({month}, {day}, ...) may move, but must all stay
+            if sorted(re.findall(r"\{\w+\}", key)) != sorted(re.findall(r"\{\w+\}", value)):
+                print(f"{path}: date pieces differ for {key!r}")
                 problems += 1
             if color_codes(key) != color_codes(value):
                 print(f"{path}: color codes differ for {key!r}")

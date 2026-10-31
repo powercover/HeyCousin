@@ -24,8 +24,8 @@ HC.Locale.Register("ukUA", {
     ["Dec"] = "Груд.",
     ["Today, %s"] = "Сьогодні, %s",
     ["Yesterday, %s"] = "Учора, %s",
-    ["%s %d, %s"] = "%s %d, %s",
-    ["%s %d %d"] = "%s %d, %d",
+    ["{month} {day}, {time}"] = "{day} {month}, {time}",
+    ["{month} {day} {year}"] = "{day} {month} {year}",
     ["(secret)"] = "(секрет)",
 
     -- The looks
@@ -44,6 +44,7 @@ HC.Locale.Register("ukUA", {
     ["Heart"] = "Серце",
     ["Star"] = "Зірка",
     ["Crown"] = "Корона",
+    ["A tree"] = "Деревце",
     ["Sword"] = "Меч",
     ["Key"] = "Ключ",
     ["Moon"] = "Місяць",
@@ -170,7 +171,7 @@ HC.Locale.Register("ukUA", {
     ["Join their layer"] = "На шар кузена",
     ["Not met yet: known from the guild"] = "Ще не зустрічалися: знаємо з гільдії",
     ["Met once"] = "Одна зустріч",
-    ["first seen %s"] = "знайомство: %s",
+    ["first seen: %s"] = "знайомство: %s",
     ["Meetings (%d)"] = "Зустрічі (%d)",
     ["Meetings"] = "Зустрічі",
     ["Meetings are kept from now on: the next one shows here."] = "Відтепер зустрічі зберігаються: наступна з'явиться тут.",

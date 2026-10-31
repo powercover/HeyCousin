@@ -20,6 +20,8 @@ local BAR = 44
 local SHAPE_NAMES = { Heater = "Shield", Round = "Round", Kite = "Kite", Banner = "Banner" }
 local PATTERN_NAMES = { Plain = "Plain", Pale = "Split", Fess = "Halves", Bend = "Diagonal", Quarterly = "Quarters",
     Chevron = "Chevron", Cross = "Cross" }
+-- the symbols' names where a word means something else too (the Tree tab)
+local CHARGE_NAMES = { Tree = "A tree" }
 -- the steps: your crest, the alerts, the family map, and your guild's family (its guild master's)
 local CREST, ALERTS, MAP, GUILD = 1, 2, 3, 4
 local STEPS = { crest = CREST, alerts = ALERTS, map = MAP, guild = GUILD }
@@ -239,7 +241,7 @@ local function SymbolPicker(parent, x)
         if choice.symbol == "charge" then
             b.icon = Theme.Texture(b, Theme.Folder() .. "Charge\\" .. choice.charge, "ARTWORK", 1, C.text)
             b.icon:SetSize(22, 22)
-            Theme.Tip(b, L[choice.charge] or choice.charge)
+            Theme.Tip(b, L[CHARGE_NAMES[choice.charge] or choice.charge])
         elseif choice.symbol == "initial" then
             local _, surname = Kin.House()
             b:SetText(Crest.Initial(surname) ~= "" and Crest.Initial(surname) or "A")

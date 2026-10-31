@@ -24,8 +24,8 @@ HC.Locale.Register("deDE", {
     ["Dec"] = "Dez",
     ["Today, %s"] = "Heute, %s",
     ["Yesterday, %s"] = "Gestern, %s",
-    ["%s %d, %s"] = "%s %d, %s",
-    ["%s %d %d"] = "%s %d %d",
+    ["{month} {day}, {time}"] = "{day}. {month}, {time}",
+    ["{month} {day} {year}"] = "{day}. {month} {year}",
     ["(secret)"] = "(geheim)",
 
     -- The looks
@@ -44,6 +44,7 @@ HC.Locale.Register("deDE", {
     ["Heart"] = "Herz",
     ["Star"] = "Stern",
     ["Crown"] = "Krone",
+    ["A tree"] = "Ein Baum",
     ["Sword"] = "Schwert",
     ["Key"] = "Schlüssel",
     ["Moon"] = "Mond",
@@ -169,7 +170,7 @@ HC.Locale.Register("deDE", {
     ["Join their layer"] = "Zum Layer",
     ["Not met yet: known from the guild"] = "Noch nicht getroffen: aus der Gilde bekannt",
     ["Met once"] = "Einmal getroffen",
-    ["first seen %s"] = "zuerst gesehen: %s",
+    ["first seen: %s"] = "zuerst gesehen: %s",
     ["Meetings (%d)"] = "Treffen (%d)",
     ["Meetings"] = "Treffen",
     ["Meetings are kept from now on: the next one shows here."] = "Treffen werden ab jetzt gespeichert: Das nächste erscheint hier.",

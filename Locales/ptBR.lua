@@ -24,8 +24,8 @@ HC.Locale.Register("ptBR", {
     ["Dec"] = "Dez",
     ["Today, %s"] = "Hoje, %s",
     ["Yesterday, %s"] = "Ontem, %s",
-    ["%s %d, %s"] = "%s, dia %d, %s",
-    ["%s %d %d"] = "%s, dia %d, %d",
+    ["{month} {day}, {time}"] = "{day} {month}, {time}",
+    ["{month} {day} {year}"] = "{day} {month} {year}",
     -- a value the game keeps secret (/cousin status)
     ["(secret)"] = "(secreto)",
 
@@ -45,6 +45,7 @@ HC.Locale.Register("ptBR", {
     ["Heart"] = "Coração",
     ["Star"] = "Estrela",
     ["Crown"] = "Coroa",
+    ["A tree"] = "Uma árvore",
     ["Sword"] = "Espada",
     ["Key"] = "Chave",
     ["Moon"] = "Lua",
@@ -171,7 +172,7 @@ HC.Locale.Register("ptBR", {
     ["Join their layer"] = "Ir à camada",
     ["Not met yet: known from the guild"] = "Ainda não se viram: conhecido da guilda",
     ["Met once"] = "1 encontro",
-    ["first seen %s"] = "primeira vez: %s",
+    ["first seen: %s"] = "primeira vez: %s",
     ["Meetings (%d)"] = "Encontros (%d)",
     ["Meetings"] = "Encontros",
     ["Meetings are kept from now on: the next one shows here."] = "Os encontros ficam guardados a partir de agora: o próximo aparece aqui.",

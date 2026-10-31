@@ -176,6 +176,14 @@ end
 
 local MONTHS = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" }
 
+-- A date's template filled in: {month}, {day}, {time} and {year}, in the order the language puts
+-- them (a translation moves them, as "%s" can't be).
+local function Fill(template, parts)
+    return (template:gsub("{(%a+)}", function(key)
+        return parts[key] ~= nil and tostring(parts[key]) or nil
+    end))
+end
+
 -- When `stamp` (time()) was, as a date: "Today, 18:55", "Yesterday, 21:10", "Oct 28, 21:10", and
 -- the year when it isn't this one.
 function Utils.When(stamp)
@@ -191,9 +199,9 @@ function Utils.When(stamp)
     elseif day.year == yesterday.year and day.yday == yesterday.yday then
         return string.format(L["Yesterday, %s"], clock)
     elseif day.year == today.year then
-        return string.format(L["%s %d, %s"], L[MONTHS[day.month]], day.day, clock)
+        return Fill(L["{month} {day}, {time}"], { month = L[MONTHS[day.month]], day = day.day, time = clock })
     end
-    return string.format(L["%s %d %d"], L[MONTHS[day.month]], day.day, day.year)
+    return Fill(L["{month} {day} {year}"], { month = L[MONTHS[day.month]], day = day.day, year = day.year })
 end
 
 -- `text` cut to `most` bytes, never through a letter (UTF-8), with "..." when it was cut.

@@ -24,8 +24,8 @@ HC.Locale.Register("koKR", {
     ["Dec"] = "12월",
     ["Today, %s"] = "오늘 %s",
     ["Yesterday, %s"] = "어제 %s",
-    ["%s %d, %s"] = "%s %d일 %s",
-    ["%s %d %d"] = "%s %d일, %d년",
+    ["{month} {day}, {time}"] = "{month} {day}일 {time}",
+    ["{month} {day} {year}"] = "{year}년 {month} {day}일",
     ["(secret)"] = "(비밀 값)",
 
     -- The looks
@@ -44,6 +44,7 @@ HC.Locale.Register("koKR", {
     ["Heart"] = "하트",
     ["Star"] = "별",
     ["Crown"] = "왕관",
+    ["A tree"] = "나무",
     ["Sword"] = "검",
     ["Key"] = "열쇠",
     ["Moon"] = "달",
@@ -170,7 +171,7 @@ HC.Locale.Register("koKR", {
     ["Join their layer"] = "레이어 합류",
     ["Not met yet: known from the guild"] = "아직 못 만남: 길드에서 알게 됨",
     ["Met once"] = "한 번 만남",
-    ["first seen %s"] = "처음 본 지 %s",
+    ["first seen: %s"] = "처음 만남: %s",
     ["Meetings (%d)"] = "만남 (%d)",
     ["Meetings"] = "만남",
     ["Meetings are kept from now on: the next one shows here."] = "이제부터 만남을 기록해요. 다음 만남이 여기에 나와요.",

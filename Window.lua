@@ -558,7 +558,7 @@ local function PaintPage(keep)
         HC.Layer.Query(opened, surname)
     end
     local layer = HC.Layer and HC.Layer.Status(opened)
-    page.met:SetText(metText .. "  ·  " .. string.format(L["first seen %s"], Utils.Ago(relative.firstSeen))
+    page.met:SetText(metText .. "  ·  " .. string.format(L["first seen: %s"], Utils.When(relative.firstSeen))
         .. (layer and ("  ·  " .. layer) or ""))
     -- black sheep play on the other side: no layer of theirs to join
     page.layer:SetShown(not sheep)

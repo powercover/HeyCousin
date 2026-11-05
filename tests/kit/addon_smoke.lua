@@ -562,6 +562,29 @@ check(probe.targeting and probe.targeting.targetSelf and probe.done.targetSelf, 
 _G.HeyCousinProbetargetFirst:Click()
 Mock.Advance(1)
 check(probe.targeting.targetFirst and probe.done.targetFirst, "your first name alone ticks too, whatever it finds")
+-- /who: four searches, one a click, and it waits for the game between them
+Mock.who = { { fullName = "Gus Washbrook", level = 8, area = "Agamand Mills" }, { fullName = "Odo Ashbrook", level = 9, fullGuildName = "Kin" },
+    { fullName = "Nell Washbrook", level = 8 }, { fullName = "Tobin Ashbrooke", level = 7 } }
+local whoButton = _G.HeyCousinProbe.who
+whoButton:Click()
+check(Mock.whoSent[1] == "Ashbrook" and not whoButton:IsEnabled(), "/who searches your surname, and waits")
+whoButton:Click()
+check(#Mock.whoSent == 1, "a click while it waits does nothing")
+Mock.Fire("WHO_LIST_UPDATE")
+Mock.Fire("CHAT_MSG_SYSTEM", "4 players total")
+Mock.Advance(7)
+local whoRun = probe.who.runs[1]
+check(whoRun.event and whoRun.count[1] == 4 and whoRun.system[1] == "4 players total", "what the game answered is noted")
+check(whoRun.names[4] == "Tobin Ashbrooke" and whoRun.rows[1].area == "Agamand Mills" and whoRun.rows[4] == nil,
+    "every name, and every field of the first few")
+for _ = 2, 4 do
+    check(not probe.done.who, "not done until the last search")
+    whoButton:Click()
+    Mock.Advance(7)
+end
+check(Mock.whoSent[2] == 'n-"Ashbrook"' and Mock.whoSent[3] == 'n-"Rowan Ashbrook"' and Mock.whoSent[4]:find('^n%-"Ashbrook" %d+%-%d+$'),
+    "the other ways: by name, by whole name, by your level")
+check(probe.done.who and not whoButton:IsEnabled(), "four searches tick it")
 Mock.Fire("PLAYER_REGEN_DISABLED")
 check(not _G.HeyCousinProbe:IsShown(), "a fight hides the checklist (it has secure buttons)")
 SlashCmdList.HEYCOUSIN("probe")

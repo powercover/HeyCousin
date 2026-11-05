@@ -320,6 +320,7 @@ HC.Locale.Register("ptBR", {
     ["Click below: try your first name (it may find nobody)"] = "Clique abaixo: tente o primeiro nome (pode não achar ninguém)",
     ["Click below: whisper yourself, then press Enter"] = "Clique abaixo: sussurre para si mesmo e aperte Enter",
     ["Addon messages to yourself (by themselves)"] = "Mensagens de addon para você mesmo (automáticas)",
+    ["Click below 4 times: search /who for your surname"] = "Clique abaixo 4 vezes: busque seu sobrenome com /who",
     ["Hello from the Hey Cousin! probe"] = "Olá do teste de nomes do Hey Cousin!",
     ["Name test"] = "Teste de nomes",
     ["How WoW Forever gives names to addons. Do these few things; each ticks by itself."] = "Como o WoW Forever passa os nomes aos addons. Faça estas poucas coisas; cada uma se marca sozinha.",

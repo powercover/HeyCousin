@@ -319,6 +319,7 @@ HC.Locale.Register("ukUA", {
     ["Click below: try your first name (it may find nobody)"] = "Клацни нижче: спробуй лише ім'я (може нікого не знайти)",
     ["Click below: whisper yourself, then press Enter"] = "Клацни нижче: шепни собі й натисни Enter",
     ["Addon messages to yourself (by themselves)"] = "Повідомлення аддона собі (автоматично)",
+    ["Click below 4 times: search /who for your surname"] = "Клацни нижче 4 рази: шукай своє прізвище через /who",
     ["Hello from the Hey Cousin! probe"] = "Привіт від тесту Hey Cousin!",
     ["Name test"] = "Тест імен",
     ["How WoW Forever gives names to addons. Do these few things; each ticks by itself."] = "Як WoW Forever передає імена аддонам. Зроби ці кілька кроків; кожен позначиться сам.",

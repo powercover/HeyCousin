@@ -33,7 +33,11 @@ local STEPS = {
     { key = "targetFirst", text = L["Click below: try your first name (it may find nobody)"] },
     { key = "whisper", text = L["Click below: whisper yourself, then press Enter"] },
     { key = "addon", text = L["Addon messages to yourself (by themselves)"] },
+    { key = "who", text = L["Click below 4 times: search /who for your surname"] },
 }
+local WHO_SEARCHES = 4
+local WHO_WAIT = 6 -- the game takes one search every few seconds
+local WHO_ROWS = 3 -- every field of the first few; only the names of the others
 
 local frame = CreateFrame("Frame")
 local running, stopAt
@@ -41,6 +45,8 @@ local seen = {}
 local window
 -- built in a look that's gone (the look changed during a fight): built again before it shows
 local stale = false
+-- the /who search waiting for its answer
+local whoRun
 
 local function Data()
     return HeyCousinDB.probe
@@ -301,6 +307,68 @@ local function WhisperSelf()
     end
 end
 
+-- --- /who --------------------------------------------------------------------------------------
+
+local function WhoRuns()
+    local who = Data().who
+    return type(who) == "table" and who.runs or {}
+end
+
+-- The ways to search, one a click: what each one finds tells how "Find my family" can search. The
+-- last asks only your level: a way past the game's limit on how many it lists.
+local function WhoSearch(index)
+    local first, surname = Me()
+    local name = 'n-"' .. (surname or first) .. '"'
+    local level = Utils.Call(UnitLevel, "player") or 1
+    return ({ surname or first, name, 'n-"' .. Names.Full(first, surname) .. '"', name .. " " .. level .. "-" .. level })[index]
+end
+
+local function WhoRead(run)
+    local friends = C_FriendList
+    if not friends then
+        return
+    end
+    run.count = Answers(friends.GetNumWhoResults)
+    run.names, run.rows = {}, {}
+    for i = 1, tonumber(run.count[1]) or 0 do
+        local ok, info = pcall(friends.GetWhoInfo, i)
+        if ok and type(info) == "table" then
+            run.names[i] = Value(info.fullName)
+            if i <= WHO_ROWS then
+                local row = {}
+                for key, value in pairs(info) do
+                    row[tostring(key)] = Value(value)
+                end
+                run.rows[i] = row
+            end
+        end
+    end
+end
+
+local function WhoNext()
+    if whoRun or #WhoRuns() >= WHO_SEARCHES then
+        return
+    end
+    local data = Data()
+    local friends = C_FriendList
+    data.who = type(data.who) == "table" and data.who or { runs = {} }
+    data.who.toUi = Answers(friends and friends.SetWhoToUi, true)
+    local run = { search = WhoSearch(#data.who.runs + 1), system = {} }
+    data.who.runs[#data.who.runs + 1] = run
+    run.sent = Answers(friends and friends.SendWho, run.search)
+    whoRun = run
+    Probe.Paint()
+    Utils.After(WHO_WAIT, "probe who", function()
+        -- read even if the game never said: that it didn't is an answer too
+        WhoRead(run)
+        whoRun = nil
+        if #WhoRuns() >= WHO_SEARCHES then
+            Mark("who")
+        end
+        Probe.Paint()
+    end)
+end
+
 -- --- events ------------------------------------------------------------------------------------
 
 frame:SetScript("OnEvent", Utils.Protect("probe", function(_, event, ...)
@@ -328,9 +396,15 @@ frame:SetScript("OnEvent", Utils.Protect("probe", function(_, event, ...)
             data.addon.got[text:sub(7)] = { sender = Value(sender), channel = Value(channel) }
             Mark("addon")
         end
+    elseif event == "WHO_LIST_UPDATE" then
+        if whoRun then
+            whoRun.event = true
+        end
     elseif event == "CHAT_MSG_SYSTEM" then
         local data = Data()
-        if data.addon and #data.addon.system < SAMPLES then
+        if whoRun and #whoRun.system < SAMPLES then
+            whoRun.system[#whoRun.system + 1] = Value((...))
+        elseif data.addon and #data.addon.system < SAMPLES then
             data.addon.system[#data.addon.system + 1] = Value((...))
         end
     elseif event == "PLAYER_REGEN_DISABLED" then
@@ -380,7 +454,7 @@ local function SecureButton(parent, kind, label)
 end
 
 local function Build()
-    window = Theme.Window("HeyCousinProbe", 460, 586)
+    window = Theme.Window("HeyCousinProbe", 460, 616)
     stale = false
     local title = Theme.Text(window, "Title")
     title:SetPoint("TOPLEFT", 20, -20)
@@ -407,7 +481,7 @@ local function Build()
         row.text:SetPoint("LEFT", 26, 0)
         row.text:SetPoint("RIGHT", row, "RIGHT", 0, 0)
         row.text:SetText(step.text)
-        row.key = step.key
+        row.key, row.line = step.key, step.text
         window.rows[index] = row
     end
     local first, surname = Me()
@@ -423,6 +497,9 @@ local function Build()
     Theme.ButtonIcon(whisper, "Whisper")
     Theme.Fit(whisper, 16, 176)
     Theme.OnClick(whisper, "probe whisper", WhisperSelf)
+    window.who = Theme.Button(window, "/who", "secondary", 100, 30)
+    window.who:SetPoint("BOTTOMRIGHT", -20, 64)
+    Theme.OnClick(window.who, "probe who", WhoNext)
     local stop = Theme.Button(window, L["Stop"], "secondary", 100, 30)
     stop:SetPoint("BOTTOMRIGHT", -20, 26)
     Theme.OnClick(stop, "probe stop", function()
@@ -447,7 +524,11 @@ function Probe.Paint()
         row.dot:SetShown(not ok)
         local color = ok and C.text2 or C.text
         row.text:SetTextColor(color[1], color[2], color[3])
+        if row.key == "who" then
+            row.text:SetText(string.format("%s (%d/%d)", row.line, #WhoRuns(), WHO_SEARCHES))
+        end
     end
+    window.who:SetEnabled(not whoRun and #WhoRuns() < WHO_SEARCHES)
     window.footer:SetText(string.format(L["%d of %d done. When you're done, log out or type /reload: the game writes it all down."],
         count, #STEPS))
 end
@@ -460,14 +541,15 @@ function Probe.Start()
         return
     end
     HeyCousinDB.probe = { started = time(), version = HC.VERSION, done = {}, channels = Answers(GetChannelList) }
-    seen = {}
+    seen, whoRun = {}, nil
     running, stopAt = true, GetTime() + RUN_FOR
     for _, event in ipairs(CHATS) do
         frame:RegisterEvent(event)
     end
     pcall(everything.RegisterAllEvents, everything)
     for _, event in ipairs({ "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "NAME_PLATE_UNIT_ADDED",
-        "GROUP_ROSTER_UPDATE", "GUILD_ROSTER_UPDATE", "CHAT_MSG_ADDON", "CHAT_MSG_SYSTEM", "PLAYER_REGEN_DISABLED" }) do
+        "GROUP_ROSTER_UPDATE", "GUILD_ROSTER_UPDATE", "CHAT_MSG_ADDON", "CHAT_MSG_SYSTEM", "PLAYER_REGEN_DISABLED",
+        "WHO_LIST_UPDATE" }) do
         frame:RegisterEvent(event)
     end
     if not Probe.hooked and TooltipDataProcessor and type(TooltipDataProcessor.AddTooltipPostCall) == "function"

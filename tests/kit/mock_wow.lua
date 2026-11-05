@@ -375,6 +375,13 @@ local function Globals()
         end,
     }
     C_PartyInfo = { InviteUnit = function(name) table.insert(Mock.invites, name) end }
+    -- /who: Mock.whoSent has the searches, Mock.who the answers ({ fullName, level, area, ... })
+    C_FriendList = {
+        SetWhoToUi = function() end,
+        SendWho = function(search) Mock.whoSent = Mock.whoSent or {}; table.insert(Mock.whoSent, search) end,
+        GetNumWhoResults = function() local n = Mock.who and #Mock.who or 0; return n, n end,
+        GetWhoInfo = function(i) return Mock.who and Mock.who[i] end,
+    }
     function AcceptGroup() Mock.accepted = Mock.accepted + 1 end
     function StaticPopup_Hide(name) Mock.popupHidden = name end
     function PlaySoundFile(file) table.insert(Mock.sounds, file) end

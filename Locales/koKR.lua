@@ -319,6 +319,7 @@ HC.Locale.Register("koKR", {
     ["Click below: try your first name (it may find nobody)"] = "아래 버튼: 이름만으로 시도 (아무도 못 찾을 수 있어요)",
     ["Click below: whisper yourself, then press Enter"] = "아래 버튼: 나에게 귓속말하고 Enter 누르기",
     ["Addon messages to yourself (by themselves)"] = "나에게 보내는 애드온 메시지 (자동)",
+    ["Click below 4 times: search /who for your surname"] = "아래 버튼 4번: /who로 내 성씨 검색",
     ["Hello from the Hey Cousin! probe"] = "Hey Cousin! 이름 테스트의 인사예요",
     ["Name test"] = "이름 테스트",
     ["How WoW Forever gives names to addons. Do these few things; each ticks by itself."] = "WoW Forever가 애드온에 주는 이름 확인: 하나씩 하면 체크돼요.",

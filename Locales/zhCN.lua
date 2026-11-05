@@ -317,6 +317,7 @@ HC.Locale.Register("zhCN", {
     ["Click below: try your first name (it may find nobody)"] = "点击下方：只用名字试试（可能找不到人）",
     ["Click below: whisper yourself, then press Enter"] = "点击下方：密语自己，然后按回车键",
     ["Addon messages to yourself (by themselves)"] = "发给自己的插件消息（自动完成）",
+    ["Click below 4 times: search /who for your surname"] = "点击下方 4 次：用 /who 搜索你的姓氏",
     ["Hello from the Hey Cousin! probe"] = "来自 Hey Cousin! 名字测试的问候",
     ["Name test"] = "名字测试",
     ["How WoW Forever gives names to addons. Do these few things; each ticks by itself."] = "看看 WoW Forever 如何把名字交给插件。做完下面几件事，每一项都会自动打勾。",

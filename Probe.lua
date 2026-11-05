@@ -30,6 +30,7 @@ local STEPS = {
     { key = "guild", text = L["Open your guild window (skip it without a guild)"] },
     { key = "npc", text = L["Point at any NPC"] },
     { key = "targetSelf", text = L["Click below: target yourself by your whole name"] },
+    { key = "targetFirst", text = L["Click below: try your first name (it may find nobody)"] },
     { key = "whisper", text = L["Click below: whisper yourself, then press Enter"] },
     { key = "addon", text = L["Addon messages to yourself (by themselves)"] },
 }
@@ -167,7 +168,8 @@ local function ReadUnit(unit, source)
     if Utils.Call(UnitIsUnit, unit, "player") == true then
         return
     end
-    local kept = Keep("units", tostring(guid), {
+    -- each source apart: nameplates fill up fast, and you may point at the player you then target
+    local kept = Keep("units_" .. source, tostring(guid), {
         source = source,
         unitName = Answers(UnitName, unit),
         unitNameUnmodified = Answers(UnitNameUnmodified, unit),
@@ -287,9 +289,8 @@ local function TargetResult(kind)
         targetedYou = Value(Utils.Call(UnitIsUnit, "target", "player")),
         target = Answers(UnitName, "target"),
     }
-    if kind == "targetSelf" then
-        Mark("targetSelf")
-    end
+    -- ticks whatever came of it: finding nobody is an answer too
+    Mark(kind)
     Probe.Paint()
 end
 
@@ -379,7 +380,7 @@ local function SecureButton(parent, kind, label)
 end
 
 local function Build()
-    window = Theme.Window("HeyCousinProbe", 460, 556)
+    window = Theme.Window("HeyCousinProbe", 460, 586)
     stale = false
     local title = Theme.Text(window, "Title")
     title:SetPoint("TOPLEFT", 20, -20)

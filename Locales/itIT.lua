@@ -316,6 +316,7 @@ HC.Locale.Register("itIT", {
     ["Open your guild window (skip it without a guild)"] = "Apri la finestra della gilda (saltalo se non hai una gilda)",
     ["Point at any NPC"] = "Indica un PNG qualsiasi",
     ["Click below: target yourself by your whole name"] = "Clicca sotto: prenditi come bersaglio col nome completo",
+    ["Click below: try your first name (it may find nobody)"] = "Clicca sotto: prova solo il nome (forse non trova nessuno)",
     ["Click below: whisper yourself, then press Enter"] = "Clicca sotto: sussurra a te stesso, poi premi Invio",
     ["Addon messages to yourself (by themselves)"] = "Messaggi dell'addon a te stesso (in automatico)",
     ["Hello from the Hey Cousin! probe"] = "Ciao dal test dei nomi di Hey Cousin!",

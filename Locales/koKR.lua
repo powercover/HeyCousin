@@ -316,6 +316,7 @@ HC.Locale.Register("koKR", {
     ["Open your guild window (skip it without a guild)"] = "길드 창 열기 (길드가 없으면 건너뛰기)",
     ["Point at any NPC"] = "아무 NPC나 가리키기",
     ["Click below: target yourself by your whole name"] = "아래 버튼: 전체 이름으로 나를 대상 지정",
+    ["Click below: try your first name (it may find nobody)"] = "아래 버튼: 이름만으로 시도 (아무도 못 찾을 수 있어요)",
     ["Click below: whisper yourself, then press Enter"] = "아래 버튼: 나에게 귓속말하고 Enter 누르기",
     ["Addon messages to yourself (by themselves)"] = "나에게 보내는 애드온 메시지 (자동)",
     ["Hello from the Hey Cousin! probe"] = "Hey Cousin! 이름 테스트의 인사예요",

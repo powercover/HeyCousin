@@ -310,6 +310,7 @@ HC.Locale.Register("ruRU", {
     ["Open your guild window (skip it without a guild)"] = "Открой окно гильдии (без гильдии — пропусти)",
     ["Point at any NPC"] = "Наведи курсор на любого NPC",
     ["Click below: target yourself by your whole name"] = "Нажми ниже: выбери целью себя по полному имени",
+    ["Click below: try your first name (it may find nobody)"] = "Нажми ниже: попробуй только имя (может никого не найти)",
     ["Click below: whisper yourself, then press Enter"] = "Нажми ниже: шепни себе, затем нажми Enter",
     ["Addon messages to yourself (by themselves)"] = "Сообщения аддона себе (отправятся сами)",
     ["Hello from the Hey Cousin! probe"] = "Привет от проверки имён Hey Cousin!",

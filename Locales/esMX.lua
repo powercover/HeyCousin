@@ -310,6 +310,7 @@ HC.Locale.Register("esMX", {
     ["Open your guild window (skip it without a guild)"] = "Abre la ventana de hermandad (sáltalo si no tienes)",
     ["Point at any NPC"] = "Pasa el mouse sobre un PNJ",
     ["Click below: target yourself by your whole name"] = "Clic abajo: selecciónate por tu nombre completo",
+    ["Click below: try your first name (it may find nobody)"] = "Clic abajo: prueba solo tu nombre (quizá no encuentre a nadie)",
     ["Click below: whisper yourself, then press Enter"] = "Clic abajo: susúrrate y presiona Enter",
     ["Addon messages to yourself (by themselves)"] = "Mensajes de addon para ti (se envían solos)",
     ["Hello from the Hey Cousin! probe"] = "Hola desde la prueba de Hey Cousin!",

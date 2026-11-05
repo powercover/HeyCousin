@@ -523,8 +523,18 @@ check(localLines and localLines[1].channel[3] == "Local" and localLines[1].autho
     "each channel's lines are kept apart")
 Mock.Fire("CHAT_MSG_LOCAL", "hi", "Bob Stone", "", "", "", "", 0, 0, "", 0, 11, "Player-1-BOB")
 check(probe.chat_CHAT_MSG_LOCAL and probe.chat_CHAT_MSG_LOCAL[1].text == "hi", "a kind of chat it doesn't know is kept too")
+-- a crowd of nameplates, and pointing at the player first, must not use up the target's tick
+for i = 1, 8 do
+    Mock.units.nameplate9 = { name = "Passer" .. i, surname = "Bystander", guid = "Player-1-PASS" .. i, class = "MAGE", faction = "Alliance" }
+    Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate9")
+end
+Mock.units.nameplate9 = nil
+Mock.units.mouseover = Mock.units.target
+Mock.Fire("UPDATE_MOUSEOVER_UNIT")
+Mock.units.mouseover = nil
+check(probe.done.mouseover and not probe.done.target, "pointing at a player ticks only that")
 Mock.Fire("PLAYER_TARGET_CHANGED")
-check(probe.units and probe.units[1].unitName[2] == "Ashbrook" and probe.done.target, "a target's name parts")
+check(probe.units_target and probe.units_target[1].unitName[2] == "Ashbrook" and probe.done.target, "a target's name parts")
 Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate3")
 check(probe.npc and probe.npc[1].layer == 5151 and probe.done.npc, "an NPC and its layer")
 Mock.Fire("GUILD_ROSTER_UPDATE")
@@ -534,6 +544,9 @@ check(targetSelf:GetAttribute("macrotext1") == "/cleartarget\n/targetexact Rowan
 targetSelf:Click()
 Mock.Advance(1)
 check(probe.targeting and probe.targeting.targetSelf and probe.done.targetSelf, "and writes down what got targeted")
+_G.HeyCousinProbetargetFirst:Click()
+Mock.Advance(1)
+check(probe.targeting.targetFirst and probe.done.targetFirst, "your first name alone ticks too, whatever it finds")
 Mock.Fire("PLAYER_REGEN_DISABLED")
 check(not _G.HeyCousinProbe:IsShown(), "a fight hides the checklist (it has secure buttons)")
 SlashCmdList.HEYCOUSIN("probe")

@@ -314,6 +314,7 @@ HC.Locale.Register("zhCN", {
     ["Open your guild window (skip it without a guild)"] = "打开公会窗口（没有公会就跳过）",
     ["Point at any NPC"] = "用鼠标指向任意 NPC",
     ["Click below: target yourself by your whole name"] = "点击下方：用全名选中自己",
+    ["Click below: try your first name (it may find nobody)"] = "点击下方：只用名字试试（可能找不到人）",
     ["Click below: whisper yourself, then press Enter"] = "点击下方：密语自己，然后按回车键",
     ["Addon messages to yourself (by themselves)"] = "发给自己的插件消息（自动完成）",
     ["Hello from the Hey Cousin! probe"] = "来自 Hey Cousin! 名字测试的问候",

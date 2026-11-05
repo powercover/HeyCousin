@@ -130,6 +130,7 @@ frame:SetScript("OnEvent", Utils.Protect("event", function(_, event, arg1)
             return
         end
         SavedDefaults()
+        HC.Kin.ForgetRealms()
         -- The chosen language and look first: everything built from here on has them.
         HC.Locale.Apply()
         HC.Theme.Use(HeyCousinDB.skin)

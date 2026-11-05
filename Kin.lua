@@ -292,6 +292,20 @@ function Kin.Meetings(relative)
     return list
 end
 
+-- The first builds took realm codes for surnames: they go from the saved counts.
+function Kin.ForgetRealms()
+    local surnames = HeyCousinDB.surnames
+    if type(surnames) ~= "table" then
+        return
+    end
+    for name in pairs(surnames) do
+        if name:find("^CAMWOW") then
+            surnames[name] = nil
+            HeyCousinDB.surnameCount = math.max((HeyCousinDB.surnameCount or 1) - 1, 0)
+        end
+    end
+end
+
 -- Every player you see counts once a session toward the surnames you meet most.
 function Kin.SawPlayer(first, surname)
     local full = first .. "\1" .. surname

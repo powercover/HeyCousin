@@ -429,9 +429,24 @@ changed, text = filter(nil, "CHAT_MSG_SAY", "hey", "Bob Stone", "", "", "", "", 
 check(changed == false and text == nil, "a stranger's line stays as it is")
 changed, text = filter(nil, "CHAT_MSG_SAY", Mock.SECRET, "Mira Ashbrook", "", "", "", "", 0, 0, "", 0, 3, "Player-1-MIRA")
 check(changed == false and text == nil, "a secret line passes untouched")
-Mock.players["Player-1-LIA"] = { name = "Lia", surname = "Ashbrook", class = "PRIEST", race = "Human", sex = 3 }
+-- your own realm's players come with an empty realm, the others' with a code
+Mock.players["Player-1-LIA"] = { name = "Lia", surname = "Ashbrook", class = "PRIEST", race = "Human", sex = 3, realm = "" }
 Mock.Fire("CHAT_MSG_SAY", "hi all", "Lia Ashbrook", "", "", "", "", 0, 0, "", 0, 4, "Player-1-LIA")
 check(house.relatives.Lia and house.relatives.Lia.class == "PRIEST", "a relative heard saying something is family too")
+Mock.players["Player-1-KIT"] = { name = "Kit", surname = "Ashbrook", class = "MAGE", race = "Human", sex = 3 }
+Mock.Fire("CHAT_MSG_SAY", "hello", "Kit Ashbrook", "", "", "", "", 0, 0, "", 0, 5, "Player-1-KIT")
+check(house.relatives.Kit and house.relatives["Kit Ashbrook"] == nil, "and one from another realm, by their first name")
+check(HeyCousinDB.surnames.CAMWOWEU4Realm4PvP == nil, "a realm code is never counted as a surname")
+local splitFirst, splitSurname = HC.Names.Split("Mira Ashbrook-CAMWOWEU4Realm4PvP")
+check(splitFirst == "Mira" and splitSurname == "Ashbrook", "a realm after a whole name is dropped")
+splitFirst, splitSurname = HC.Names.Split("Mira-Ashbrook")
+check(splitFirst == "Mira" and splitSurname == "Ashbrook", "a name with a dash, as the game takes it for whispers")
+HeyCousinDB.surnames.CAMWOWEU5Realm2PvP = 10
+local countBefore = HeyCousinDB.surnameCount or 0
+HeyCousinDB.surnameCount = countBefore + 1
+HC.Kin.ForgetRealms()
+check(HeyCousinDB.surnames.CAMWOWEU5Realm2PvP == nil and HeyCousinDB.surnameCount == countBefore,
+    "realm codes saved by the first builds are forgotten")
 Mock.roster = { { full = "Odo Ashbrook", level = 45, class = "MAGE", zone = "Tanaris", online = true, guid = "Player-1-ODO" },
     { full = "Ann Other", level = 10, class = "ROGUE", zone = "Durotar", online = false, guid = "Player-1-ANN" } }
 Mock.Fire("GUILD_ROSTER_UPDATE")

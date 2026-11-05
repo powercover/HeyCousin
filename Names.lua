@@ -64,20 +64,26 @@ function Names.Unit(unit)
     return Bare(first, surname), surname
 end
 
--- A player's names and looks from their GUID (a chat line's): on Forever, GetPlayerInfoByGUID's
--- realm is the surname. The game knows a GUID once it has seen the player.
+-- A player's names and looks from their GUID (a chat line's). Forever's GetPlayerInfoByGUID gives
+-- the whole name ("Mira Ashbrook"), then a real realm: a code ("CAMWOWEU4Realm4PvP"), empty for your
+-- own. Never take that for a surname. The game knows a GUID once it has seen the player.
 function Names.FromGUID(guid)
     if not Utils.IsUsableString(guid) or type(GetPlayerInfoByGUID) ~= "function" then
         return
     end
-    local ok, _, class, _, race, sex, first, surname = pcall(GetPlayerInfoByGUID, guid)
-    if not ok or not Utils.IsUsableString(first) or not Utils.IsUsableString(surname) then
+    local ok, _, class, _, race, sex, name = pcall(GetPlayerInfoByGUID, guid)
+    if not ok then
         return
     end
-    return Bare(first, surname), surname, class, race, sex
+    local first, surname = Names.Split(name)
+    if not Utils.IsUsableString(surname) then
+        return
+    end
+    return first, surname, class, race, sex
 end
 
--- "First Surname" (or "First-Surname") taken apart; a plain first name comes back alone.
+-- "First Surname" (or "First-Surname") taken apart; a plain first name comes back alone. A realm
+-- after it ("First Surname-Realm") is dropped: names are letters only, so a dash starts a realm.
 function Names.Split(full)
     if not Utils.IsUsableString(full) then
         return
@@ -85,7 +91,7 @@ function Names.Split(full)
     local separator = Names.Separator()
     local at = full:find(separator, 1, true)
     if at then
-        return full:sub(1, at - 1), full:sub(at + #separator)
+        return full:sub(1, at - 1), (full:sub(at + #separator):gsub("%-.*$", ""))
     end
     local first, rest = full:match("^([^%-]+)%-(.+)$")
     if first then

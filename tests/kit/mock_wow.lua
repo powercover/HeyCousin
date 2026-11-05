@@ -503,7 +503,11 @@ local function Globals()
         if not p then
             for _, u in pairs(Mock.units) do if u.guid == guid then p = u end end
         end
-        if p then return p.class, p.class, p.race, p.race, p.sex or 2, p.name, p.surname end
+        -- as Forever answers (the launch-day test): the whole name, then a realm code, empty for your own
+        if p then
+            local whole = p.surname and (p.name .. " " .. p.surname) or p.name
+            return p.class, p.class, p.race, p.race, p.sex or 2, whole, p.realm or "CAMWOWEU4Realm4PvP", p.level or 8
+        end
     end
     -- your guild: Mock.guild = { name =, rank = (yours, 0: you lead it), ranks = { its rank names } };
     -- its members, Mock.roster[i] = { full, rank, level, class, zone, online, guid, days (since online) }

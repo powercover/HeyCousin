@@ -49,8 +49,14 @@ end
 function Region:SetSize(w, h) self.w, self.h = w, h end
 function Region:SetWidth(w) self.w = w end
 function Region:SetHeight(h) self.h = h end
-function Region:GetWidth() return self.w or (self.points >= 2 and 300) or 0 end
-function Region:GetHeight() return self.h or (self.points >= 2 and 300) or 0 end
+function Region:GetWidth()
+    if self.restricted and not self.sizeAllowed then error("GetWidth(): Can't measure restricted regions", 0) end
+    return self.w or (self.points >= 2 and 300) or 0
+end
+function Region:GetHeight()
+    if self.restricted and not self.sizeAllowed then error("GetHeight(): Can't measure restricted regions", 0) end
+    return self.h or (self.points >= 2 and 300) or 0
+end
 -- (point [, relativeTo [, relativePoint]] [, x, y]), as the game takes them; a point set again
 -- replaces the old one.
 function Region:SetPoint(point, ...)
@@ -63,8 +69,20 @@ function Region:SetPoint(point, ...)
         at, x, y = nil, at, x
     end
     self.anchors[point:upper()] = { to = to, at = (at or point):upper(), x = x or 0, y = y or 0 }
+    self.firstPoint = self.firstPoint or point:upper()
 end
-function Region:ClearAllPoints() self.points = 0; self.anchors = {} end
+function Region:GetPoint()
+    local anchor = self.firstPoint and self.anchors[self.firstPoint]
+    if anchor then return self.firstPoint, anchor.to, anchor.at, anchor.x, anchor.y end
+end
+-- (a test makes a part of a plate restricted with .restricted, as the game does: no measuring it)
+function Region:IsAnchoringRestricted() return self.restricted == true end
+local function Measuring(region, what)
+    if region.restricted then
+        error(what .. "(): Action[FrameMeasurement] failed because[Can't measure restricted regions]", 0)
+    end
+end
+function Region:ClearAllPoints() self.points = 0; self.anchors = {}; self.firstPoint = nil end
 function Region:SetAllPoints(to)
     self.points = 2
     self.anchors = { TOPLEFT = { to = to, at = "TOPLEFT", x = 0, y = 0 },
@@ -86,7 +104,10 @@ function Region:GetParent() return self.parent end
 function Region:Show() self.shown = true end
 function Region:Hide() self.shown = false end
 -- (a test says where a region is with .cx and .cy)
-function Region:GetCenter() return self.cx or 400, self.cy or 300 end
+function Region:GetCenter()
+    Measuring(self, "GetCenter")
+    return self.cx or 400, self.cy or 300
+end
 -- (frames only: the game's text and textures don't have it)
 function Frame:GetEffectiveAlpha()
     local alpha, region = 1, self

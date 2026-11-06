@@ -6,7 +6,9 @@ local _, HC = ...
 -- center, the point your crest is placed from. Only players' plates, since crests only go on players:
 -- a friendly player's and an enemy player's, kept apart, since addons draw them differently (often a
 -- friendly player is only a name). Saved, so the page shows them when nobody's around. It only ever
--- reads other addons' frames.
+-- reads other addons' frames. The game won't let an addon measure a restricted part of a plate ("Can't
+-- measure restricted regions"), so such a part is placed by how it's anchored: its font, words and color
+-- can still be read. A plate whose bar can't be placed isn't kept: half a plate is worse than a plain one.
 -- Names aren't kept: a sample shows its own, and of the other words only numbers (a level, a percent).
 HC.PlateLook = {}
 
@@ -27,6 +29,8 @@ local tries, done, waiting = {}, {}, {}
 local listeners = {}
 -- while /cousin plates asks: what was read, what was left out and why
 local trace
+-- bars on the plate being read that couldn't be placed
+local unplaced = 0
 
 local function Why(reason)
     if trace then
@@ -74,9 +78,18 @@ local function Usable(...)
     return true
 end
 
--- Where a region is, from the plate's center and in the plate's own points. Nothing if it's not on
--- screen, or the game won't say.
-local function Box(region, plate)
+-- Whether the game forbids measuring a region. (A secret answer counts as yes.)
+local function Restricted(region)
+    if not region.IsAnchoringRestricted then
+        return false
+    end
+    local ok, restricted = pcall(region.IsAnchoringRestricted, region)
+    return not ok or Utils.IsSecret(restricted) or restricted == true
+end
+
+-- Where a region is, measured, from the plate's center and in the plate's own points. Nothing if it's
+-- not on screen, or the game won't say.
+local function Measured(region, plate)
     local x, y = region:GetCenter()
     local width, height = region:GetWidth(), region:GetHeight()
     local scale = region:GetEffectiveScale()
@@ -87,6 +100,45 @@ local function Box(region, plate)
     end
     return (x * scale - plateX * plateScale) / plateScale, (y * scale - plateY * plateScale) / plateScale,
         width * scale / plateScale, height * scale / plateScale
+end
+
+-- Where a region is by its anchors, added up to the plate: close, not exact, since what a point means
+-- depends on sizes nobody can measure. Nothing if the chain doesn't reach the plate, or the game won't say.
+local function Anchored(region, plate)
+    local x, y, at = 0, 0, region
+    for _ = 1, MOST_DEPTH do
+        local ok, _, to, _, offX, offY = pcall(at.GetPoint, at, 1)
+        if not ok or not Usable(offX, offY) or Utils.IsSecret(to) then
+            return
+        end
+        x, y = x + offX, y + offY
+        to = to or at:GetParent()
+        if to == plate then
+            return x, y
+        elseif not to then
+            return
+        end
+        at = to
+    end
+end
+
+local function Length(region, method)
+    local ok, value = pcall(region[method], region)
+    return ok and Utils.IsUsableNumber(value) and value or nil
+end
+
+-- Where a region is: x and y from the plate's center, its width and height. Measured when the game
+-- allows it, otherwise whatever its anchors and size can tell; any of them can be nothing.
+local function Box(region, plate)
+    if not Restricted(region) and not Restricted(plate) then
+        local ok, x, y, width, height = pcall(Measured, region, plate)
+        if ok and x then
+            return x, y, width, height
+        end
+    end
+    Why("restricted")
+    local x, y = Anchored(region, plate)
+    return x, y, Length(region, "GetWidth"), Length(region, "GetHeight")
 end
 
 -- How solid a region is on screen. Only frames can say: text and textures are their own alpha times
@@ -129,10 +181,11 @@ local function ReadTexture(texture, plate, level)
         return Why("hidden")
     end
     local file, atlas = Art(texture)
-    local x, y, width, height = Box(texture, plate)
     if not file and not atlas then
         return Why("plain color")
-    elseif not x or width <= 0 or height <= 0 then
+    end
+    local x, y, width, height = Box(texture, plate)
+    if not x or not width or not height or width <= 0 or height <= 0 then
         return Why("no place")
     end
     local coords = { texture:GetTexCoord() }
@@ -154,10 +207,12 @@ local function ReadBar(bar, plate, level)
         return Why("hidden")
     end
     local file, atlas = Art(fill)
-    local x, y, width, height = Box(bar, plate)
     if not file and not atlas then
         return Why("plain color")
-    elseif not x or width <= 0 or height <= 0 then
+    end
+    local x, y, width, height = Box(bar, plate)
+    if not x or not width or not height or width <= 0 or height <= 0 then
+        unplaced = unplaced + 1
         return Why("no place")
     end
     local r, g, b, a = Utils.Call(bar.GetStatusBarColor, bar)
@@ -189,21 +244,20 @@ local function ReadText(text, plate, level, first)
     if not isName and not plain:match("^[%d%s%.,%%/%+%-%?kKmM]+$") then
         return Why("other words")
     end
+    -- (words show even if nobody can say where: they go in the middle)
     local x, y, width, height = Box(text, plate)
-    local font, size, flags = text:GetFont()
-    local r, g, b, a = text:GetTextColor()
-    if not x then
-        return Why("no place")
-    end
+    local font, size, flags = Utils.Call(text.GetFont, text)
+    local r, g, b, a = Utils.Call(text.GetTextColor, text)
     if not Usable(r, g, b) then
         r, g, b, a = 1, 1, 1, 1
     end
-    local shadowX, shadowY = text:GetShadowOffset()
-    local shadowR, shadowG, shadowB, shadowA = text:GetShadowColor()
-    return { x = x, y = y, w = width, h = height, text = true, name = isName or nil, words = not isName and plain or nil,
-        font = Utils.IsUsableString(font) and font or nil, size = Utils.IsUsableNumber(size) and size or nil,
-        flags = Utils.IsUsableString(flags) and flags or nil, r = r, g = g, b = b,
-        a = (Utils.IsUsableNumber(a) and a or 1) * alpha, layer = text:GetDrawLayer(), justify = text:GetJustifyH(),
+    local shadowX, shadowY = Utils.Call(text.GetShadowOffset, text)
+    local shadowR, shadowG, shadowB, shadowA = Utils.Call(text.GetShadowColor, text)
+    return { x = x or 0, y = y or 0, w = width or 0, h = height or 0, text = true, name = isName or nil,
+        words = not isName and plain or nil, font = Utils.IsUsableString(font) and font or nil,
+        size = Utils.IsUsableNumber(size) and size or nil, flags = Utils.IsUsableString(flags) and flags or nil,
+        r = r, g = g, b = b, a = (Utils.IsUsableNumber(a) and a or 1) * alpha,
+        layer = (Utils.Call(text.GetDrawLayer, text)), justify = (Utils.Call(text.GetJustifyH, text)),
         shadowX = Utils.IsUsableNumber(shadowX) and shadowX or nil, shadowY = Utils.IsUsableNumber(shadowY) and shadowY or nil,
         shadow = Usable(shadowR, shadowG, shadowB) and { shadowR, shadowG, shadowB, Utils.IsUsableNumber(shadowA) and shadowA or 1 } or nil,
         level = level }
@@ -293,6 +347,7 @@ local function Read(unit)
     end
     local first = Names.Unit(unit) or Utils.Call(UnitName, unit)
     local pieces = {}
+    unplaced = 0
     -- (a frame that won't answer ends the walk, not the page)
     local ok, problem = pcall(Walk, plate, plate, HC.Plates.CrestOn(unit), 1, first, pieces)
     if not ok and trace then
@@ -308,7 +363,7 @@ local function Copy(unit, kind)
         return false
     end
     local pieces = Read(unit)
-    if not pieces or #pieces == 0 then
+    if not pieces or #pieces == 0 or unplaced > 0 then
         return false
     end
     Saved()[kind] = { player = true, pieces = pieces }

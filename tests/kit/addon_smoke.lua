@@ -1803,7 +1803,7 @@ check(HC.PlateLook.Get("enemy") == nil, "an addon that draws elsewhere: nothing 
 -- /cousin plates says what it sees, and what the game answered
 HeyCousinDB.plateLook = {}
 local _, _, askedWords = RealPlate("nameplate3", "Fern", "Ashbrook", "Alliance", false, nil, GREEN)
-function askedWords:GetFont() error("no such method") end
+function askedWords:GetText() error("no such method") end
 Mock.chat = {}
 SlashCmdList.HEYCOUSIN("plates")
 local plateChat = table.concat(Mock.chat, "\n")
@@ -1828,6 +1828,45 @@ HC.PlateLook.Scan()
 local fadedName = Pieces(HC.PlateLook.Get("friend"), function(p) return p.name end)
 check(#fadedName == 1 and fadedName[1].a == 0.5, "half faded: the name, half faded")
 Mock.units.nameplate6 = nil
+-- the game won't measure a restricted part of a plate: it's placed by its anchors
+HeyCousinDB.plateLook = {}
+do
+    local plate, bar, words = RealPlate("nameplate7", "Fern", "Ashbrook", "Alliance", false, nil, GREEN)
+    local root = words.parent
+    for _, child in ipairs(root.children) do
+        if child.kind == "StatusBar" then child:Hide() end
+    end
+    root:SetPoint("CENTER", plate, "CENTER", 0, 10)
+    words:SetPoint("CENTER", root, "CENTER", 4, 18)
+    words.restricted = true
+    Mock.chat = {}
+    SlashCmdList.HEYCOUSIN("plates")
+    check(table.concat(Mock.chat, "\n"):find("attempt", 1, true) == nil and not table.concat(Mock.chat, "\n"):find("Errors", 1, true), "/cousin plates: no errors from a restricted name: " .. table.concat(Mock.chat, "\n"))
+    local look = HC.PlateLook.Get("friend")
+    local shownName = Pieces(look, function(p) return p.name end)[1]
+    check(shownName and shownName.x == 4 and shownName.y == 28, "a restricted name: placed by its anchors")
+    check(shownName.font == "Fonts\\FRIZQT__.TTF" and shownName.size == 14 and shownName.r == 1, "with its real font and color")
+    -- not even its anchors: the middle
+    HeyCousinDB.plateLook = {}
+    function words:GetPoint() error("Can't read anchors", 0) end
+    HC.PlateLook.Scan()
+    shownName = Pieces(HC.PlateLook.Get("friend"), function(p) return p.name end)[1]
+    check(shownName and shownName.x == 0 and shownName.y == 0 and shownName.size == 14, "no anchors either: in the middle, in its real font")
+    Mock.units.nameplate7 = nil
+    -- a bar nobody can place: half a plate isn't kept
+    HeyCousinDB.plateLook = {}
+    local _, stuckBar = RealPlate("nameplate8", "Fern", "Ashbrook", "Alliance", false, nil, GREEN)
+    stuckBar.restricted = true
+    HC.PlateLook.Scan()
+    check(HC.PlateLook.Get("friend") == nil, "a bar that can't be placed: not kept")
+    -- a bar anchored to the plate with a size it may tell
+    stuckBar:SetPoint("CENTER", C_NamePlate.GetNamePlateForUnit("nameplate8"), "CENTER", 0, -6)
+    stuckBar.sizeAllowed = true
+    HC.PlateLook.Scan()
+    local placed = Pieces(HC.PlateLook.Get("friend"), function(p) return p.bar end)[1]
+    check(placed and placed.y == -6 and placed.w == 120, "a restricted bar with anchors and a size: kept")
+    Mock.units.nameplate8 = nil
+end
 -- a broken saved look is one thing less, not an error
 HeyCousinDB.plateLook = { enemy = { pieces = { "junk", { x = "bad", level = {} }, { text = true, x = {}, level = 1 } } }, friend = "junk" }
 HC.Options.Show("plates")

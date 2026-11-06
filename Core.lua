@@ -89,7 +89,7 @@ function HC.Commands()
         "/cousin groups - " .. L["cousins looking for a group"],
         "/cousin find Surname - " .. L["who's online with any surname"],
         "/cousin settings - " .. L["every choice, by what it's for"],
-        "/cousin setup - " .. L["your crest, alerts and look"],
+        "/cousin setup - " .. L["your crest and the main choices"],
         "/cousin test - " .. L["a pop-up to try"],
         "/cousin test map - " .. L["made-up cousins on your map, to try"],
         "/cousin forget Name - " .. L["take a deleted character off your list"],

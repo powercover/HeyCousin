@@ -44,9 +44,11 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - **Look up a family**: who's online with any surname, by the same `/who` search. Nobody joins your
   family by it.
 - **The settings**: every choice, grouped by what it's for, with a page in the game's Options > AddOns
-  that leads to them. A click on the version number shows what's new.
-- **The setup**: make your crest (shape, pattern, colors, a symbol, or roll the dice), write a
-  motto, pick your alerts, the family map and your look; a guild master makes their guild a family.
+  that leads to them. Your crest, and a guild master's words for their guild, are pages there. A click on
+  the version number shows what's new.
+- **The setup**: only what matters on day one, in two steps: make your crest (shape, pattern, colors, a
+  symbol, or roll the dice) and pick your look; then your family: the pop-up, the map, the online line
+  and whether cousins can see where you are. Everything else has a good default and is in the settings.
 - **Three looks**: Pixel (chunky and cartoonish), Forever (the classic game's parchment pages in
   stone frames, red buttons) and Smooth (dark and gold).
 - **12 languages**: English, German, French, Italian, Spanish (Spain and Latin America), Brazilian
@@ -62,7 +64,7 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - `/cousin find Surname`: who's online with any surname
 - `/fam your words`: talk to every cousin online who has the addon
 - `/cousin settings`: every choice, by what it's for
-- `/cousin setup`: your crest, alerts and look
+- `/cousin setup`: your crest and the main choices
 - `/cousin test`: a pop-up to try
 - `/cousin test map`: made-up cousins on your map for two minutes, to try
 - `/cousin forget Name`: take a deleted character off your list

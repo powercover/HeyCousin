@@ -237,6 +237,36 @@ end
 
 -- --- saved settings and text -------------------------------------------------------------------
 
+-- A plain value, tables and all, copied.
+function Utils.Copy(value)
+    if type(value) ~= "table" then
+        return value
+    end
+    local copy = {}
+    for key, item in pairs(value) do
+        copy[key] = Utils.Copy(item)
+    end
+    return copy
+end
+
+-- Whether two plain values are the same, tables and all.
+function Utils.Same(a, b)
+    if type(a) ~= "table" or type(b) ~= "table" then
+        return a == b
+    end
+    for key, item in pairs(a) do
+        if not Utils.Same(item, b[key]) then
+            return false
+        end
+    end
+    for key in pairs(b) do
+        if a[key] == nil then
+            return false
+        end
+    end
+    return true
+end
+
 function Utils.CopyDefaults(target, defaults)
     if type(target) ~= "table" then
         target = {}

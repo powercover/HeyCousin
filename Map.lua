@@ -1,7 +1,7 @@
 local _, HC = ...
 
 -- The family map: the cousins who share where they are show as crests on the game's own world
--- map, beside its quest marks. Sharing is yours to turn on (the setup's Map step): your addon tells
+-- map, beside its quest marks. Sharing is yours to turn on (the settings, or the setup's Family step): your addon tells
 -- your guild's addons and your family's channel where you are every few seconds while you move,
 -- never in a fight or a dungeon. The family channel is a hidden chat channel for one surname and one
 -- faction, so the other side's addon never joins it. The crests change only while the map is open,

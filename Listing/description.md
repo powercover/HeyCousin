@@ -60,7 +60,7 @@ Pixel, Forever (the classic game's parchment) and Smooth. Switch any time in the
 - `/cousin find Surname`: who's online with any surname
 - `/fam`: talk to every cousin online who has the addon
 - `/cousin settings`: every choice, by what it's for
-- `/cousin setup`: your crest, alerts and map, step by step
+- `/cousin setup`: your crest and the main choices, step by step
 - `/cousin test`: a pop-up to try
 - `/cousin test map`: cousins on your map for two minutes, to try
 

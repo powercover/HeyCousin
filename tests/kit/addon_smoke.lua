@@ -48,7 +48,7 @@ check(next(setup.anchors) ~= nil, "the setup has a place on screen")
 NoErrors(HC, "boot")
 
 -- the setup's frame: a step bar, the look on top, back (or skip), reset and next
-check(ButtonWith(setup, "Crest") and ButtonWith(setup, "Alerts") and ButtonWith(setup, "Crest").node.kind == "primary",
+check(ButtonWith(setup, "Crest") and ButtonWith(setup, "Family") and ButtonWith(setup, "Crest").node.kind == "primary",
     "a step bar, on the first step")
 check(ButtonWith(setup, "Skip for now") ~= nil and ButtonWith(setup, "Back") == nil, "the first time: skip, no back")
 check(setup.look and setup.look.forward:IsVisible() and setup.look.name.text == "Pixel", "the look on top of the step")
@@ -105,75 +105,30 @@ motto:SetText("Family first!")
 ButtonWith(setup, "Next"):Click()
 check(type(HeyCousinDB.testCrest) == "table" and HeyCousinDB.testCrest.shape == "Round"
     and HeyCousinDB.testMotto == "Family first!", "the crest and motto made in test mode are kept for Forever")
-check(ButtonWith(setup, "Alerts").node.kind == "primary" and ButtonWith(setup, "Crest").check:IsShown(),
-    "next: on the alerts, and the crest step has its check")
+check(ButtonWith(setup, "Family").node.kind == "primary" and ButtonWith(setup, "Crest").check:IsShown(),
+    "next: on your family, and the crest step has its check")
 check(ButtonWith(setup, "Back") ~= nil and ButtonWith(setup, "Skip for now") == nil, "back now, no skip")
 NoErrors(HC, "crest page")
 
--- alerts and look
+-- the family's step: only what matters on day one
 local rows = All(setup, function(f) return f.toggle ~= nil and f:IsVisible() end)
-check(#rows == 7, "seven alert settings: " .. #rows)
+check(#rows == 4 and Crest(setup, 28) ~= nil, "four settings, and how the crests look: " .. #rows)
+check(HeyCousinDB.mapShare == false, "sharing where you are stays off until you say")
 rows[1]:Click()
 check(HeyCousinDB.popup == false, "the pop-up setting turns off")
 rows[1]:Click()
 check(HeyCousinDB.popup == true, "and on")
 check(HeyCousinDB.popupEvery == false, "a pop-up only the first time you meet, unless you want more")
-rows[2]:Click()
-check(HeyCousinDB.popupEvery == true, "every time you meet turns on")
-rows[2]:Click()
-rows[7]:Click()
-check(HeyCousinDB.showMinimap == false and not minimap:IsShown(), "the minimap crest hides at once")
-rows[7]:Click()
-check(minimap:IsShown(), "and comes back")
-local bell = ButtonWith(setup, "Bell")
-bell:Click()
-check(HeyCousinDB.sound == "bell" and #Mock.sounds > 0, "a sound chip picks and plays it")
-rows[3]:Click()
-check(HeyCousinDB.enemyAlerts == false and ButtonWith(setup, "Reset"):IsEnabled(), "changed alerts can be reset")
-ButtonWith(setup, "Reset"):Click()
-check(HeyCousinDB.enemyAlerts == true and HeyCousinDB.sound == "auto" and not ButtonWith(setup, "Reset"):IsEnabled(),
-    "reset puts the alerts back")
--- the step bar goes to any step
-ButtonWith(setup, "Crest"):Click()
-check(Crest(setup, 160):IsVisible() and ButtonWith(setup, "Next") ~= nil, "a click on a step goes to it")
-NoErrors(HC, "alerts")
-
--- the map's step: your family on your map, and sharing where you are (off until you say)
-ButtonWith(setup, "Map"):Click()
-local mapRows = All(setup, function(f) return f.toggle ~= nil and f:IsVisible() end)
-check(#mapRows == 2 and HeyCousinDB.mapShow == true and HeyCousinDB.mapShare == false and Crest(setup, 28) ~= nil,
-    "the map's step: two settings, sharing off, and how the crests look")
-mapRows[2]:Click()
+rows[4]:Click()
 check(HeyCousinDB.mapShare == true and ButtonWith(setup, "Reset"):IsEnabled(), "sharing turns on")
 ButtonWith(setup, "Reset"):Click()
 check(HeyCousinDB.mapShare == false and not ButtonWith(setup, "Reset"):IsEnabled(), "reset: off again")
-NoErrors(HC, "map step")
-
--- the guild's step: you lead the made-up guild, so it's yours to make a family
-ButtonWith(setup, "Guild"):Click()
-check(ButtonWith(setup, "Guild").node.kind == "primary" and ButtonWith(setup, "Done") ~= nil, "the guild's step, the last")
-local function Boxes(root)
-    return All(root, function(f) return f.kind == "EditBox" and f:IsVisible() end)
-end
-local fields = Boxes(setup)
-check(#fields == 6 and fields[1]:GetText() == "Ashbrook" and fields[3]:GetText() == "Elder"
-    and fields[6]:GetText() == "Little cousin", "a family name, a welcome line, and a word for each of the 4 ranks")
-check(not ButtonWith(setup, "Reset"):IsEnabled(), "nothing changed on it yet")
-fields[5]:SetText("Kin")
-fields[5]:ClearFocus()
-check(HC.Guild.Family().words[3] == "Kin" and ButtonWith(setup, "Reset"):IsEnabled(), "a new word, saved when you're done typing")
-local stamp = HC.Guild.Family().stamp
-fields[5]:ClearFocus()
-fields[1]:ClearFocus()
-check(HC.Guild.Family().stamp == stamp, "done typing with no change: nothing saved again")
-local guildRow = All(setup, function(f) return f.toggle ~= nil and f:IsVisible() end)[1]
-guildRow:Click()
-check(not HC.Guild.Family().given and #Boxes(setup) == 0, "turned off: no family, no fields")
-guildRow:Click()
-check(HC.Guild.Family().given and #Boxes(setup) == 6, "and on again")
-ButtonWith(setup, "Reset"):Click()
-check(HC.Guild.Family().words[3] == "Cousin" and Boxes(setup)[5]:GetText() == "Cousin", "reset: the words as they were")
-NoErrors(HC, "guild step")
+-- the step bar goes to any step
+ButtonWith(setup, "Crest"):Click()
+check(Crest(setup, 160):IsVisible() and ButtonWith(setup, "Next") ~= nil, "a click on a step goes to it")
+ButtonWith(setup, "Next"):Click()
+check(ButtonWith(setup, "Done") ~= nil and ButtonWith(setup, "Guild") == nil, "two steps, and no guild's step")
+NoErrors(HC, "the family's step")
 -- the look, twice round, from the last step
 setup.look.forward:Click()
 setup = _G.HeyCousinSetup
@@ -188,7 +143,7 @@ if done then done:Click() else setup:Hide(); HeyCousinDB.setupDone = true end
 check(HeyCousinDB.setupDone == true and not setup:IsShown(), "done: the setup closes and won't open by itself again")
 Settle()
 check(_G.HeyCousinAlert and _G.HeyCousinAlert:IsShown(), "and a test pop-up shows how a cousin looks")
-NoErrors(HC, "alerts and look")
+NoErrors(HC, "the end of the setup")
 
 -- the family window
 SlashCmdList.HEYCOUSIN("")
@@ -284,8 +239,9 @@ ButtonWith(window, "Tree"):Click()
 Settle()
 check(Box("Mira").chosen and not page:IsShown(), "back on the tree, Mira still chosen")
 ButtonWith(window, "Family words"):Click()
-check(_G.HeyCousinSetup:IsShown() and ButtonWith(_G.HeyCousinSetup, "Done") ~= nil, "the guild master's words: the setup's guild step")
-_G.HeyCousinSetup:Hide()
+check(_G.HeyCousinOptions:IsShown() and ButtonWith(_G.HeyCousinOptions, "Reset") ~= nil and ButtonWith(_G.HeyCousinOptions, "Back") ~= nil,
+    "the guild master's words: their page in the settings")
+_G.HeyCousinOptions:Hide()
 NoErrors(HC, "tree")
 
 -- the family map in test mode: the made-up cousins online stand around you
@@ -374,7 +330,7 @@ check(_G.HeyCousinWindow:IsShown(), "the family stays open through the looks")
 HC.Setup.Show(1)
 Hover(_G.HeyCousinSetup)
 Round("looks with the setup's first step")
-HC.Setup.Show(4)
+HC.Setup.Show(2)
 Hover(_G.HeyCousinSetup)
 Round("looks with the setup's last step")
 check(_G.HeyCousinSetup:IsShown() and ButtonWith(_G.HeyCousinSetup, "Done") ~= nil, "the setup stays on its step")
@@ -1596,12 +1552,40 @@ Row(options, "Every time you meet"):Click()
 check(HeyCousinDB.popupEvery == true, "a row sets its setting")
 Row(options, "Every time you meet"):Click()
 ButtonWith(options, "Bell"):Click()
-check(HeyCousinDB.sound == "bell" and ButtonWith(options, "Bell").kind == "primary", "a sound chip")
+check(HeyCousinDB.sound == "bell" and ButtonWith(options, "Bell").kind == "primary" and #Mock.sounds > 0, "a sound chip picks and plays it")
 ButtonWith(options, "Family"):Click()
 check(ButtonWith(options, "Family").kind == "primary" and ButtonWith(options, "Alerts").kind == "secondary", "the chosen page is lit")
 check(Crest(options, 64):IsVisible() and Row(options, "Cousins coming online") and not Row(options, "Every time you meet"),
     "Family: your crest, and only its own rows")
 check(ButtonWith(options, "Your guild") == nil, "no guild to lead, no guild button")
+-- your crest: a page of its own in this window, not the setup
+ButtonWith(options, "Change your crest"):Click()
+check(options:IsShown() and not (_G.HeyCousinSetup and _G.HeyCousinSetup:IsShown()), "the crest stays in the settings, no setup")
+check(ButtonWith(options, "Family") == nil and Crest(options, 160):IsVisible() and ButtonWith(options, "Back") ~= nil,
+    "a page of its own, with a way back")
+check(not ButtonWith(options, "Reset"):IsEnabled(), "nothing to reset yet")
+local optionsRights = All(options, function(f) return f.direction == "RIGHT" and f:IsVisible() end)
+optionsRights[1]:Click()
+check(HC.Kin.House().crest.shape == "Round" and ButtonWith(options, "Reset"):IsEnabled(), "saved as you make it")
+ButtonWith(options, "Reset"):Click()
+check(HC.Kin.House().crest.shape == "Heater" and not ButtonWith(options, "Reset"):IsEnabled(), "reset: as it was")
+optionsRights[1]:Click()
+ButtonWith(options, "Back"):Click()
+check(ButtonWith(options, "Family").kind == "primary" and Crest(options, 64).crest.shape == "Round", "back: on Family, with the new crest")
+-- opened again, the window is back on its pages
+ButtonWith(options, "Change your crest"):Click()
+options:Hide()
+SlashCmdList.HEYCOUSIN("settings")
+check(ButtonWith(options, "Family") ~= nil, "closed on the crest, it opens on its pages again")
+SlashCmdList.HEYCOUSIN("theme")
+options = _G.HeyCousinOptions
+HC.Options.Show("crest")
+SlashCmdList.HEYCOUSIN("theme")
+options = _G.HeyCousinOptions
+check(options:IsShown() and Crest(options, 160):IsVisible(), "a new look on the crest's page stays there")
+SlashCmdList.HEYCOUSIN("theme")
+options = _G.HeyCousinOptions
+ButtonWith(options, "Back"):Click()
 Row(options, "Cousins coming online"):Click()
 check(HeyCousinDB.presence == false, "the hello can be turned off here")
 Row(options, "Cousins coming online"):Click()
@@ -1674,8 +1658,33 @@ HC = Mock.Boot("retail", { setupDone = true })
 HC.Options.Show("family")
 check(ButtonWith(_G.HeyCousinOptions, "Your guild") ~= nil, "a guild master has the guild's button")
 ButtonWith(_G.HeyCousinOptions, "Your guild"):Click()
-check(_G.HeyCousinSetup:IsShown() and ButtonWith(_G.HeyCousinSetup, "Done") ~= nil, "it opens the guild's step")
-_G.HeyCousinSetup:Hide()
+local guildPage = _G.HeyCousinOptions
+check(guildPage:IsShown() and not (_G.HeyCousinSetup and _G.HeyCousinSetup:IsShown()) and ButtonWith(guildPage, "Family") == nil,
+    "the guild's family: a page of its own in the settings")
+local function Boxes(root)
+    return All(root, function(f) return f.kind == "EditBox" and f:IsVisible() end)
+end
+local fields = Boxes(guildPage)
+check(#fields == 6 and fields[1]:GetText() == "Ashbrook" and fields[3]:GetText() == "Elder"
+    and fields[6]:GetText() == "Little cousin", "a family name, a welcome line, and a word for each of the 4 ranks")
+check(not ButtonWith(guildPage, "Reset"):IsEnabled(), "nothing changed on it yet")
+fields[5]:SetText("Kin")
+fields[5]:ClearFocus()
+check(HC.Guild.Family().words[3] == "Kin" and ButtonWith(guildPage, "Reset"):IsEnabled(), "a new word, saved when you're done typing")
+local stamp = HC.Guild.Family().stamp
+fields[5]:ClearFocus()
+fields[1]:ClearFocus()
+check(HC.Guild.Family().stamp == stamp, "done typing with no change: nothing saved again")
+local guildRow = All(guildPage, function(f) return f.toggle ~= nil and f:IsVisible() end)[1]
+guildRow:Click()
+check(not HC.Guild.Family().given and #Boxes(guildPage) == 0, "turned off: no family, no fields")
+guildRow:Click()
+check(HC.Guild.Family().given and #Boxes(guildPage) == 6, "and on again")
+ButtonWith(guildPage, "Reset"):Click()
+check(HC.Guild.Family().words[3] == "Cousin" and Boxes(guildPage)[5]:GetText() == "Cousin", "reset: the words as they were")
+ButtonWith(guildPage, "Back"):Click()
+check(ButtonWith(guildPage, "Family").kind == "primary", "back on Family")
+guildPage:Hide()
 NoErrors(HC, "the settings in test mode")
 
 -- === Broken saved data ========================================================================

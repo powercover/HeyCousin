@@ -51,6 +51,7 @@ Window.lua
 Tooltip.lua
 Chat.lua
 Minimap.lua
+CrestEditor.lua
 Setup.lua
 Options.lua
 Probe.lua

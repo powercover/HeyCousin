@@ -2,10 +2,12 @@ local _, HC = ...
 
 -- The settings: everything you can choose, by what it's for, in a window of their own. The setup
 -- (Setup.lua) walks you through your crest and the main choices; these are all of them, and a
--- button runs the setup. The game's Options > AddOns has a page with a button to this window.
+-- button runs the setup. Your crest and your guild's family are pages of their own in this window,
+-- with a way back. The game's Options > AddOns has a page with a button to this window.
 HC.Options = {}
 
 local Options = HC.Options
+local Utils = HC.Utils
 local Theme = HC.Theme
 local Crest = HC.Crest
 local Kin = HC.Kin
@@ -21,8 +23,12 @@ local PAGE_W = WIDTH - PAGE_X - PAD
 local TOP = 62
 local ORDER = { "alerts", "family", "map", "game", "look", "about" }
 
-local window, pages, nav
+local window, main, pages, nav
 local current = "alerts"
+-- the crest's or the guild's page while it shows ("crest", "guild"), and the pages as they're built
+local openSub
+local subs = {}
+local rebuilding = false
 local bootLanguage
 local bridge
 
@@ -43,7 +49,7 @@ end
 -- --- a page, from the top down ------------------------------------------------------------------
 
 local function NewPage()
-    local p = CreateFrame("Frame", nil, window)
+    local p = CreateFrame("Frame", nil, main)
     p:SetPoint("TOPLEFT", PAGE_X, -TOP)
     p:SetPoint("BOTTOMRIGHT", -PAD, 18)
     p.y, p.parts = 0, {}
@@ -141,6 +147,43 @@ local function VersionLink(parent)
     return link
 end
 
+-- The sounds to choose from, as chips.
+local function SoundChips(parent)
+    local sounds = { { "auto", L["Theme's"] }, { "chime", L["Chime"] }, { "bell", L["Bell"] }, { "boop", L["Boop"] },
+        { "none", L["None"] } }
+    local chips = {}
+    for _, spec in ipairs(sounds) do
+        chips[#chips + 1] = Theme.Chip(parent, spec[2], function()
+            return (HeyCousinDB.sound or "auto") == spec[1]
+        end, function()
+            HeyCousinDB.sound = spec[1]
+            for _, other in ipairs(chips) do
+                other:Refresh()
+            end
+            if spec[1] ~= "none" then
+                HC.Alert.PlaySound()
+            end
+        end)
+    end
+    return chips
+end
+
+-- The chats to learn from, as chips.
+local function ChatChips(parent)
+    local chats = { { "say", L["Say and yell"] }, { "channel", L["Trade and general"] }, { "guild", L["Guild"] },
+        { "group", L["Group"] }, { "whisper", L["Whispers"] } }
+    local chips = {}
+    for _, spec in ipairs(chats) do
+        chips[#chips + 1] = Theme.Chip(parent, spec[2], function()
+            return HC.Radar.Watches(spec[1])
+        end, function(value)
+            HeyCousinDB.chats = type(HeyCousinDB.chats) == "table" and HeyCousinDB.chats or {}
+            HeyCousinDB.chats[spec[1]] = value
+        end)
+    end
+    return chips
+end
+
 -- --- the pages ----------------------------------------------------------------------------------
 
 local function BuildAlerts()
@@ -150,7 +193,7 @@ local function BuildAlerts()
     Toggle(p, L["Every time you meet"], L["Not only the first time."], "popupEvery", false)
     Toggle(p, L["Black sheep too"], L["Cousins from the other faction."], "enemyAlerts", true)
     Heading(p, L["Sound"])
-    Chips(p, HC.Setup.SoundChips(p))
+    Chips(p, SoundChips(p))
     return p
 end
 
@@ -165,10 +208,14 @@ local function BuildFamily()
     local motto = Theme.Text(p, "Small", C.text2)
     motto:SetPoint("TOPLEFT", 76, p.y - 20)
     motto:SetPoint("RIGHT", p, "RIGHT", 0, 0)
-    local change = Action(p, L["Change your crest"], OpenSetup("crest"))
+    local change = Action(p, L["Change your crest"], function()
+        Options.Show("crest")
+    end)
     change:SetPoint("TOPLEFT", 76, p.y - 38)
     -- the guild's family is its guild master's to give
-    local guild = Action(p, L["Your guild"], OpenSetup("guild"))
+    local guild = Action(p, L["Your guild"], function()
+        Options.Show("guild")
+    end)
     guild:SetPoint("LEFT", change, "RIGHT", 6, 0)
     p.y = p.y - 76
     p.parts[#p.parts + 1] = {
@@ -209,7 +256,7 @@ local function BuildGame()
     Toggle(p, L["Your crest in chat"], L["At the start of a relative's message."], "chatCrest", true)
     Note(p, L["Learn from these chats"], C.text2)
     p.y = p.y + 2
-    Chips(p, HC.Setup.ChatChips(p))
+    Chips(p, ChatChips(p))
     Heading(p, L["In tooltips"])
     Toggle(p, L["A family line in tooltips"], L["\"Family: Ashbrook (cousin)\""], "tooltipLine", true)
     Heading(p, L["On the minimap"])
@@ -282,7 +329,7 @@ local function BuildAbout()
     p.y = -48
     Note(p, L["Finds the players who share your surname, and makes your family visible."], C.text2)
     Heading(p, L["The setup"])
-    Note(p, L["Your crest, your alerts and the family map, step by step."])
+    Note(p, L["Your crest and the choices that matter most, step by step."])
     p.y = p.y + 2
     local setup = Action(p, L["Open the setup"], OpenSetup())
     setup:SetPoint("TOPLEFT", 0, p.y)
@@ -300,8 +347,17 @@ end
 
 -- --- the window ---------------------------------------------------------------------------------
 
+local function HideSubs()
+    openSub = nil
+    for _, sub in pairs(subs) do
+        sub:Hide()
+    end
+end
+
 local function ShowPage(key)
     current = key
+    HideSubs()
+    main:Show()
     for name, page in pairs(pages) do
         page:SetShown(name == key)
     end
@@ -314,10 +370,213 @@ local function ShowPage(key)
     end
 end
 
+-- A page of its own over the whole window: its title on top, Back and Reset along the bottom.
+local function NewSub(title)
+    local p = CreateFrame("Frame", nil, window)
+    p:SetAllPoints()
+    p:Hide()
+    local heading = Theme.Text(p, "Title")
+    heading:SetPoint("TOPLEFT", PAD, -20)
+    heading:SetPoint("RIGHT", window.close, "LEFT", -8, 0)
+    heading:SetText(title)
+    local metal = Theme.Title()
+    heading:SetTextColor(metal[1], metal[2], metal[3])
+    local back = Theme.Button(p, L["Back"], "secondary", 100, 32)
+    back:SetPoint("BOTTOMLEFT", PAD, 18)
+    Theme.ButtonIcon(back, "ChevronLeft")
+    Theme.Fit(back, 16, 100)
+    Theme.OnClick(back, "settings back", function()
+        ShowPage(current)
+    end)
+    p.reset = Theme.Button(p, L["Reset"], "secondary", 100, 32)
+    p.reset:SetPoint("BOTTOMRIGHT", -PAD, 18)
+    Theme.Fit(p.reset, 16, 96)
+    Theme.Tip(p.reset, L["Reset"], L["Back to how it was when you opened this page."])
+    return p
+end
+
+-- Your crest and motto: the same maker as the setup's.
+local function BuildCrestPage()
+    local p = NewSub(L["Your house"])
+    local start
+    local editor
+    local function Paint()
+        p.reset:SetEnabled(editor:Changed(start.crest, start.motto))
+    end
+    editor = HC.CrestEditor.New(p, function()
+        if start then
+            Paint()
+        end
+    end)
+    editor:SetPoint("TOP", 0, -8)
+    function p.Open()
+        local house = Kin.House()
+        start = { crest = Crest.Normalize(house and house.crest), motto = house and house.motto or "" }
+        editor:Load(start.crest, start.motto)
+        Paint()
+    end
+    function p.Blur()
+        editor:Blur()
+    end
+    Theme.OnClick(p.reset, "crest reset", function()
+        editor:Load(start.crest, start.motto, editor:OpenPicker())
+        editor:Save()
+        Paint()
+    end)
+    return p
+end
+
+-- Your guild's family, when you lead it: saved and shared with your guild once it's changed from what
+-- was saved last. It has a row for each rank, so it's built again when the ranks change.
+local function BuildGuildPage()
+    local p = NewSub(L["Your guild"])
+    p.ranks = table.concat(HC.Guild.Ranks(), "\n")
+    -- (the fields go by these places, a bit below the title)
+    local body = CreateFrame("Frame", nil, p)
+    body:SetPoint("TOPLEFT", 0, -6)
+    body:SetPoint("BOTTOMRIGHT", 0, 60)
+    local draft, saved, start
+    local function PaintReset()
+        p.reset:SetEnabled(not HC.Guild.Equal(draft, start))
+    end
+    local function Save()
+        if draft and not HC.Guild.Equal(draft, saved) then
+            HC.Guild.SetFamily(draft)
+            saved = Utils.Copy(draft)
+        end
+    end
+    local name = Theme.Text(body, "Headline", Theme.Title())
+    name:SetPoint("TOPLEFT", PAD, -60)
+    name:SetPoint("RIGHT", body, "LEFT", 300, 0)
+    name:SetText(HC.Guild.Mine() or L["Your guild"])
+    local row = Theme.ToggleRow(body, 286, L["Our guild is a family"], L["Everyone in it shows on the Tree tab."],
+        function()
+            -- (a new crest color repaints it, the page open or not)
+            return draft ~= nil and draft.on
+        end, function(value)
+            draft.on = value
+            p.Refresh()
+            Save()
+            PaintReset()
+        end)
+    row:SetPoint("TOPLEFT", PAD - 8, -86)
+    local fields = CreateFrame("Frame", nil, body)
+    fields:SetAllPoints()
+    local function Field(label, y, width, most, key)
+        local text = Theme.Text(fields, "Small", C.text2)
+        text:SetPoint("TOPLEFT", PAD, y)
+        text:SetText(label)
+        local box = Theme.EditBox(fields, width, nil, nil, most)
+        box:SetPoint("TOPLEFT", PAD, y - 16)
+        box.onChange = function(value)
+            draft[key] = value
+            PaintReset()
+        end
+        -- saved when you're done typing
+        box.edit:HookScript("OnEditFocusLost", Save)
+        return box
+    end
+    local surname = Field(L["Family name"], -146, 200, HC.Guild.NAME_MAX, "surname")
+    local welcome = Field(L["Welcome line"], -206, 278, HC.Guild.WELCOME_MAX, "welcome")
+    welcome.hint:SetText(L["For new cousins, as they join"])
+    local crest = Crest.Create(fields, 56)
+    crest:SetPoint("TOPLEFT", PAD, -270)
+    local crestText = Theme.Text(fields, "Small", C.text3)
+    crestText:SetPoint("TOPLEFT", PAD + 68, -280)
+    crestText:SetWidth(210)
+    crestText:SetWordWrap(true)
+    crestText:SetSpacing(2)
+    crestText:SetText(L["The family wears your crest."])
+    -- each rank with its word, the guild master's first
+    local words = Theme.Text(fields, "Headline")
+    words:SetPoint("TOPLEFT", 322, -60)
+    words:SetText(L["A word for each rank"])
+    local boxes = {}
+    for index, rank in ipairs(HC.Guild.Ranks()) do
+        local y = -86 - (index - 1) * 34
+        local label = Theme.Text(fields, "Small", C.text2)
+        label:SetPoint("TOPRIGHT", fields, "TOPLEFT", 416, y - 9)
+        label:SetWidth(94)
+        label:SetJustifyH("RIGHT")
+        label:SetText(rank)
+        local box = Theme.EditBox(fields, WIDTH - PAD - 424, HC.Guild.DefaultWord(index - 1), nil, HC.Guild.WORD_MAX)
+        box:SetPoint("TOPLEFT", 424, y)
+        box.onChange = function(value)
+            draft.words[index] = value
+            PaintReset()
+        end
+        box.edit:HookScript("OnEditFocusLost", Save)
+        boxes[index] = box
+    end
+    -- while it's no family
+    local off = Theme.Text(body, "Body", C.text3)
+    off:SetPoint("TOPLEFT", 322, -90)
+    off:SetWidth(WIDTH - PAD - 322)
+    off:SetWordWrap(true)
+    off:SetSpacing(3)
+    off:SetText(L["Turn it on to give your family a name, a word for each rank and a welcome line."])
+    local note = Theme.Text(body, "Small", C.text3)
+    note:SetPoint("TOPLEFT", PAD, -352)
+    note:SetWidth(270)
+    note:SetWordWrap(true)
+    note:SetSpacing(2)
+    note:SetText(L["Members with Hey Cousin! get all this from your addon, by themselves."]
+        .. (HC.TestMode.active and ("\n" .. L["(Test mode: a made-up guild you lead.)"]) or ""))
+    -- shows the family as it is in the draft (after a Reset)
+    function p.Refresh()
+        row.toggle:Refresh(true)
+        fields:SetShown(draft.on)
+        off:SetShown(not draft.on)
+        surname.edit:SetText(draft.surname)
+        welcome.edit:SetText(draft.welcome)
+        for index, box in ipairs(boxes) do
+            local word = draft.words[index]
+            box.edit:SetText(Utils.IsUsableString(word) and word or HC.Guild.DefaultWord(index - 1))
+        end
+        crest:SetCrest(Kin.Crest(), Utils.Trim(draft.surname))
+    end
+    function p.Open()
+        draft = HC.Guild.Draft()
+        saved, start = Utils.Copy(draft), Utils.Copy(draft)
+        p.Refresh()
+        PaintReset()
+    end
+    function p.Blur()
+        surname.edit:ClearFocus()
+        welcome.edit:ClearFocus()
+        for _, box in ipairs(boxes) do
+            box.edit:ClearFocus()
+        end
+    end
+    Theme.OnClick(p.reset, "guild reset", function()
+        draft = Utils.Copy(start)
+        p.Refresh()
+        Save()
+        PaintReset()
+    end)
+    return p
+end
+
+local function ShowSub(key)
+    -- (a guild's page needs a guild you lead, with these ranks)
+    if key == "guild" and subs.guild and subs.guild.ranks ~= table.concat(HC.Guild.Ranks(), "\n") then
+        subs.guild:Hide()
+        subs.guild = nil
+    end
+    HideSubs()
+    main:Hide()
+    subs[key] = subs[key] or (key == "crest" and BuildCrestPage() or BuildGuildPage())
+    openSub = key
+    subs[key]:Show()
+    subs[key].Open()
+end
+
 local function Build()
     window = Theme.Window("HeyCousinOptions", WIDTH, HEIGHT)
     window:SetFrameStrata("DIALOG")
-    local heading = Theme.Text(window, "Title")
+    main = CreateFrame("Frame", nil, window)
+    main:SetAllPoints()
+    local heading = Theme.Text(main, "Title")
     heading:SetPoint("TOPLEFT", PAD, -20)
     heading:SetText(L["Settings"])
     local title = Theme.Title()
@@ -326,31 +585,50 @@ local function Build()
         look = L["Look & language"], about = L["About"] }
     nav = {}
     for index, key in ipairs(ORDER) do
-        local button = Theme.Button(window, labels[key], "secondary", NAV_W, 32)
+        local button = Theme.Button(main, labels[key], "secondary", NAV_W, 32)
         button:SetPoint("TOPLEFT", PAD, -TOP - (index - 1) * 38)
         Theme.OnClick(button, "settings page", function()
             ShowPage(key)
         end)
         nav[key] = button
     end
-    local link = VersionLink(window)
+    local link = VersionLink(main)
     link:SetPoint("BOTTOMLEFT", PAD, 18)
     pages = { alerts = BuildAlerts(), family = BuildFamily(), map = BuildMap(), game = BuildGame(), look = BuildLook(),
         about = BuildAbout() }
     window:HookScript("OnHide", function()
         GameTooltip:Hide()
+        -- done typing: it's saved. Next time the window opens on its main pages, unless a new look
+        -- is building it again.
+        for _, sub in pairs(subs) do
+            sub.Blur()
+        end
+        if not rebuilding then
+            HideSubs()
+        end
     end)
 end
 
--- Opens the settings on page `key` ("alerts", "family", "map", "game", "look", "about"), else on the
--- one you left.
+-- Opens the settings on page `key` ("alerts", "family", "map", "game", "look", "about"), on your crest
+-- ("crest") or on your guild's family ("guild", if you lead it), else on the one you left.
 function Options.Show(key)
     -- (both show the same settings: one at a time)
     HC.Setup.Hide()
     if not window then
         Build()
     end
-    ShowPage(pages[key] and key or current)
+    if key == "guild" and not HC.Guild.Leads() then
+        key = "family"
+    end
+    if key == "crest" or key == "guild" then
+        -- its Back goes to the page it belongs to
+        current = "family"
+        ShowSub(key)
+    elseif openSub and not key then
+        ShowSub(openSub)
+    else
+        ShowPage(pages[key] and key or current)
+    end
     window:Show()
 end
 
@@ -374,8 +652,11 @@ Theme.OnSkin(function()
         return
     end
     local shown = window:IsShown()
+    rebuilding = true
     window:Hide()
-    window, pages, nav = nil, nil, nil
+    rebuilding = false
+    window, main, pages, nav = nil, nil, nil, nil
+    subs = {}
     if shown then
         Options.Show()
     end

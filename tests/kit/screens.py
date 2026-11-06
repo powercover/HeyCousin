@@ -853,9 +853,9 @@ def main():
     sheet(rows, SKINS).save(os.path.join(out, "3-pop-ups.png"))
     print("drew 3-pop-ups.png")
     pair("4-setup-crest.png", "crest")
-    pair("5-setup-alerts.png", "alerts")
-    pair("5b-setup-map.png", "mapstep")
-    pair("5c-setup-guild.png", "guild")
+    pair("5-setup-family.png", "familystep")
+    pair("5b-settings-crest.png", "settingscrest")
+    pair("5c-settings-guild.png", "guild")
     rows = [[shot("settings" + page, skin)[0] for skin in SKINS] for page in ("alerts", "family", "map")]
     sheet(rows, SKINS).save(os.path.join(out, "5d-settings-1.png"))
     rows = [[shot("settings" + page, skin)[0] for skin in SKINS] for page in ("game", "look", "about")]

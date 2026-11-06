@@ -3,7 +3,7 @@ local _, HC = ...
 -- Your guild as a family: its members by rank, as a family tree (the window's Tree tab). A guild
 -- where most members share one surname is a family by itself. Its guild master can give the
 -- family a name, a word for each rank (Elder, Parent, Cousin, or their own) and a welcome line in
--- the setup: their addon shares them with every member's in guild addon messages, and the
+-- the settings: their addon shares them with every member's in guild addon messages, and the
 -- family's crest is the guild master's.
 HC.Guild = {}
 

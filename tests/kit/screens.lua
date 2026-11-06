@@ -216,18 +216,18 @@ for _, page in ipairs({ "alerts", "family", "map", "game", "look", "about" }) do
     end
 end
 
--- the setup's map step: your family on your map, and sharing where you are
-function Screens.mapstep(skin)
+-- the settings' own pages: your crest with a picker open, and a guild master's words
+function Screens.settingscrest(skin)
     local HC = Boot(skin)
-    HC.Setup.Show("map")
-    return { frames = { HeyCousinSetup } }
+    HC.Options.Show("crest")
+    ButtonWith(HeyCousinOptions, "Symbol"):Click()
+    return { frames = { HeyCousinOptions } }
 end
 
--- the setup's last step for a guild master: the guild as a family
 function Screens.guild(skin)
     local HC = Boot(skin)
-    HC.Setup.Show("guild")
-    return { frames = { HeyCousinSetup } }
+    HC.Options.Show("guild")
+    return { frames = { HeyCousinOptions } }
 end
 
 function Screens.stats(skin)
@@ -251,13 +251,13 @@ function Screens.crest(skin)
     return { frames = { HeyCousinSetup } }
 end
 
--- the alerts step, reached with Next (the crest step has its check), with one setting changed (so
+-- the family step, reached with Next (the crest step has its check), with one setting changed (so
 -- Reset is on)
-function Screens.alerts(skin)
+function Screens.familystep(skin)
     local HC = Boot(skin)
     HC.Setup.Show(1)
     ButtonWith(HeyCousinSetup, "Next"):Click()
-    ButtonWith(HeyCousinSetup, "Black sheep too"):Click()
+    ButtonWith(HeyCousinSetup, "Share it with your family"):Click()
     return { frames = { HeyCousinSetup } }
 end
 

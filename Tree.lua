@@ -286,7 +286,7 @@ function Tree.Build(window, left, top, bottom)
     tree.welcome = Theme.Text(tree, "Small", C.text3)
     tree.welcome:SetPoint("TOPLEFT", 2, -28)
     tree.welcome:SetPoint("RIGHT", tree, "RIGHT", -2, 0)
-    -- the guild master gives the family its words in the setup
+    -- the guild master gives the family its words in the settings
     tree.setup = Theme.Button(tree, "", "ghost", 120, 24)
     tree.setup:SetPoint("TOPRIGHT", 0, -22)
     tree.setup.label:SetFontObject(Theme.Font("Small"))
@@ -295,7 +295,7 @@ function Tree.Build(window, left, top, bottom)
     Theme.Fit(tree.setup, 10, 80)
     Theme.Tip(tree.setup, L["Your guild's family"], L["Its name, a word for each rank and a welcome line."])
     Theme.OnClick(tree.setup, "family words", function()
-        HC.Setup.Show("guild")
+        HC.Options.Show("guild")
     end)
     list = Theme.List(tree, LINE, NewLevel, PaintLevel)
     list:SetPoint("TOPLEFT", 0, -TOP)
@@ -367,7 +367,7 @@ function Tree.Paint(keep)
         empty.crest:SetCrest(house and house.crest, surname)
         empty.title:SetText(family and L["No cousins in your guild yet"] or L["No guild yet"])
         empty.text:SetText(family
-            and L["When most of a guild shares one surname, it's a family. Its guild master can make it one in the setup, too."]
+            and L["When most of a guild shares one surname, it's a family. Its guild master can make it one in the settings, too."]
             or L["A guild that shares your surname is a family: its tree grows here, everyone by rank."])
         return
     end

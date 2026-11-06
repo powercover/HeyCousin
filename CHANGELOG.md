@@ -1,8 +1,10 @@
 # Hey Cousin! 1.1.0
 
 - **Settings.** Every choice in one place, by what it's for: the gear, the minimap's right-click or
-  `/cousin settings`, and a page in the game's Options > AddOns. The setup runs from there. A click on
-  the version number shows what's new.
+  `/cousin settings`, and a page in the game's Options > AddOns. A click on the version number shows
+  what's new.
+- **A shorter setup.** Two steps: your crest, then your family. The rest has good defaults and is in the
+  settings, with your crest and your guild's family words on pages of their own.
 - **"(uses addon)".** Cousins who run Hey Cousin! are marked, their own crests show, and a line tells
   you when they come online. It says nothing `/who` doesn't show, but that you run the addon.
 - **Family chat.** `/fam` talks to every cousin online who has the addon, in any guild.

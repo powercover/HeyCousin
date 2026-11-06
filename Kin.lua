@@ -96,6 +96,13 @@ function Kin.Crest()
     return house and house.crest or Crest.Normalize(nil)
 end
 
+-- A cousin's own crest if their addon told it; your house's for the others.
+function Kin.CrestOf(first)
+    local house = Kin.House()
+    local relative = house and house.relatives[first]
+    return relative and type(relative.crest) == "table" and Crest.Normalize(relative.crest) or Kin.Crest()
+end
+
 -- The windows take your crest's colors.
 function Kin.ApplyAccent()
     local crest = Kin.Crest()
@@ -198,7 +205,8 @@ end
 -- A player with your surname was seen. `info`: first (their first name), class, level, race,
 -- sex, faction, guild, zone, guid, near (seen around you, not only heard of), quiet (learned,
 -- not met: the guild roster, trade chat), online and found (a search found them), shared (they share
--- their place on the map), seenAt (when, if not now), and for the meeting: how (nameplate, mouseover, target, group, say, whisper), group
+-- their place on the map), usesAddon and crest (their addon said so), seenAt (when, if not now), and
+-- for the meeting: how (nameplate, mouseover, target, group, say, whisper), group
 -- (they're in yours), said. Returns the
 -- relative, whether you never met them before, and whether this counts as a new meeting.
 function Kin.Seen(info)
@@ -276,6 +284,12 @@ function Kin.Seen(info)
     end
     if info.shared then
         relative.shared = true
+    end
+    if info.usesAddon then
+        relative.usesAddon = true
+    end
+    if type(info.crest) == "table" then
+        relative.crest = info.crest
     end
     Kin.Changed()
     return relative, new, meeting

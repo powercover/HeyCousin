@@ -24,8 +24,6 @@ local LOOK_GAP, STILL_GAP = 5, 45
 local FORGET = 120
 -- a move worth telling: this share of the map
 local MOVED = 0.002
--- the family channel waits this long after you log in, so the game's own channels keep /1, /2...
-local JOIN_WAIT = 15
 -- a cousin who shares is noted in your family this often, not on every move
 local LEARN_GAP = 60
 -- a crest's size on the map, whatever the zoom
@@ -39,59 +37,7 @@ local ticker
 local provider    -- the addon's crests on the game's world map
 local pins = {}
 local madeUp      -- test mode: the made-up cousins online stand around you
-local channelReady = false -- the wait after you log in is over
 local learned = {} -- [full name] = GetTime() of the last time a cousin who shares was noted
-
--- --- the family channel -------------------------------------------------------------------------
-
--- Your family's channel: one for your surname and your faction.
-local function ChannelName()
-    local _, surname = Names.Me()
-    local faction = Utils.Call(UnitFactionGroup, "player")
-    if not Utils.IsUsableString(surname) or (faction ~= "Horde" and faction ~= "Alliance") then
-        return nil
-    end
-    return "HC" .. surname:lower() .. faction:sub(1, 1)
-end
-
--- The channel's number once you're in it, and its name.
-local function Channel()
-    local name = ChannelName()
-    local id = name and Utils.Call(GetChannelName, name)
-    return Utils.IsUsableNumber(id) and id > 0 and id or nil, name
-end
-
--- In it while you show cousins on your map or share with them; a full channel list means no
--- channel, and the guild still hears you.
-local function KeepChannel()
-    if not channelReady then
-        return
-    end
-    local id, name = Channel()
-    if not name then
-        return
-    end
-    local wanted = HeyCousinDB.mapShow ~= false or HeyCousinDB.mapShare == true
-    if wanted and not id then
-        Utils.Call(JoinTemporaryChannel, name)
-    elseif id and not wanted then
-        Utils.Call(LeaveChannelByName, name)
-    end
-end
-
--- The channel's "joined" and "left" lines stay out of your chat.
-local function HideNotice(_, _, _, _, _, shown, _, _, _, _, base)
-    local name = ChannelName()
-    if not name then
-        return false
-    end
-    for _, text in ipairs({ shown or "", base or "" }) do
-        if Utils.IsUsableString(text) and text:lower():find(name:lower(), 1, true) then
-            return true
-        end
-    end
-    return false
-end
 
 -- --- sharing where you are ---------------------------------------------------------------------
 
@@ -106,11 +52,7 @@ local function Tell(text)
     if HC.Guild.Mine() ~= nil then
         told = HC.Guild.Send(text)
     end
-    local id = Channel()
-    if id then
-        told = HC.Guild.Send(text, "CHANNEL", id) or told
-    end
-    return told
+    return HC.Family.Send(text) or told
 end
 
 -- Your map and your place on it (0 to 1 across and down); `away` in a dungeon, where the game
@@ -176,7 +118,7 @@ function Map.Apply()
         sent = {}
     end
     if Names.HaveSurnames() then
-        KeepChannel()
+        HC.Family.Keep()
     end
     Map.Refresh()
 end
@@ -186,16 +128,6 @@ end
 local refreshSoon = Utils.Debounce(0.5, "map crests", function()
     Map.Refresh()
 end)
-
--- Who a line on the family channel is from: a cousin with your surname, not you, nobody else.
-local function Cousin(sender)
-    local first, surname = Names.Split(sender)
-    local me, mine = Names.Me()
-    if not first or not Names.Same(surname, mine) or Names.Same(first, me) then
-        return nil
-    end
-    return { first = first, surname = surname, full = Names.Full(first, surname) }
-end
 
 -- A cousin who shares joins your family, learned, not met.
 local function Learn(member, map)
@@ -207,7 +139,7 @@ local function Learn(member, map)
     local info = C_Map and Utils.Call(C_Map.GetMapInfo, map)
     Kin.Seen({
         first = member.first, class = member.class, level = member.level, zone = type(info) == "table" and info.name or nil,
-        faction = Utils.Call(UnitFactionGroup, "player"), quiet = true, online = true, shared = true,
+        faction = Utils.Call(UnitFactionGroup, "player"), quiet = true, online = true, shared = true, usesAddon = true,
     })
 end
 
@@ -217,7 +149,7 @@ local function Heard(text, sender, onChannel)
     end
     local kind, rest = text:match("^3:(%a)(.*)$")
     -- only your guild's members or your family (and not your own, coming back)
-    local member = kind and (onChannel and Cousin(sender) or not onChannel and HC.Guild.Sender(sender))
+    local member = kind and (onChannel and HC.Family.Cousin(sender) or not onChannel and HC.Guild.Sender(sender))
     if not member or member.me then
         return
     end
@@ -487,7 +419,7 @@ function Map.Refresh()
                     if family[full] then
                         pin.crest:SetCrest(crest, surname)
                     else
-                        pin.crest:SetCrest(Kin.Crest(), select(2, Names.Me()))
+                        pin.crest:SetCrest(Kin.CrestOf(kin.member.first), select(2, Names.Me()))
                     end
                     local color = Utils.ClassColor(kin.member.class, true)
                     pin.bar:SetVertexColor(color[1], color[2], color[3])
@@ -538,7 +470,7 @@ frame:SetScript("OnEvent", Utils.Protect("map", function(_, event, ...)
             Heard(text, sender, false)
         elseif prefix == PREFIX and channel == "CHANNEL" then
             -- only your family's channel
-            local id, name = Channel()
+            local id, name = HC.Family.Channel()
             if name and ((id and localID == id) or channelName == name) then
                 Heard(text, sender, true)
             end
@@ -550,13 +482,6 @@ frame:SetScript("OnEvent", Utils.Protect("map", function(_, event, ...)
     elseif event == "PLAYER_ENTERING_WORLD" then
         -- after a loading screen, where you are is told again
         sent = {}
-        if not channelReady and not frame.joining then
-            frame.joining = true
-            Utils.After(JOIN_WAIT, "family channel", function()
-                channelReady = true
-                Map.Apply()
-            end)
-        end
     else
         Map.Apply()
     end
@@ -569,18 +494,6 @@ function Map.Start()
     if Names.HaveSurnames() then
         for _, event in ipairs({ "CHAT_MSG_ADDON", "PLAYER_GUILD_UPDATE", "GUILD_ROSTER_UPDATE", "PLAYER_ENTERING_WORLD" }) do
             frame:RegisterEvent(event)
-        end
-        local add = (ChatFrameUtil and ChatFrameUtil.AddMessageEventFilter) or ChatFrame_AddMessageEventFilter
-        if type(add) == "function" then
-            local filter = Utils.Protect("family channel", HideNotice)
-            for _, event in ipairs({ "CHAT_MSG_CHANNEL_NOTICE", "CHAT_MSG_CHANNEL_NOTICE_USER" }) do
-                -- through securecall, as the chat crests are
-                if type(securecall) == "function" then
-                    securecall(add, event, filter)
-                else
-                    add(event, filter)
-                end
-            end
         end
         Map.Apply()
     end

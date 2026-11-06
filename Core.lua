@@ -30,6 +30,8 @@ local DEFAULTS = {
     -- the family map: your cousins' crests on yours; where you are, shared only when you say
     mapShow = true,
     mapShare = false,
+    -- your cousins' addons know you're online, and yours tells you when they are
+    presence = true,
 }
 
 local function SavedDefaults()
@@ -160,6 +162,7 @@ frame:SetScript("OnEvent", Utils.Protect("event", function(_, event, arg1)
         HC.Radar.Start()
         HC.Layer.Start()
         HC.Guild.Start()
+        HC.Family.Start()
         HC.Map.Start()
     elseif event == "PLAYER_LOGOUT" then
         HC.Kin.NoteMe()

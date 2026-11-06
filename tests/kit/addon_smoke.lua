@@ -112,7 +112,7 @@ NoErrors(HC, "crest page")
 
 -- alerts and look
 local rows = All(setup, function(f) return f.toggle ~= nil and f:IsVisible() end)
-check(#rows == 6, "six alert settings: " .. #rows)
+check(#rows == 7, "seven alert settings: " .. #rows)
 rows[1]:Click()
 check(HeyCousinDB.popup == false, "the pop-up setting turns off")
 rows[1]:Click()
@@ -121,9 +121,9 @@ check(HeyCousinDB.popupEvery == false, "a pop-up only the first time you meet, u
 rows[2]:Click()
 check(HeyCousinDB.popupEvery == true, "every time you meet turns on")
 rows[2]:Click()
-rows[6]:Click()
+rows[7]:Click()
 check(HeyCousinDB.showMinimap == false and not minimap:IsShown(), "the minimap crest hides at once")
-rows[6]:Click()
+rows[7]:Click()
 check(minimap:IsShown(), "and comes back")
 local bell = ButtonWith(setup, "Bell")
 bell:Click()
@@ -830,11 +830,11 @@ _G.HeyCousinWindow:Hide()
 Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:X", "CHANNEL", "Faraway Ashbrook", "", 0, 7, "HCashbrookA")
 Mock.ShowMap(1429)
 check(#MapPins() == 1, "they stopped sharing: gone at once")
--- showing nobody and sharing nothing: out of the channel
-HeyCousinDB.mapShow = false
+-- wanting nothing of it: out of the channel
+HeyCousinDB.mapShow, HeyCousinDB.presence = false, false
 HC.Map.Apply()
-check(Mock.channels.HCashbrookA == nil, "the family map off: out of the channel")
-HeyCousinDB.mapShow = true
+check(Mock.channels.HCashbrookA == nil, "the family map and hello off: out of the channel")
+HeyCousinDB.mapShow, HeyCousinDB.presence = true, true
 HC.Map.Apply()
 check(Mock.channels.HCashbrookA == 7, "back on: in it again")
 local hideNotice = Mock.filters.CHAT_MSG_CHANNEL_NOTICE and Mock.filters.CHAT_MSG_CHANNEL_NOTICE[1]
@@ -1014,6 +1014,82 @@ check(All(_G.HeyCousinWindow, function(f) return f.line and f.whisper and f.line
     "another's page doesn't")
 _G.HeyCousinWindow:Hide()
 NoErrors(HC, "the eldest")
+
+-- === The family's hello =======================================================================
+
+HC = Mock.Boot("forever", { setupDone = true })
+house = HC.Kin.House()
+local function ChannelSent(pattern)
+    local found
+    for _, line in ipairs(Mock.addonSent) do
+        if line.channel == "CHANNEL" and line.text:find(pattern) then found = line end
+    end
+    return found
+end
+Mock.Fire("PLAYER_ENTERING_WORLD")
+check(not next(Mock.channels), "not in the channel yet, so the game's own come first")
+Mock.Advance(16)
+check(Mock.channels.HCashbrookA == 7, "then in it")
+Mock.Advance(6)
+local hello = ChannelSent("^4:H:")
+check(hello and hello.text:find("^4:H:WARRIOR:20:Heater%.") and #hello.text < 200, "the hello says your class, level and crest: " .. tostring(hello and hello.text))
+-- the answers right after your hello are one line
+local chatBefore = #Mock.chat
+local line = "4:A:MAGE:18:Round.Plain.azure.or.or.charge.Star"
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", line, "WHISPER", "Rena Ashbrook")
+check(house.relatives.Rena and house.relatives.Rena.usesAddon and house.relatives.Rena.class == "MAGE" and house.relatives.Rena.level == 18,
+    "an answer: a cousin who uses the addon")
+check(HC.Kin.IsOnline("Rena") and house.relatives.Rena.met == 0, "online, not met")
+check(HC.Kin.CrestOf("Rena").shape == "Round" and HC.Kin.CrestOf("Rena").charge == "Star", "with their own crest")
+check(#Mock.chat == chatBefore, "no line of its own in the first moments")
+Mock.Advance(31)
+check(Mock.Said("Family online now: 1"), "one line for them all")
+-- someone coming later: a line of their own, and an answer from you
+chatBefore = #Mock.chat
+local sentBefore = #Mock.addonSent
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:H:ROGUE:30:Kite.Plain.gules.or.or.initial.", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+check(#Mock.chat == chatBefore + 1 and Mock.chat[#Mock.chat]:find("Kit Ashbrook", 1, true) and Mock.chat[#Mock.chat]:find("is online.", 1, true), "a cousin coming online: a line in chat")
+Mock.Advance(7)
+local answer
+for i = sentBefore + 1, #Mock.addonSent do
+    if Mock.addonSent[i].channel == "WHISPER" then answer = Mock.addonSent[i] end
+end
+check(answer and answer.target == "Kit Ashbrook" and answer.text:find("^4:A:"), "and your addon answers them, by itself")
+-- not again while they're online, and not for a word from them
+chatBefore = #Mock.chat
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:S:ROGUE:31:", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+check(#Mock.chat == chatBefore and house.relatives.Kit.level == 31, "a word from them: no line, their new level")
+-- who it isn't from
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:H:MAGE:1:", "CHANNEL", "Sly Stranger", "", 0, 7, "HCashbrookA")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:H:MAGE:1:", "CHANNEL", "Rowan Ashbrook", "", 0, 7, "HCashbrookA")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:H:MAGE:1:", "CHANNEL", "Oren Ashbrook", "", 0, 3, "SomeOtherChannel")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:Q:|cffff0000bad", "CHANNEL", "Pip Ashbrook", "", 0, 7, "HCashbrookA")
+check(house.relatives.Sly == nil and house.relatives.Rowan == nil and house.relatives.Oren == nil and house.relatives.Pip == nil,
+    "another surname, you, another channel and a broken line are left out")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:H:MAGE:9:Nope.Nope.Nope.Nope.Nope.charge.Nope", "CHANNEL", "Sol Ashbrook", "", 0, 7, "HCashbrookA")
+check(house.relatives.Sol and HC.Kin.CrestOf("Sol").shape ~= "Nope", "a crest that doesn't exist is made safe")
+-- a word now and then, your own new level soon after a level up
+Mock.Advance(4 * 60 + 6)
+check(ChannelSent("^4:S:"), "a word now and then while you play")
+-- the row says so
+HC.Window.Show("family")
+Settle()
+local usesRows = All(_G.HeyCousinWindow, function(f) return f.item and f.item.first == "Kit" and f.tag and f:IsVisible() end)
+check(usesRows[1] and usesRows[1].tag.text == "(uses addon)", "the list marks who uses the addon")
+_G.HeyCousinWindow:Hide()
+-- off: no word goes, no line comes, but who uses it is still learned
+HeyCousinDB.presence = false
+sentBefore = #Mock.addonSent
+chatBefore = #Mock.chat
+Mock.Advance(5 * 60)
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:H:PRIEST:5:", "CHANNEL", "Una Ashbrook", "", 0, 7, "HCashbrookA")
+Mock.Advance(10)
+local anyFamily = false
+for i = sentBefore + 1, #Mock.addonSent do
+    if Mock.addonSent[i].text:find("^4:") then anyFamily = true end
+end
+check(not anyFamily and #Mock.chat == chatBefore and house.relatives.Una.usesAddon, "turned off: nothing goes out and no line, their mark stays")
+NoErrors(HC, "the family's hello")
 
 -- === Recruit ==================================================================================
 

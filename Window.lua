@@ -206,24 +206,26 @@ local function PaintRow(row, item)
     row.avatar.ring:SetVertexColor(color[1], color[2], color[3], 0.9)
     local ours = item.me or item.alt
     local sheep = not ours and Kin.IsBlackSheep(relative)
+    local uses = not ours and not sheep and relative.usesAddon == true
+    local tagged = ours or uses
     row.sheep:SetShown(sheep)
-    row.tag:SetShown(ours == true)
-    row.tag:SetText(item.me and L["(you)"] or item.alt and L["(your character)"] or "")
+    row.tag:SetShown(tagged == true)
+    row.tag:SetText(item.me and L["(you)"] or item.alt and L["(your character)"] or uses and L["(uses addon)"] or "")
     -- the name and its tag stay left of the level column; a long name ends in "..."
-    local tag = sheep and row.sheep:GetWidth() + 8 or ours and math.ceil(row.tag:GetStringWidth()) + 6 or 0
+    local tag = sheep and row.sheep:GetWidth() + 8 or tagged and math.ceil(row.tag:GetStringWidth()) + 6 or 0
     local crowned = eldest ~= nil and item.first == eldest
     row.crown:SetShown(crowned)
     if crowned then
         tag = tag + 18
         row.crown:ClearAllPoints()
-        row.crown:SetPoint("LEFT", sheep and row.sheep or ours and row.tag or row.name, "RIGHT", 4, 0)
+        row.crown:SetPoint("LEFT", sheep and row.sheep or tagged and row.tag or row.name, "RIGHT", 4, 0)
     end
     row.name:SetText(item.first)
     row.name:SetTextColor(color[1], color[2], color[3])
     row.name:SetWidth(math.min(LEVEL_X - 54 - tag, math.ceil(row.name:GetStringWidth()) + 2))
     if sheep then
         row.sheep:SetPoint("LEFT", row.name, "RIGHT", 8, 0)
-    elseif ours then
+    elseif tagged then
         row.tag:SetPoint("LEFT", row.name, "RIGHT", 6, 0)
     end
     row.level:SetText(relative.level and tostring(relative.level) or "")
@@ -591,7 +593,7 @@ local function PaintPage(keep)
     end
     local layer = HC.Layer and HC.Layer.Status(opened)
     page.met:SetText(metText .. "  ·  " .. string.format(L["first seen: %s"], Utils.When(relative.firstSeen))
-        .. (layer and ("  ·  " .. layer) or ""))
+        .. (layer and ("  ·  " .. layer) or "") .. (relative.usesAddon and ("  ·  " .. L["(uses addon)"]) or ""))
     -- black sheep play on the other side: no layer of theirs to join
     page.layer:SetShown(not sheep)
     page.layer:SetEnabled(HC.Layer == nil or HC.Layer.CanAsk(opened))
@@ -611,7 +613,7 @@ local function PaintPage(keep)
     page.model:SetShown(live == true)
     page.crest:SetShown(not live)
     if not live then
-        page.crest:SetCrest(house.crest, surname, sheep)
+        page.crest:SetCrest(Kin.CrestOf(opened), surname, sheep)
     end
     -- the meetings: the one you clicked shows in full, else the newest
     local meetings = Kin.Meetings(relative)

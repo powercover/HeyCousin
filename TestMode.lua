@@ -134,6 +134,14 @@ local function Build()
             guid = string.format("Player-1-%06X", first == "Lia" and 1000 or 200000 + index * 7000),
         }
         relatives[first].meetings = History(first, relatives[first], ago)
+        -- two who run the addon too, one with their own crest
+        if first == "Mira" or first == "Thane" then
+            relatives[first].usesAddon = true
+        end
+        if first == "Mira" then
+            relatives[first].crest = Crest.Normalize({ shape = "Round", division = "Plain", field = "azure", second = "or",
+                metal = "or", symbol = "charge", charge = "Star" })
+        end
         if ago < 120 then
             HC.Kin.MarkNear(first, clock - ago)
         end

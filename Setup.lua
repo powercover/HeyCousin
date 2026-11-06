@@ -26,7 +26,7 @@ local CHARGE_NAMES = { Tree = "A tree" }
 local CREST, ALERTS, MAP, GUILD = 1, 2, 3, 4
 local STEPS = { crest = CREST, alerts = ALERTS, map = MAP, guild = GUILD }
 -- what the alerts and map steps set, kept as it was when the setup opened (Reset goes back to it)
-local ALERT_KEYS = { "popup", "popupEvery", "enemyAlerts", "chatCrest", "tooltipLine", "showMinimap", "sound", "chats" }
+local ALERT_KEYS = { "popup", "popupEvery", "enemyAlerts", "presence", "chatCrest", "tooltipLine", "showMinimap", "sound", "chats" }
 local MAP_KEYS = { "mapShow", "mapShare" }
 local STEP_KEYS = { [ALERTS] = ALERT_KEYS, [MAP] = MAP_KEYS }
 
@@ -364,7 +364,7 @@ local function Setting(key, default)
         Settings()[key] = value
         if key == "showMinimap" and HC.Minimap then
             HC.Minimap.Apply()
-        elseif key == "mapShow" or key == "mapShare" then
+        elseif key == "mapShow" or key == "mapShare" or key == "presence" then
             HC.Map.Apply()
         end
         UpdateReset()
@@ -389,6 +389,7 @@ local function BuildAlertsPage(parent)
         { L["A pop-up when you first meet a cousin"], L["With a sound. Click it to target them."], "popup", true },
         { L["Every time you meet"], L["Not only the first time."], "popupEvery", false },
         { L["Black sheep too"], L["Cousins from the other faction."], "enemyAlerts", true },
+        { L["Cousins coming online"], L["A line in chat. They see when you're online too."], "presence", true },
         { L["Your crest in chat"], L["At the start of a relative's message."], "chatCrest", true },
         { L["A family line in tooltips"], L["\"Family: Ashbrook (cousin)\""], "tooltipLine", true },
         { L["The minimap crest"], L["Click it for your family."], "showMinimap", true },

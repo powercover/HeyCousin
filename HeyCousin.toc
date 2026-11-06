@@ -37,6 +37,7 @@ Kin.lua
 Find.lua
 Gear.lua
 Guild.lua
+Family.lua
 Map.lua
 TestMode.lua
 Alert.lua

@@ -85,7 +85,7 @@ local function ShowTooltip(owner)
     GameTooltip:AddLine(" ")
     GameTooltip:AddDoubleLine(L["Click"], L["Your family"], C.tip3[1], C.tip3[2], C.tip3[3], C.tip2[1], C.tip2[2],
         C.tip2[3])
-    GameTooltip:AddDoubleLine(L["Right-click"], L["Setup"], C.tip3[1], C.tip3[2], C.tip3[3], C.tip2[1], C.tip2[2],
+    GameTooltip:AddDoubleLine(L["Right-click"], L["Settings"], C.tip3[1], C.tip3[2], C.tip3[3], C.tip2[1], C.tip2[2],
         C.tip2[3])
     GameTooltip:AddDoubleLine(L["Drag"], L["Move this button"], C.tip3[1], C.tip3[2], C.tip3[3], C.tip2[1],
         C.tip2[2], C.tip2[3])
@@ -94,9 +94,7 @@ end
 
 local function RunClick(mouseButton)
     if mouseButton == "RightButton" then
-        if HC.Setup then
-            HC.Setup.Show()
-        end
+        HC.Options.Show()
     else
         HC.Window.Toggle()
     end

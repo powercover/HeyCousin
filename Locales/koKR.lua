@@ -221,8 +221,6 @@ HC.Locale.Register("koKR", {
     ["%d times"] = "%d번",
 
     -- The family window: its header, tabs, columns and footer
-    ["Setup"] = "설정",
-    ["Your crest, motto, alerts and look."] = "가문 문장, 가훈, 알림, 테마.",
     ["Family"] = "가족",
     ["Tree"] = "가계도",
     ["Stats"] = "통계",

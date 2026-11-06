@@ -822,12 +822,10 @@ local function Build()
     header.motto = Theme.Text(window, "Small", C.text3)
     header.motto:SetPoint("TOPLEFT", header.sub, "BOTTOMLEFT", 0, -5)
     header.motto:SetPoint("RIGHT", header.find, "LEFT", -8, 0)
-    local gear = Theme.IconButton(window, "Gear", 26, L["Setup"], L["Your crest, motto, alerts and look."])
+    local gear = Theme.IconButton(window, "Gear", 26, L["Settings"], L["Alerts, your family, the map, the look and more."])
     gear:SetPoint("RIGHT", window.close, "LEFT", -6, 0)
-    Theme.OnClick(gear, "setup", function()
-        if HC.Setup then
-            HC.Setup.Show()
-        end
+    Theme.OnClick(gear, "settings", function()
+        HC.Options.Show()
     end)
 
     tabs = Theme.Tabs(window, { { key = "family", label = L["Family"] }, { key = "tree", label = L["Tree"] },

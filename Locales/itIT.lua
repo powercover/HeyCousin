@@ -221,8 +221,6 @@ HC.Locale.Register("itIT", {
     ["%d times"] = "%d volte",
 
     -- The family window: your house, the tabs and the footer
-    ["Setup"] = "Configurazione",
-    ["Your crest, motto, alerts and look."] = "Il tuo stemma, il motto, gli avvisi e l'aspetto.",
     ["Family"] = "Famiglia",
     ["Tree"] = "Albero",
     ["Stats"] = "Numeri",

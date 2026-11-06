@@ -215,8 +215,6 @@ HC.Locale.Register("ruRU", {
     ["%d on your side (%s) · %d black sheep (%s)"] = "На твоей стороне: %d (%s), паршивых овец: %d (%s)",
     ["once"] = "одна встреча",
     ["%d times"] = "встреч: %d",
-    ["Setup"] = "Настройка",
-    ["Your crest, motto, alerts and look."] = "Герб, девиз, оповещения и стиль.",
     ["Family"] = "Семья",
     ["Tree"] = "Древо",
     ["Stats"] = "Цифры",

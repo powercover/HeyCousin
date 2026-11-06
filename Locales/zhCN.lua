@@ -219,8 +219,6 @@ HC.Locale.Register("zhCN", {
     ["%d times"] = "%d次",
 
     -- The family window: its header, tabs, columns and footer
-    ["Setup"] = "设置",
-    ["Your crest, motto, alerts and look."] = "你的家徽、家训、提醒和外观。",
     ["Family"] = "家族",
     ["Tree"] = "家族树",
     ["Stats"] = "统计",

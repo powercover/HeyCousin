@@ -187,6 +187,18 @@ function Screens.map(skin)
     return { frames = { map } }
 end
 
+-- the settings, each page
+local function SettingsPage(skin, page)
+    local HC = Boot(skin)
+    HC.Options.Show(page)
+    return { frames = { HeyCousinOptions } }
+end
+for _, page in ipairs({ "alerts", "family", "map", "game", "look", "about" }) do
+    Screens["settings" .. page] = function(skin)
+        return SettingsPage(skin, page)
+    end
+end
+
 -- the setup's map step: your family on your map, and sharing where you are
 function Screens.mapstep(skin)
     local HC = Boot(skin)

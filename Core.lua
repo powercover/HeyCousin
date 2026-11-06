@@ -75,18 +75,28 @@ local function PrintErrors()
     end
 end
 
+-- The chat commands, a line each (for /cousin help and the settings' About).
+function HC.Commands()
+    return {
+        "/cousin - " .. L["your family"],
+        "/cousin tree - " .. L["your guild as a family tree"],
+        "/cousin recruit - " .. L["invite the cousins who have no guild"],
+        "/cousin settings - " .. L["every choice, by what it's for"],
+        "/cousin setup - " .. L["your crest, alerts and look"],
+        "/cousin test - " .. L["a pop-up to try"],
+        "/cousin test map - " .. L["made-up cousins on your map, to try"],
+        "/cousin forget Name - " .. L["take a deleted character off your list"],
+        "/cousin theme - " .. L["the next look"],
+        "/cousin status - " .. L["what the game tells the addon about you"],
+        "/cousin debug - " .. L["the errors the addon caught, in chat (on or off)"],
+    }
+end
+
 local function PrintHelp()
     Utils.Print(string.format(L["Version %s by %s"], HC.VERSION, HC.AUTHOR))
-    Utils.Print("/cousin - " .. L["your family"])
-    Utils.Print("/cousin tree - " .. L["your guild as a family tree"])
-    Utils.Print("/cousin recruit - " .. L["invite the cousins who have no guild"])
-    Utils.Print("/cousin setup - " .. L["your crest, alerts and look"])
-    Utils.Print("/cousin test - " .. L["a pop-up to try"])
-    Utils.Print("/cousin test map - " .. L["made-up cousins on your map, to try"])
-    Utils.Print("/cousin forget Name - " .. L["take a deleted character off your list"])
-    Utils.Print("/cousin theme - " .. L["the next look"])
-    Utils.Print("/cousin status - " .. L["what the game tells the addon about you"])
-    Utils.Print("/cousin debug - " .. L["the errors the addon caught, in chat (on or off)"])
+    for _, line in ipairs(HC.Commands()) do
+        Utils.Print(line)
+    end
 end
 
 local function HandleSlash(message)
@@ -104,6 +114,8 @@ local function HandleSlash(message)
         HC.Window.Show("family")
         HC.Window.Open(nil)
         HC.Window.Recruit(true)
+    elseif command == "settings" or command == "options" then
+        HC.Options.Show()
     elseif command == "setup" then
         HC.Setup.Show()
     elseif command == "test" then
@@ -164,6 +176,7 @@ frame:SetScript("OnEvent", Utils.Protect("event", function(_, event, arg1)
         HC.Guild.Start()
         HC.Family.Start()
         HC.Map.Start()
+        HC.Options.Start()
     elseif event == "PLAYER_LOGOUT" then
         HC.Kin.NoteMe()
     elseif event == "PLAYER_ENTERING_WORLD" then

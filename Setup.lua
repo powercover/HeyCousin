@@ -381,6 +381,42 @@ local function ChatSetting(kind)
     end
 end
 
+-- The settings (Options.lua) show the same choices.
+Setup.Setting, Setup.ChatSetting = Setting, ChatSetting
+
+-- The sounds to choose from, as chips.
+function Setup.SoundChips(parent)
+    local sounds = { { "auto", L["Theme's"] }, { "chime", L["Chime"] }, { "bell", L["Bell"] }, { "boop", L["Boop"] },
+        { "none", L["None"] } }
+    local chips = {}
+    for _, spec in ipairs(sounds) do
+        chips[#chips + 1] = Theme.Chip(parent, spec[2], function()
+            return (Settings().sound or "auto") == spec[1]
+        end, function()
+            Settings().sound = spec[1]
+            for _, other in ipairs(chips) do
+                other:Refresh()
+            end
+            if spec[1] ~= "none" then
+                HC.Alert.PlaySound()
+            end
+            UpdateReset()
+        end)
+    end
+    return chips
+end
+
+-- The chats to learn from, as chips.
+function Setup.ChatChips(parent)
+    local chats = { { "say", L["Say and yell"] }, { "channel", L["Trade and general"] }, { "guild", L["Guild"] },
+        { "group", L["Group"] }, { "whisper", L["Whispers"] } }
+    local chips = {}
+    for _, spec in ipairs(chats) do
+        chips[#chips + 1] = Theme.Chip(parent, spec[2], ChatSetting(spec[1]))
+    end
+    return chips
+end
+
 local function BuildAlertsPage(parent)
     local p = Page(parent)
     p.toggles, p.chips = {}, {}
@@ -415,33 +451,9 @@ local function BuildAlertsPage(parent)
         return y - 30
     end
     Heading(p, L["Sound"], 322, -60)
-    local sounds = { { "auto", L["Theme's"] }, { "chime", L["Chime"] }, { "bell", L["Bell"] }, { "boop", L["Boop"] },
-        { "none", L["None"] } }
-    local chips = {}
-    for _, spec in ipairs(sounds) do
-        local chip = Theme.Chip(p, spec[2], function()
-            return (Settings().sound or "auto") == spec[1]
-        end, function()
-            Settings().sound = spec[1]
-            for _, other in ipairs(chips) do
-                other:Refresh()
-            end
-            if spec[1] ~= "none" then
-                HC.Alert.PlaySound()
-            end
-            UpdateReset()
-        end)
-        chips[#chips + 1] = chip
-    end
-    local chatsY = Rows(chips, -84) - 10
+    local chatsY = Rows(Setup.SoundChips(p), -84) - 10
     Heading(p, L["Learn from these chats"], 322, chatsY)
-    local chats = { { "say", L["Say and yell"] }, { "channel", L["Trade and general"] }, { "guild", L["Guild"] },
-        { "group", L["Group"] }, { "whisper", L["Whispers"] } }
-    local chatChips = {}
-    for _, spec in ipairs(chats) do
-        chatChips[#chatChips + 1] = Theme.Chip(p, spec[2], ChatSetting(spec[1]))
-    end
-    Rows(chatChips, chatsY - 24)
+    Rows(Setup.ChatChips(p), chatsY - 24)
     -- shows the settings as they are (after a Reset)
     function p.Refresh()
         for _, toggle in ipairs(p.toggles) do
@@ -897,6 +909,8 @@ end
 -- setup stays where it is, and a new one starts on the first step.
 function Setup.Show(startPage)
     startPage = STEPS[startPage] or startPage
+    -- (both show the same settings: one at a time)
+    HC.Options.Hide()
     if not session then
         Begin()
     end
@@ -922,6 +936,12 @@ function Setup.Show(startPage)
     -- (a step that isn't there, as the guild's for a member: the first)
     ShowPage(pages[startPage or session.page] and (startPage or session.page) or CREST)
     window:Show()
+end
+
+function Setup.Hide()
+    if window then
+        window:Hide()
+    end
 end
 
 function Setup.Toggle()

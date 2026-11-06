@@ -256,6 +256,11 @@ function FontString:GetStringWidth()
     local plain = (self.text or ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("|T.-|t", "XX")
     return #plain * 6
 end
+function FontString:GetStringHeight()
+    local width = self:GetWidth()
+    local lines = (self.wrap and width and width > 0) and math.ceil(self:GetStringWidth() / width) or 1
+    return math.max(1, lines) * 14
+end
 
 function Group:CreateAnimation() return setmetatable({}, Animation) end
 function Group:SetLooping() end
@@ -348,6 +353,20 @@ local function Globals()
     function GameTooltip:GetUnit() return self.unitName, self.unit end
     function GameTooltip:NumLines() return #self.lines end
     function GameTooltip:SetItemByID(id) self.lines, self.colors = { "item " .. id }, { {} } end
+
+    -- the game's Options, and reloading the interface
+    SettingsPanel = CreateFrame("Frame", "SettingsPanel")
+    SettingsPanel:Hide()
+    function HideUIPanel(panel) panel:Hide() end
+    Settings = {
+        RegisterCanvasLayoutCategory = function(panel, name)
+            local category = { panel = panel, name = name }
+            function category:GetID() return self.name end
+            return category
+        end,
+        RegisterAddOnCategory = function(category) Mock.optionsPage = category end,
+    }
+    function ReloadUI() Mock.reloads = (Mock.reloads or 0) + 1 end
 
     TooltipDataProcessor = { AddTooltipPostCall = function(kind, fn) Mock.postCalls[kind] = fn end }
     Enum = { TooltipDataType = { Unit = 2 },

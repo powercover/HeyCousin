@@ -1349,6 +1349,108 @@ check(testHouse.relatives.Nell == nil and testHouse.relatives.Gus == nil and HC.
 _G.HeyCousinWindow:Hide()
 NoErrors(HC, "find in test mode")
 
+-- === The settings ===============================================================================
+
+HC = Mock.Boot("forever", { setupDone = true })
+HC.Window.Show("family")
+-- the gear opens them, and the minimap's right-click, and /cousin settings
+local gearButton = All(_G.HeyCousinWindow, function(f) return f.icon and f.icon.file and f.icon.file:find("Gear") end)[1]
+gearButton:Click()
+local options = _G.HeyCousinOptions
+check(options and options:IsShown() and ButtonWith(options, "Alerts").kind == "primary", "the gear opens the settings, on Alerts")
+check(next(options.anchors) ~= nil, "the settings have a place on screen")
+options:Hide()
+SlashCmdList.HEYCOUSIN("settings")
+check(options:IsShown(), "/cousin settings")
+options:Hide()
+_G.HeyCousinMinimapButton:GetScript("OnClick")(_G.HeyCousinMinimapButton, "RightButton")
+check(options:IsShown(), "the minimap's right-click")
+-- a page for each thing, and each row sets what it says
+local function Rows(root) return All(root, function(f) return f.toggle ~= nil and f:IsVisible() end) end
+local function Row(root, text)
+    for _, row in ipairs(Rows(root)) do
+        if row.label.text == text then return row end
+    end
+end
+check(#Rows(options) == 3, "Alerts: three rows")
+Row(options, "Every time you meet"):Click()
+check(HeyCousinDB.popupEvery == true, "a row sets its setting")
+Row(options, "Every time you meet"):Click()
+ButtonWith(options, "Bell"):Click()
+check(HeyCousinDB.sound == "bell" and ButtonWith(options, "Bell").kind == "primary", "a sound chip")
+ButtonWith(options, "Family"):Click()
+check(ButtonWith(options, "Family").kind == "primary" and ButtonWith(options, "Alerts").kind == "secondary", "the chosen page is lit")
+check(Crest(options, 64):IsVisible() and Row(options, "Cousins coming online") and not Row(options, "Every time you meet"),
+    "Family: your crest, and only its own rows")
+check(ButtonWith(options, "Your guild") == nil, "no guild to lead, no guild button")
+Row(options, "Cousins coming online"):Click()
+check(HeyCousinDB.presence == false, "the hello can be turned off here")
+Row(options, "Cousins coming online"):Click()
+ButtonWith(options, "The family map"):Click()
+Row(options, "Share it with your family"):Click()
+check(HeyCousinDB.mapShare == true, "sharing where you are")
+Row(options, "Share it with your family"):Click()
+Mock.printed = nil
+ButtonWith(options, "Try it on your map"):Click()
+ButtonWith(options, "In the game"):Click()
+Row(options, "Lock the button"):Click()
+check(HeyCousinDB.lockMinimap == true, "the minimap's lock")
+Row(options, "Lock the button"):Click()
+Row(options, "The minimap crest"):Click()
+check(not _G.HeyCousinMinimapButton:IsShown(), "the minimap button goes as you turn it off")
+Row(options, "The minimap crest"):Click()
+check(_G.HeyCousinMinimapButton:IsShown(), "and comes back")
+ButtonWith(options, "Guild"):Click()
+check(HeyCousinDB.chats.guild == false, "a chat chip")
+ButtonWith(options, "Guild"):Click()
+-- the language waits for a reload, with a button for it
+ButtonWith(options, "Look & language"):Click()
+check(ButtonWith(options, "Reload to show it") == nil, "nothing to reload yet")
+ButtonWith(options, "Deutsch"):Click()
+check(HeyCousinDB.language == "deDE" and ButtonWith(options, "Deutsch").kind == "primary", "a language")
+ButtonWith(options, "Reload to show it"):Click()
+check(Mock.reloads == 1, "reload to show it")
+ButtonWith(options, "The game's"):Click()
+check(HeyCousinDB.language == "auto" and ButtonWith(options, "Reload to show it") == nil, "the game's language again: no reload")
+-- a new look builds them again, on the same page
+ButtonWith(options, "Smooth"):Click()
+check(HeyCousinDB.skin == "smooth" and _G.HeyCousinOptions:IsShown() and ButtonWith(_G.HeyCousinOptions, "Look & language").kind == "primary",
+    "a new look, on the same page")
+options = _G.HeyCousinOptions
+ButtonWith(options, "Pixel"):Click()
+options = _G.HeyCousinOptions
+-- About: the version shows what's new, and the setup runs from here
+ButtonWith(options, "About"):Click()
+local versions = All(options, function(f) return f.text and f.text.text == "Version " .. HC.VERSION and f:IsVisible() end)
+check(#versions == 2, "the version, on every page and in About")
+versions[1]:Click()
+check(GameTooltip.lines[1] == "What's new in " .. HC.VERSION and #GameTooltip.lines > 2, "a click on the version: what's new")
+versions[1]:GetScript("OnLeave")(versions[1])
+ButtonWith(options, "Open the setup"):Click()
+check(_G.HeyCousinSetup:IsShown() and not options:IsShown(), "the setup runs from the settings, which close")
+SlashCmdList.HEYCOUSIN("settings")
+check(options:IsShown() and not _G.HeyCousinSetup:IsShown(), "and the settings close the setup: one at a time")
+options:Hide()
+-- the game's own Options > AddOns
+local gamePage = Mock.optionsPage
+check(gamePage and gamePage.name == "Hey Cousin!", "a page in the game's Options")
+SettingsPanel:Show()
+gamePage.panel:Show()
+gamePage.panel:SetPoint("CENTER")
+ButtonWith(gamePage.panel, "Open the settings"):Click()
+check(options:IsShown() and not SettingsPanel:IsShown(), "its button opens the settings and closes the game's panel")
+options:Hide()
+NoErrors(HC, "the settings")
+
+-- every page in a guild master's test mode, and the look's own window
+HC = Mock.Boot("retail", { setupDone = true })
+HC.Options.Show("family")
+check(ButtonWith(_G.HeyCousinOptions, "Your guild") ~= nil, "a guild master has the guild's button")
+ButtonWith(_G.HeyCousinOptions, "Your guild"):Click()
+check(_G.HeyCousinSetup:IsShown() and ButtonWith(_G.HeyCousinSetup, "Done") ~= nil, "it opens the guild's step")
+_G.HeyCousinSetup:Hide()
+NoErrors(HC, "the settings in test mode")
+
 -- === Broken saved data ========================================================================
 
 HC = Mock.Boot("forever", { skin = "nope", chats = "x", setupDone = true, windows = 5,

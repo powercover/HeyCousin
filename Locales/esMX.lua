@@ -215,8 +215,6 @@ HC.Locale.Register("esMX", {
     ["%d on your side (%s) · %d black sheep (%s)"] = "En tu bando: %d (%s) · ovejas negras: %d (%s)",
     ["once"] = "una vez",
     ["%d times"] = "%d veces",
-    ["Setup"] = "Configuración",
-    ["Your crest, motto, alerts and look."] = "Tu escudo, lema, avisos y aspecto.",
     ["Family"] = "Familia",
     ["Tree"] = "Árbol",
     ["Stats"] = "Cifras",

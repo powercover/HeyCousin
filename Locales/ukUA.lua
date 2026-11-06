@@ -221,8 +221,6 @@ HC.Locale.Register("ukUA", {
     ["%d times"] = "зустрічей: %d",
 
     -- The family window: your house, the tabs and the footer
-    ["Setup"] = "Налаштування",
-    ["Your crest, motto, alerts and look."] = "Твій герб, девіз, сповіщення і стиль.",
     ["Family"] = "Родина",
     ["Tree"] = "Дерево",
     ["Stats"] = "Цифри",

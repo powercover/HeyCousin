@@ -216,8 +216,6 @@ HC.Locale.Register("deDE", {
     ["%d on your side (%s) · %d black sheep (%s)"] = "%d auf deiner Seite (%s) · schwarze Schafe: %d (%s)",
     ["once"] = "einmal",
     ["%d times"] = "%d-mal",
-    ["Setup"] = "Einrichtung",
-    ["Your crest, motto, alerts and look."] = "Dein Wappen, Motto, Hinweise und Stil.",
     ["Family"] = "Familie",
     ["Tree"] = "Baum",
     ["Stats"] = "Zahlen",

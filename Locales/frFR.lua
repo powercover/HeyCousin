@@ -221,8 +221,6 @@ HC.Locale.Register("frFR", {
     ["%d times"] = "%d fois",
 
     -- The family window
-    ["Setup"] = "Configuration",
-    ["Your crest, motto, alerts and look."] = "Ton blason, ta devise, tes alertes et ton thème.",
     ["Family"] = "Famille",
     ["Tree"] = "Arbre",
     ["Stats"] = "Stats",

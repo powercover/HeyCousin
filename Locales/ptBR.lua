@@ -222,8 +222,6 @@ HC.Locale.Register("ptBR", {
     ["%d times"] = "%d vezes",
 
     -- The family window: header, tabs, columns and footer
-    ["Setup"] = "Configuração",
-    ["Your crest, motto, alerts and look."] = "Seu brasão, lema, alertas e visual.",
     ["Family"] = "Família",
     ["Tree"] = "Árvore",
     ["Stats"] = "Números",

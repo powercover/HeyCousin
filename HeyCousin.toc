@@ -50,5 +50,6 @@ Tooltip.lua
 Chat.lua
 Minimap.lua
 Setup.lua
+Options.lua
 Probe.lua
 Core.lua

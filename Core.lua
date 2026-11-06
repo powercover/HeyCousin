@@ -87,6 +87,7 @@ function HC.Commands()
         "/cousin tree - " .. L["your guild as a family tree"],
         "/cousin recruit - " .. L["invite the cousins who have no guild"],
         "/cousin groups - " .. L["cousins looking for a group"],
+        "/cousin find Surname - " .. L["who's online with any surname"],
         "/cousin settings - " .. L["every choice, by what it's for"],
         "/cousin setup - " .. L["your crest, alerts and look"],
         "/cousin test - " .. L["a pop-up to try"],
@@ -108,11 +109,13 @@ end
 
 local function HandleSlash(message)
     local command = Utils.Trim(message):lower()
-    local forget = Utils.Trim(message):match("^%a+%s+(.+)$")
-    if command:find("^forget%s") and forget then
-        local name = HC.Kin.ForgetCharacter(forget)
+    local rest = Utils.Trim(message):match("^%a+%s+(.+)$")
+    if command:find("^find%s") and rest then
+        HC.Lookup.Show(rest)
+    elseif command:find("^forget%s") and rest then
+        local name = HC.Kin.ForgetCharacter(rest)
         Utils.Print(name and string.format(L["%s forgotten."], name)
-            or string.format(L["%s isn't one of your other characters."], forget))
+            or string.format(L["%s isn't one of your other characters."], rest))
     elseif command == "" then
         HC.Window.Toggle()
     elseif command == "tree" then
@@ -121,6 +124,8 @@ local function HandleSlash(message)
         HC.Window.Show("family")
         HC.Window.Open(nil)
         HC.Window.Recruit(true)
+    elseif command == "find" then
+        HC.Lookup.Show()
     elseif command == "groups" then
         HC.Window.Show("groups")
     elseif command == "settings" or command == "options" then

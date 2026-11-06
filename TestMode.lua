@@ -238,6 +238,19 @@ function TestMode.Who()
     return rows
 end
 
+-- A made-up answer for another surname (Look up a family), with a near-name the search leaves out.
+function TestMode.WhoOther(surname)
+    return {
+        { fullName = HC.Names.Full("Bram", surname), filename = "PALADIN", level = 38, area = "Stranglethorn Vale",
+            fullGuildName = "Vale Keepers" },
+        { fullName = HC.Names.Full("Odalys", surname), filename = "HUNTER", level = 52, area = "Winterspring",
+            fullGuildName = "" },
+        { fullName = HC.Names.Full("Sevrin", surname), filename = "WARLOCK", level = 14, area = "Darkshore",
+            fullGuildName = "Vale Keepers" },
+        { fullName = "Nell " .. surname .. "e", filename = "PRIEST", level = 22, area = "Duskwood", fullGuildName = "" },
+    }
+end
+
 -- Made-up cousins looking for a group (the Groups tab).
 function TestMode.Groups()
     local now = GetTime()

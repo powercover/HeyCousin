@@ -1242,6 +1242,74 @@ HC.Theme.SetSkin("pixel")
 _G.HeyCousinWindow:Hide()
 NoErrors(HC, "family groups in test mode")
 
+-- === Look up a family =========================================================================
+
+HC = Mock.Boot("forever", { setupDone = true })
+house = HC.Kin.House()
+Mock.whoSent, Mock.who = {}, {
+    { fullName = "Bram Stormvale", filename = "PALADIN", level = 38, area = "Duskwood", fullGuildName = "Vale Keepers" },
+    { fullName = "Odalys Stormvale", filename = "HUNTER", level = 52, area = "Winterspring", fullGuildName = "" },
+    { fullName = "Nell Stormvales", filename = "PRIEST", level = 22, area = "Duskwood", fullGuildName = "" },
+}
+HC.Window.Show("family")
+_G.HeyCousinWindow.lookup:Click()
+local lookupWindow = _G.HeyCousinLookup
+check(lookupWindow and lookupWindow:IsShown(), "the window's button opens it")
+check(not ButtonWith(lookupWindow, "Search"):IsEnabled(), "nothing to search for yet")
+local lookupBox = All(lookupWindow, function(f) return f.kind == "EditBox" and f:IsVisible() end)[1]
+lookupBox:SetText('Storm"vale ')
+ButtonWith(lookupWindow, "Search"):Click()
+check(Mock.whoSent[1] == 'n-" Stormvale"', "it asks the game, by surname: " .. tostring(Mock.whoSent[1]))
+check(not ButtonWith(lookupWindow, "Search"):IsEnabled(), "one search at a time")
+Mock.Fire("WHO_LIST_UPDATE")
+Settle()
+local lookupRows = All(lookupWindow, function(f) return f.where and f.item and f:IsVisible() end)
+table.sort(lookupRows, function(a, b) return a.item.level > b.item.level end)
+check(#lookupRows == 2 and lookupRows[1].item.first == "Odalys" and lookupRows[2].where.text:find("Vale Keepers", 1, true),
+    "exactly that surname, the highest first, with zone and guild")
+check(house.relatives.Bram == nil and house.relatives.Odalys == nil, "nobody joins your family by it")
+Mock.Advance(7)
+check(ButtonWith(lookupWindow, "Search"):IsEnabled(), "the next search can go")
+-- from a command, and nobody there
+Mock.who = {}
+SlashCmdList.HEYCOUSIN("find Nobodyhere")
+check(Mock.whoSent[2] == 'n-" Nobodyhere"', "/cousin find Surname searches")
+Mock.Fire("WHO_LIST_UPDATE")
+local function LookupSays(words)
+    for _, region in ipairs(lookupWindow.regions or {}) do
+        if region.text and region.text:find(words, 1, true) then return true end
+    end
+    return false
+end
+check(LookupSays("Nobody with the surname Nobodyhere"), "nobody there: it says so")
+Mock.Advance(7)
+-- no answer: it says so
+SlashCmdList.HEYCOUSIN("find Quiet")
+check(LookupSays("Looking..."), "while it waits, it says so")
+Mock.Advance(7)
+check(LookupSays("The game didn't answer"), "no answer: it says so")
+-- your own family's search still works beside it
+HC.Window.Show("family")
+_G.HeyCousinWindow.find:Click()
+check(Mock.whoSent[#Mock.whoSent] == 'n-" Ashbrook"', "Find my family asks as before")
+Mock.Fire("WHO_LIST_UPDATE")
+Mock.Advance(7)
+-- a new look keeps what it found
+HC.Theme.SetSkin("smooth")
+check(_G.HeyCousinLookup:IsShown(), "a new look builds it again")
+HC.Theme.SetSkin("pixel")
+_G.HeyCousinLookup:Hide()
+_G.HeyCousinWindow:Hide()
+NoErrors(HC, "look up a family")
+
+HC = Mock.Boot("retail", { setupDone = true })
+HC.Lookup.Show("Stormvale")
+Mock.Advance(2)
+lookupRows = All(_G.HeyCousinLookup, function(f) return f.where and f.item and f:IsVisible() end)
+check(#lookupRows == 3, "test mode: a made-up house, the near-name left out")
+_G.HeyCousinLookup:Hide()
+NoErrors(HC, "look up a family in test mode")
+
 -- === Recruit ==================================================================================
 
 HC = Mock.Boot("forever", { setupDone = true })

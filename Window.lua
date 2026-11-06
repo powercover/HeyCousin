@@ -828,6 +828,12 @@ local function Build()
     Theme.OnClick(gear, "settings", function()
         HC.Options.Show()
     end)
+    local lookup = Theme.IconButton(window, "Search", 26, L["Look up a family"], L["Who's online with any surname?"])
+    lookup:SetPoint("RIGHT", gear, "LEFT", -6, 0)
+    Theme.OnClick(lookup, "look up", function()
+        HC.Lookup.Show()
+    end)
+    window.lookup = lookup
 
     tabs = Theme.Tabs(window, { { key = "family", label = L["Family"] }, { key = "tree", label = L["Tree"] },
         { key = "groups", label = L["Groups"] }, { key = "stats", label = L["Stats"] } }, function()

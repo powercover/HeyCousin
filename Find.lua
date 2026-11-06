@@ -24,6 +24,7 @@ local waiting, band
 
 local function Changed()
     HC.Window.Refresh(true)
+    HC.Lookup.Changed()
 end
 
 -- The game opens its own window (Looking For Group) on a /who answer. While our search waits, the
@@ -80,11 +81,12 @@ local function Search(surname)
     return search
 end
 
--- What the game listed (or the made-up family in test mode), and how many it says there are.
-local function Listed()
+-- What the game listed (or a made-up family in test mode: `other`'s, or yours), and how many it says
+-- there are.
+local function Listed(other)
     local test = HC.TestMode
     if test and test.active then
-        local rows = test.Who()
+        local rows = other and test.WhoOther(other) or test.Who()
         return rows, #rows
     end
     local friends = C_FriendList
@@ -148,26 +150,23 @@ function Find.Label()
     return L["Find my family"]
 end
 
--- One search. Call it from a click: the game takes these only from one.
-function Find.Start()
-    if not Find.Ready() then
-        return
-    end
-    local _, surname = Names.Me()
+-- One question to the game; `take` reads its answer. Call it from a click: the game takes these only
+-- from one.
+local function Ask(search, take)
     local test = HC.TestMode
-    local run = { answered = false }
+    local run = { answered = false, take = take }
     waiting = run
     if not (test and test.active) then
         local friends = C_FriendList
         Mute()
         Utils.Call(friends and friends.SetWhoToUi, true)
-        Utils.Call(friends and friends.SendWho, Search(surname))
+        Utils.Call(friends and friends.SendWho, search)
     end
     Changed()
     Utils.After(test and test.active and TEST_WAIT or WAIT, "find my family", function()
         if test and test.active then
             run.answered = true
-            Take()
+            take()
         elseif not run.answered then
             Unmute()
             Utils.Print(L["The game didn't answer. Try again in a moment."])
@@ -177,12 +176,46 @@ function Find.Start()
     end)
 end
 
+-- One search for your family.
+function Find.Start()
+    if Find.Ready() then
+        local _, surname = Names.Me()
+        Ask(Search(surname), Take)
+    end
+end
+
+-- One search for any surname: done(rows, more) gets those with exactly it, as they are, the highest
+-- level first, and whether the game's list was full. Nobody joins your family by it.
+function Find.Lookup(surname, done)
+    if waiting then
+        return
+    end
+    Ask('n-" ' .. surname .. '"', function()
+        local rows, total = Listed(surname)
+        local kept = {}
+        for _, info in ipairs(rows) do
+            local first, last = Names.Split(info.fullName)
+            if first and Names.Same(last, surname) then
+                kept[#kept + 1] = { first = first, full = info.fullName, class = info.filename, level = info.level,
+                    zone = info.area, guild = info.fullGuildName }
+            end
+        end
+        table.sort(kept, function(a, b)
+            if (a.level or 0) ~= (b.level or 0) then
+                return (a.level or 0) > (b.level or 0)
+            end
+            return a.first < b.first
+        end)
+        done(kept, #rows >= LIMIT or total > #rows)
+    end)
+end
+
 frame:SetScript("OnEvent", Utils.Protect("find my family", function()
     -- the game's own /who window answers here too: only a search of ours is read
     if waiting and not waiting.answered then
         waiting.answered = true
         -- back on even if reading it goes wrong
-        local ok, problem = pcall(Take)
+        local ok, problem = pcall(waiting.take)
         Unmute()
         if not ok then
             Utils.NoteError("find my family", problem)

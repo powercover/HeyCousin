@@ -46,6 +46,7 @@ Layer.lua
 Tree.lua
 Recruit.lua
 Groups.lua
+Lookup.lua
 Window.lua
 Tooltip.lua
 Chat.lua

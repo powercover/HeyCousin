@@ -106,6 +106,14 @@ function Screens.groups(skin)
     return { frames = { HeyCousinWindow } }
 end
 
+-- Look up a family: a made-up house, online now
+function Screens.lookup(skin)
+    local HC = Boot(skin)
+    HC.Lookup.Show("Stormwind")
+    Mock.Advance(2)
+    return { frames = { HeyCousinLookup } }
+end
+
 -- Mira's page: every meeting, the one before the last in full
 function Screens.cousin(skin)
     local HC = Boot(skin)

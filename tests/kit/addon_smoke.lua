@@ -1188,6 +1188,30 @@ Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:L:MAGE:31:", "CHANNEL", "Kit Ashbroo
 check(#Mock.chat == chatBefore, "one already ahead: no line")
 NoErrors(HC, "the family race")
 
+-- the family portrait: your house on a card
+HC = Mock.Boot("retail", { setupDone = true })
+HC.Window.Show("stats")
+ButtonWith(_G.HeyCousinWindow, "Family portrait"):Click()
+local card = _G.HeyCousinPortrait
+check(card and card:IsShown() and next(card.anchors) ~= nil and Crest(card, 180) ~= nil, "the Stats tab opens the card")
+check(Mock.Said("Print Screen"), "and it says how to keep it")
+local cardFaces = All(card, function(f) return f.avatar ~= nil and f:IsVisible() end)
+check(#cardFaces > 0 and #cardFaces <= 12 and cardFaces[1].name.text ~= "", "the cousins met most: " .. #cardFaces)
+SlashCmdList.HEYCOUSIN("theme")
+Settle()
+check(_G.HeyCousinPortrait:IsShown(), "a new look builds it again")
+SlashCmdList.HEYCOUSIN("theme")
+SlashCmdList.HEYCOUSIN("theme")
+SlashCmdList.HEYCOUSIN("portrait")
+check(not _G.HeyCousinPortrait:IsShown(), "/cousin portrait closes it")
+_G.HeyCousinWindow:Hide()
+NoErrors(HC, "the family portrait")
+HC = Mock.Boot("forever", { setupDone = true })
+HC.Portrait.Show()
+check(_G.HeyCousinPortrait:IsShown(), "with nobody yet, it still opens")
+_G.HeyCousinPortrait:Hide()
+NoErrors(HC, "an empty family portrait")
+
 -- one switch for all the family's messages, both ways
 HC = Mock.Boot("forever", { setupDone = true })
 house = HC.Kin.House()

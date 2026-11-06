@@ -47,6 +47,7 @@ Tree.lua
 Recruit.lua
 Groups.lua
 Race.lua
+Portrait.lua
 Lookup.lua
 Window.lua
 Tooltip.lua

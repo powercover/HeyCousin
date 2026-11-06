@@ -734,6 +734,13 @@ local function BuildStats()
     Theme.OnClick(stats.raceButton, "family race", function()
         Window.Race(true)
     end)
+    stats.portrait = Theme.Button(stats, L["Family portrait"], "secondary", 120, 26)
+    stats.portrait:SetPoint("LEFT", stats.raceButton, "RIGHT", 6, 0)
+    Theme.Fit(stats.portrait, 12, 110)
+    Theme.Tip(stats.portrait, L["Family portrait"], L["Your house on one card, made for a screenshot."])
+    Theme.OnClick(stats.portrait, "family portrait", function()
+        HC.Portrait.Show()
+    end)
 end
 
 local function PaintStats()

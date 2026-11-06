@@ -90,6 +90,7 @@ function HC.Commands()
         "/cousin recruit - " .. L["invite the cousins who have no guild"],
         "/cousin groups - " .. L["cousins looking for a group"],
         "/cousin race - " .. L["the family race, by level"],
+        "/cousin portrait - " .. L["your house on one card, for a screenshot"],
         "/cousin find Surname - " .. L["who's online with any surname"],
         "/cousin settings - " .. L["every choice, by what it's for"],
         "/cousin setup - " .. L["your crest and the main choices"],
@@ -129,6 +130,8 @@ local function HandleSlash(message)
         HC.Window.Recruit(true)
     elseif command == "find" then
         HC.Lookup.Show()
+    elseif command == "portrait" then
+        HC.Portrait.Toggle()
     elseif command == "race" then
         HC.Window.Show("stats")
         HC.Window.Race(true)

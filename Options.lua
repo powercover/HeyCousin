@@ -42,6 +42,7 @@ local function News()
         L["Look up a family: who's online with any surname."],
         L["\"Hey cousin!\": wave and say hello to a cousin near you, with one click."],
         L["The family race: you and your cousins with the addon, by level."],
+        L["Family portrait: your house on one card, made for a screenshot."],
         L["\"(uses addon)\" marks the cousins who run Hey Cousin!, and a line tells you when they come online."],
         L["Recruit: invite the cousins who have no guild."],
         L["Your other characters show in your family, and a crown marks the eldest."],

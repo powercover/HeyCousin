@@ -123,6 +123,13 @@ function Screens.race(skin)
     return { frames = { HeyCousinWindow } }
 end
 
+-- The family portrait
+function Screens.portrait(skin)
+    local HC = Boot(skin)
+    HC.Portrait.Show()
+    return { frames = { HeyCousinPortrait } }
+end
+
 -- Mira's page: every meeting, the one before the last in full
 function Screens.cousin(skin)
     local HC = Boot(skin)

@@ -87,7 +87,8 @@ function Region:Show() self.shown = true end
 function Region:Hide() self.shown = false end
 -- (a test says where a region is with .cx and .cy)
 function Region:GetCenter() return self.cx or 400, self.cy or 300 end
-function Region:GetEffectiveAlpha()
+-- (frames only: the game's text and textures don't have it)
+function Frame:GetEffectiveAlpha()
     local alpha, region = 1, self
     while region do
         alpha, region = alpha * (region.alpha or 1), region.parent

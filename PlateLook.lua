@@ -89,12 +89,22 @@ local function Box(region, plate)
         width * scale / plateScale, height * scale / plateScale
 end
 
+-- How solid a region is on screen. Only frames can say: text and textures are their own alpha times
+-- their frame's.
+local function Solidity(region)
+    if region.GetEffectiveAlpha then
+        return region:GetEffectiveAlpha()
+    end
+    local own, frame = region:GetAlpha(), region:GetParent():GetEffectiveAlpha()
+    return Usable(own, frame) and own * frame or nil
+end
+
 -- Whether a region shows, and how solid. (An alpha the game keeps secret, a fade by distance: it shows.)
 local function Seen(region)
     if not region:IsVisible() then
         return false
     end
-    local alpha = region:GetEffectiveAlpha()
+    local alpha = Solidity(region)
     if not Utils.IsUsableNumber(alpha) then
         return true, 1
     end

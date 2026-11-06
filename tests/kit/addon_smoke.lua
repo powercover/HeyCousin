@@ -1816,6 +1816,18 @@ Mock.chat = {}
 Mock.units.nameplate2 = nil
 SlashCmdList.HEYCOUSIN("plates")
 check(table.concat(Mock.chat, "\n"):find("none on screen", 1, true) ~= nil, "no plates: it says so")
+-- words on a frame faded out don't show, so they aren't copied
+HeyCousinDB.plateLook = {}
+local _, fadedBar, fadedWords = RealPlate("nameplate6", "Fern", "Ashbrook", "Alliance", false, nil, GREEN)
+check(fadedWords.GetEffectiveAlpha == nil and fadedBar.GetEffectiveAlpha ~= nil, "as in the game, only frames say how solid they are")
+fadedWords.parent:SetAlpha(0)
+HC.PlateLook.Scan()
+check(HC.PlateLook.Get("friend") == nil, "a plate faded out isn't copied")
+fadedWords.parent:SetAlpha(0.5)
+HC.PlateLook.Scan()
+local fadedName = Pieces(HC.PlateLook.Get("friend"), function(p) return p.name end)
+check(#fadedName == 1 and fadedName[1].a == 0.5, "half faded: the name, half faded")
+Mock.units.nameplate6 = nil
 -- a broken saved look is one thing less, not an error
 HeyCousinDB.plateLook = { enemy = { pieces = { "junk", { x = "bad", level = {} }, { text = true, x = {}, level = 1 } } }, friend = "junk" }
 HC.Options.Show("plates")

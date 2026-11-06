@@ -143,6 +143,9 @@ local function Build()
         crest = Crest.Normalize(saved.testCrest),
         motto = type(saved.testMotto) == "string" and saved.testMotto or L["Family first."],
         relatives = relatives,
+        -- your other character with this surname
+        mine = { Wynn = { class = "PRIEST", level = 14, sex = 3, faction = mine, zone = "Westfall", lastSeen = now - 2 * DAY,
+            guid = "Player-1-3D0000" } },
     }
 end
 

@@ -20,8 +20,10 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - **The family window**: everyone you met, who is near you now, the family's stats, and a page for
   each cousin: every time you met (where, when, how, both your levels, what they said, their gear
   when you were close), with Whisper, Invite and **Join their layer**.
-- **The eldest cousin**: a crown by who looks like the oldest character among the cousins you've seen,
-  guessed from the numbers in their character IDs.
+- **Your other characters**: those with the same surname show under you in the family window, from
+  the time each has logged in once. They aren't counted as cousins.
+- **The eldest cousin**: a crown by who looks like the oldest character among the cousins you've seen
+  and your own, guessed from the numbers in their character IDs.
 - **The family tree**: your guild as a family, each rank a generation, the Elder on top. A guild
   where most share one surname is a family by itself; its guild master can give the family a word
   for each rank (Elder, Parent, Cousin, or their own) and a welcome line, and every member who
@@ -47,6 +49,7 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - `/cousin setup`: your crest, alerts and look
 - `/cousin test`: a pop-up to try
 - `/cousin test map`: made-up cousins on your map for two minutes, to try
+- `/cousin forget Name`: take a deleted character off your list
 - `/cousin theme`: the next look
 - `/cousin status`: what the game tells the addon about you, your character ID too
 - `/cousin debug`: the errors the addon caught, in chat

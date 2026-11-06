@@ -59,6 +59,12 @@ local function SavedHouse(surname)
         house.crest = Crest.Normalize(house.crest)
         house.relatives = type(house.relatives) == "table" and house.relatives or {}
         house.motto = type(house.motto) == "string" and house.motto or ""
+        house.mine = type(house.mine) == "table" and house.mine or {}
+        for first, character in pairs(house.mine) do
+            if type(character) ~= "table" then
+                house.mine[first] = nil
+            end
+        end
         for first, relative in pairs(house.relatives) do
             if type(relative) == "table" then
                 CleanMeetings(relative)
@@ -198,6 +204,10 @@ end
 function Kin.Seen(info)
     local house = Kin.House()
     if not house or not Utils.IsUsableString(info.first) then
+        return nil
+    end
+    -- your own characters aren't your cousins
+    if type(house.mine) == "table" and house.mine[info.first] then
         return nil
     end
     local now = time()
@@ -422,7 +432,67 @@ function Kin.Eldest()
     for first, relative in pairs(house.relatives) do
         Compare(first, relative.guid)
     end
+    for _, alt in ipairs(Kin.Alts()) do
+        Compare(alt.first, alt.relative.guid)
+    end
     return known >= 2 and eldest or nil
+end
+
+-- --- your own characters ---------------------------------------------------------------------
+
+-- This character, as your others see it: kept when you log in and log out (the saved file is the
+-- account's, so every character with this surname finds the others there). Never in test mode.
+function Kin.NoteMe()
+    local test = HC.TestMode
+    if test and test.active then
+        return
+    end
+    local first, surname = Names.Me()
+    local house = Utils.IsUsableString(surname) and Kin.House()
+    if not house or not Utils.IsUsableString(first) then
+        return
+    end
+    local _, class = Utils.Call(UnitClass, "player")
+    house.mine[first] = {
+        class = class, level = Utils.Call(UnitLevel, "player"), zone = Utils.Zone(), sex = Utils.Call(UnitSex, "player"),
+        faction = MyFaction(), guid = Utils.Call(UnitGUID, "player"), lastSeen = time(),
+    }
+    -- you may have been noted as a cousin, on another character or before this was here
+    house.relatives[first] = nil
+    Kin.Changed()
+end
+
+-- Your other characters with this surname, the last played first: { first =, relative = } each.
+function Kin.Alts()
+    local house = Kin.House()
+    local me = Names.Me()
+    local list = {}
+    if house and type(house.mine) == "table" then
+        for first, character in pairs(house.mine) do
+            if first ~= me then
+                list[#list + 1] = { first = first, relative = character }
+            end
+        end
+    end
+    table.sort(list, function(a, b)
+        local x, y = a.relative.lastSeen or 0, b.relative.lastSeen or 0
+        if x ~= y then
+            return x > y
+        end
+        return a.first < b.first
+    end)
+    return list
+end
+
+-- Takes a deleted character off the list; its name as saved, or nothing if there's none like it.
+function Kin.ForgetCharacter(name)
+    for _, alt in ipairs(Kin.Alts()) do
+        if Names.Same(alt.first, name) then
+            Kin.House().mine[alt.first] = nil
+            Kin.Changed()
+            return alt.first
+        end
+    end
 end
 
 -- The family stats: meetings, the relatives met most, the surnames met most (top `limit`).

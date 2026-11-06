@@ -80,6 +80,7 @@ local function PrintHelp()
     Utils.Print("/cousin setup - " .. L["your crest, alerts and look"])
     Utils.Print("/cousin test - " .. L["a pop-up to try"])
     Utils.Print("/cousin test map - " .. L["made-up cousins on your map, to try"])
+    Utils.Print("/cousin forget Name - " .. L["take a deleted character off your list"])
     Utils.Print("/cousin theme - " .. L["the next look"])
     Utils.Print("/cousin status - " .. L["what the game tells the addon about you"])
     Utils.Print("/cousin debug - " .. L["the errors the addon caught, in chat (on or off)"])
@@ -87,7 +88,12 @@ end
 
 local function HandleSlash(message)
     local command = Utils.Trim(message):lower()
-    if command == "" then
+    local forget = Utils.Trim(message):match("^%a+%s+(.+)$")
+    if command:find("^forget%s") and forget then
+        local name = HC.Kin.ForgetCharacter(forget)
+        Utils.Print(name and string.format(L["%s forgotten."], name)
+            or string.format(L["%s isn't one of your other characters."], forget))
+    elseif command == "" then
         HC.Window.Toggle()
     elseif command == "tree" then
         HC.Window.Show("tree")
@@ -150,7 +156,10 @@ frame:SetScript("OnEvent", Utils.Protect("event", function(_, event, arg1)
         HC.Layer.Start()
         HC.Guild.Start()
         HC.Map.Start()
+    elseif event == "PLAYER_LOGOUT" then
+        HC.Kin.NoteMe()
     elseif event == "PLAYER_ENTERING_WORLD" then
+        HC.Kin.NoteMe()
         -- the first time: the setup, a moment after the world shows
         if not welcomed and not HeyCousinDB.setupDone then
             welcomed = true
@@ -166,6 +175,7 @@ end))
 frame:RegisterEvent("ADDON_LOADED")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
+frame:RegisterEvent("PLAYER_LOGOUT")
 
 SLASH_HEYCOUSIN1 = "/heycousin"
 SLASH_HEYCOUSIN2 = "/cousin"

@@ -113,6 +113,10 @@ local function Items()
     -- you, on top
     if text == "" then
         table.insert(items, 1, Mine())
+        -- and your other characters under you
+        for index, alt in ipairs(Kin.Alts()) do
+            table.insert(items, index + 1, { first = alt.first, relative = alt.relative, alt = true })
+        end
     end
     return items
 end
@@ -176,7 +180,7 @@ local function NewRow(parent)
         end
     end)
     row:SetScript("OnClick", Utils.Protect("row", function(self)
-        if self.item and not self.item.me then
+        if self.item and not self.item.me and not self.item.alt then
             Window.Open(self.item.first)
         end
     end))
@@ -197,25 +201,26 @@ local function PaintRow(row, item)
     local color = Utils.ClassColor(relative.class)
     row.avatar.icon:SetShown(Utils.SetClassIcon(row.avatar.icon, relative.class))
     row.avatar.ring:SetVertexColor(color[1], color[2], color[3], 0.9)
-    local sheep = not item.me and Kin.IsBlackSheep(relative)
+    local ours = item.me or item.alt
+    local sheep = not ours and Kin.IsBlackSheep(relative)
     row.sheep:SetShown(sheep)
-    row.tag:SetShown(item.me == true)
-    row.tag:SetText(item.me and L["(you)"] or "")
+    row.tag:SetShown(ours == true)
+    row.tag:SetText(item.me and L["(you)"] or item.alt and L["(your character)"] or "")
     -- the name and its tag stay left of the level column; a long name ends in "..."
-    local tag = sheep and row.sheep:GetWidth() + 8 or item.me and math.ceil(row.tag:GetStringWidth()) + 6 or 0
+    local tag = sheep and row.sheep:GetWidth() + 8 or ours and math.ceil(row.tag:GetStringWidth()) + 6 or 0
     local crowned = eldest ~= nil and item.first == eldest
     row.crown:SetShown(crowned)
     if crowned then
         tag = tag + 18
         row.crown:ClearAllPoints()
-        row.crown:SetPoint("LEFT", sheep and row.sheep or item.me and row.tag or row.name, "RIGHT", 4, 0)
+        row.crown:SetPoint("LEFT", sheep and row.sheep or ours and row.tag or row.name, "RIGHT", 4, 0)
     end
     row.name:SetText(item.first)
     row.name:SetTextColor(color[1], color[2], color[3])
     row.name:SetWidth(math.min(LEVEL_X - 54 - tag, math.ceil(row.name:GetStringWidth()) + 2))
     if sheep then
         row.sheep:SetPoint("LEFT", row.name, "RIGHT", 8, 0)
-    elseif item.me then
+    elseif ours then
         row.tag:SetPoint("LEFT", row.name, "RIGHT", 6, 0)
     end
     row.level:SetText(relative.level and tostring(relative.level) or "")

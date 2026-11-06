@@ -201,11 +201,12 @@ end
 local list = Rows()
 check(#list >= 9, "the list shows the family: " .. #list)
 check(list[1].item.me == true, "you are on top")
-local first = list[2].item.first
-list[2]:Click()
+check(list[2].item.alt == true and list[2].item.first == "Wynn", "your other character under you")
+local first = list[3].item.first
+list[3]:Click()
 Settle()
 local page = All(window, function(f) return f.whisper ~= nil end)[1]
-check(page and page:IsShown() and not list[2]:IsVisible(), "a click on a relative opens their page")
+check(page and page:IsShown() and not list[3]:IsVisible(), "a click on a relative opens their page")
 local function Meetings()
     return All(page, function(f) return f.item ~= nil and f.item.meeting ~= nil and f:IsShown() end)
 end
@@ -1013,6 +1014,47 @@ check(All(_G.HeyCousinWindow, function(f) return f.line and f.whisper and f.line
     "another's page doesn't")
 _G.HeyCousinWindow:Hide()
 NoErrors(HC, "the eldest")
+
+-- === Your other characters ====================================================================
+
+-- the saved file another character of yours left: its row, and a line it once saw you on
+HC = Mock.Boot("forever", { setupDone = true, houses = { Ashbrook = {
+    relatives = { Rowan = { class = "ROGUE", met = 1, lastSeen = 5 } },
+    mine = { Slate = { class = "ROGUE", level = 18, zone = "Orgrimmar", faction = "Alliance", lastSeen = 1700000000 - 3600, guid = "Player-1-00090F33" },
+        Broken = "oops" },
+} } })
+house = HC.Kin.House()
+check(house.mine.Broken == nil, "a broken saved character is dropped")
+Mock.Fire("PLAYER_ENTERING_WORLD")
+check(house.mine.Rowan and house.mine.Rowan.guid == "Player-1-ME" and house.mine.Rowan.zone == "Elwynn Forest", "logging in notes this character")
+check(house.relatives.Rowan == nil, "and you stop being your own cousin")
+local alts = HC.Kin.Alts()
+check(#alts == 1 and alts[1].first == "Slate", "your other character, without this one")
+check(select(1, HC.Kin.Counts()) == 0, "they don't count as relatives")
+HC.Window.Show("family")
+Settle()
+local altRows = All(_G.HeyCousinWindow, function(f) return f.item and f.item.alt and f:IsVisible() end)
+check(#altRows == 1 and altRows[1].item.first == "Slate" and altRows[1].tag.text == "(your character)" and altRows[1].level.text == "18",
+    "it shows under you, marked as yours: " .. #altRows)
+check(not altRows[1].sheep:IsShown(), "even on the other side, it isn't a black sheep")
+altRows[1]:Click()
+Settle()
+check(altRows[1]:IsVisible(), "it has no cousin's page to open")
+_G.HeyCousinWindow:Hide()
+local slateBefore = HC.Kin.Seen({ first = "Slate", class = "ROGUE", near = true })
+check(slateBefore == nil and house.relatives.Slate == nil, "seen around, it doesn't turn into a cousin")
+house.relatives.Alba = { guid = "Player-1-00E3D28D", class = "MAGE", met = 1, lastSeen = 1 }
+check(HC.Kin.Eldest() == "Slate", "your oldest character can be the eldest")
+house.relatives.Alba = nil
+SlashCmdList.HEYCOUSIN("forget Nobody")
+check(Mock.Said("Nobody isn't one of your other characters."), "forgetting a name that isn't yours says so")
+SlashCmdList.HEYCOUSIN("forget Rowan")
+check(house.mine.Rowan ~= nil, "the character you're on can't be forgotten")
+SlashCmdList.HEYCOUSIN("forget SLATE")
+check(house.mine.Slate == nil and #HC.Kin.Alts() == 0 and Mock.Said("Slate forgotten."), "/cousin forget takes a deleted one off the list")
+Mock.Fire("PLAYER_LOGOUT")
+check(house.mine.Rowan.lastSeen ~= nil, "logging out notes it again, where you were")
+NoErrors(HC, "your other characters")
 
 -- === Find my family ===========================================================================
 

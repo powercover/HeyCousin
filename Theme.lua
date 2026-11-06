@@ -771,8 +771,11 @@ end
 
 -- A small button that turns on and off (a chat to watch).
 function Theme.Chip(parent, label, get, set)
-    local chip = Theme.Button(parent, label, "secondary", 60, 26)
+    -- (its font first, then the words: in the game, words set before a change of font can stay in a
+    -- font that doesn't have their letters, and Cyrillic showed as boxes)
+    local chip = Theme.Button(parent, "", "secondary", 60, 26)
     chip.label:SetFontObject(Theme.Font("Small"))
+    chip:SetText(label)
     Theme.Fit(chip, 12)
     function chip:Refresh()
         Theme.SetKind(self, get() == true and "primary" or "secondary")

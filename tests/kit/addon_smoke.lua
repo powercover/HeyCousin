@@ -1705,4 +1705,6 @@ HC.Window.ShowRelative("Ann")
 Settle()
 NoErrors(HC, "broken saved meetings")
 
+check(not Mock.fontAfterText, "no words change their font after they're set: Cyrillic shows as boxes in the game")
+
 print(fails == 0 and ("addon checks passed (" .. checks .. " checks)") or (fails .. " addon checks failed"))

@@ -235,7 +235,14 @@ function Texture:SetBlendMode(mode) self.blend = mode end
 function Texture:AddMaskTexture(mask) self.mask = mask end
 function Mask:SetTexture(file) self.file = file end
 
-function FontString:SetFontObject(font) assert(font ~= nil, "SetFontObject(nil)"); self.font = font end
+function FontString:SetFontObject(font)
+    assert(font ~= nil, "SetFontObject(nil)")
+    -- (in the game, words set before a change of font can show as boxes: the addon's test checks this)
+    if self.text and self.text ~= "" and self.font and self.font ~= font then
+        Mock.fontAfterText = (Mock.fontAfterText or 0) + 1
+    end
+    self.font = font
+end
 function FontString:GetFontObject() return self.font end
 function FontString:SetText(text)
     assert(text == nil or type(text) == "string" or type(text) == "number", "SetText needs text, got " .. type(text))

@@ -73,6 +73,7 @@ local function Toggle(p, label, note, key, default)
     row:SetPoint("TOPLEFT", -10, p.y)
     p.parts[#p.parts + 1] = row.toggle
     p.y = p.y - 46
+    return row
 end
 
 -- Chips in rows across the page, as many as fit on each.
@@ -228,10 +229,22 @@ local function BuildFamily()
         end,
     }
     Heading(p, L["Your cousins"])
-    Toggle(p, L["Cousins coming online"], L["A line in chat. They see you too."], "presence", true)
-    Toggle(p, L["Family news"], L["A line in chat when a cousin reaches a round level."], "familyNews", true)
-    Toggle(p, L["Family chat"], L["/fam talks to every cousin online who has the addon."], "familyChat", true)
-    Toggle(p, L["Family groups"], L["A line in chat when a cousin looks for a group."], "familyGroups", true)
+    -- one switch for them all; the ones under it wait, as they were, while it's off
+    local all = Toggle(p, L["Family messages"], L["Chat, news, online lines and groups. The map has its own switches."],
+        "familyMessages", true)
+    local rows = {
+        Toggle(p, L["Cousins coming online"], L["A line in chat. They see you too."], "presence", true),
+        Toggle(p, L["Family news"], L["A line in chat when a cousin reaches a round level."], "familyNews", true),
+        Toggle(p, L["Family chat"], L["/fam talks to every cousin online who has the addon."], "familyChat", true),
+        Toggle(p, L["Family groups"], L["A line in chat when a cousin looks for a group."], "familyGroups", true),
+    }
+    local function PaintRows()
+        for _, row in ipairs(rows) do
+            row:SetShown(HC.Family.Messages())
+        end
+    end
+    all.toggle.onChange = PaintRows
+    p.parts[#p.parts + 1] = { Refresh = PaintRows }
     return p
 end
 

@@ -1109,6 +1109,62 @@ check(Mock.Said("Family chat is off"), "and /fam says why")
 HeyCousinDB.familyChat = true
 NoErrors(HC, "family news and chat")
 
+-- one switch for all the family's messages, both ways
+HC = Mock.Boot("forever", { setupDone = true })
+house = HC.Kin.House()
+Mock.Fire("PLAYER_ENTERING_WORLD")
+Mock.Advance(60)
+HC.Options.Show("family")
+local familyPage = _G.HeyCousinOptions
+check(HeyCousinDB.familyMessages == true, "on by default")
+local allRow = ButtonWith(familyPage, "Family messages")
+local chatRow = ButtonWith(familyPage, "Family chat")
+check(allRow and chatRow, "one switch above the others")
+HC.Window.Show("groups")
+HC.Groups.Post("Deadmines tonight")
+check(HC.Groups.Mine() ~= nil, "(a post of yours is up)")
+sentBefore = #Mock.addonSent
+allRow:Click()
+check(HeyCousinDB.familyMessages == false and not chatRow:IsVisible() and ButtonWith(familyPage, "Family news") == nil, "off: the others wait, out of sight")
+check(HeyCousinDB.familyChat == true and HeyCousinDB.presence == true, "as they were")
+check(HC.Groups.Mine() == nil and Mock.addonSent[sentBefore + 1] and Mock.addonSent[sentBefore + 1].text == "5:X", "your post comes down, and cousins hear it")
+-- nothing shows
+chatBefore = #Mock.chat
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:hello", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:L:MAGE:30:", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:H:MAGE:30:", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:G:Stockades", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:J", "WHISPER", "Kit Ashbrook")
+check(#Mock.chat == chatBefore and #HC.Groups.List() == 0, "off: no chat, news, online line or group from cousins")
+-- nothing goes
+sentBefore = #Mock.addonSent
+Mock.Advance(5 * 60)
+local wentOut = false
+for i = sentBefore + 1, #Mock.addonSent do
+    wentOut = wentOut or Mock.addonSent[i].text:find("^[45]:") ~= nil
+end
+check(not wentOut, "off: no answer and no word goes to cousins")
+SlashCmdList.HEYCOUSINFAM("hello?")
+check(Mock.Said("Family chat is off"), "/fam says it's off")
+HC.Groups.Post("Stockades?")
+check(HC.Groups.Mine() == nil and Mock.Said("Family messages are off"), "and a post says why it can't go")
+-- the map isn't a message: the channel stays for it, and goes when that's off too
+check(Mock.channels.HCashbrookA ~= nil, "the map still has the channel")
+HeyCousinDB.mapShow = false
+HC.Map.Apply()
+check(Mock.channels.HCashbrookA == nil, "with the map off too: out of the channel")
+HeyCousinDB.mapShow = true
+-- back on: it all comes back as it was
+allRow:Click()
+check(HeyCousinDB.familyMessages == true and chatRow:IsVisible() and Mock.channels.HCashbrookA ~= nil, "on again: the others show, back in the channel")
+chatBefore = #Mock.chat
+Mock.Advance(1)
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:hello again", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+check(#Mock.chat == chatBefore + 1, "and their words show")
+_G.HeyCousinOptions:Hide()
+_G.HeyCousinWindow:Hide()
+NoErrors(HC, "the one switch")
+
 -- a big family doesn't fill your chat: a few lines a minute about cousins; chat itself is what people say
 HC = Mock.Boot("forever", { setupDone = true })
 Mock.Fire("PLAYER_ENTERING_WORLD")
@@ -1739,7 +1795,7 @@ Mock.Advance(5)
 _G.HeyCousinSetup.close:Click()
 local defaults = { popup = true, popupEvery = false, enemyAlerts = true, sound = "auto", chatCrest = true, tooltipLine = true,
     showMinimap = true, lockMinimap = false, mapShow = true, mapShare = false, presence = true, familyNews = true,
-    familyChat = true, familyGroups = true, skin = "pixel", language = "auto", setupDone = true }
+    familyChat = true, familyGroups = true, familyMessages = true, skin = "pixel", language = "auto", setupDone = true }
 for key, value in pairs(defaults) do
     check(HeyCousinDB[key] == value, "closed at once, the default stays: " .. key .. " = " .. tostring(HeyCousinDB[key]))
 end

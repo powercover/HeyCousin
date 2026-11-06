@@ -48,19 +48,30 @@ local spoke = {}  -- [first name] = GetTime() of their last line in family chat
 
 -- --- the channel -------------------------------------------------------------------------------
 
+-- The one switch for all the family's messages, both ways: off, nothing below goes or shows. The map
+-- isn't a message: it has its own switches.
+function Family.Messages()
+    return HeyCousinDB.familyMessages ~= false
+end
+
 -- Whether you tell cousins you're online, and hear when they are (a setting, on unless you say).
 function Family.On()
-    return HeyCousinDB.presence ~= false
+    return Family.Messages() and HeyCousinDB.presence ~= false
 end
 
 -- Whether you see a cousin's round levels (a setting, on unless you say).
 function Family.NewsOn()
-    return HeyCousinDB.familyNews ~= false
+    return Family.Messages() and HeyCousinDB.familyNews ~= false
 end
 
 -- Whether you're in family chat (a setting, on unless you say).
 function Family.ChatOn()
-    return HeyCousinDB.familyChat ~= false
+    return Family.Messages() and HeyCousinDB.familyChat ~= false
+end
+
+-- Whether a line tells you a cousin looks for a group (a setting, on unless you say).
+function Family.GroupsOn()
+    return Family.Messages() and HeyCousinDB.familyGroups ~= false
 end
 
 local function ChannelName()
@@ -88,7 +99,7 @@ function Family.Keep()
     if not name then
         return
     end
-    local wanted = Family.On() or Family.NewsOn() or Family.ChatOn() or HeyCousinDB.familyGroups ~= false
+    local wanted = Family.On() or Family.NewsOn() or Family.ChatOn() or Family.GroupsOn()
         or HeyCousinDB.mapShow ~= false or HeyCousinDB.mapShare == true
     if wanted and not id then
         Utils.Call(JoinTemporaryChannel, name)

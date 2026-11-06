@@ -84,11 +84,15 @@ local function Setting(key, default)
         end
         return value
     end, function(value)
+        -- (your post comes down while the family's channel is still there)
+        if key == "familyMessages" and value == false then
+            HC.Groups.Stop()
+        end
         Settings()[key] = value
         if key == "showMinimap" and HC.Minimap then
             HC.Minimap.Apply()
         elseif key == "mapShow" or key == "mapShare" or key == "presence" or key == "familyNews" or key == "familyChat"
-            or key == "familyGroups" then
+            or key == "familyGroups" or key == "familyMessages" then
             HC.Map.Apply()
         end
         UpdateReset()

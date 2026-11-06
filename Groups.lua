@@ -29,9 +29,12 @@ local function Alive(post)
     return GetTime() - post.at < LIVE
 end
 
--- The posts that still stand, the newest first.
+-- The posts that still stand, the newest first (none while family messages are off).
 function Groups.List()
     local items = {}
+    if not HC.Family.Messages() then
+        return items
+    end
     for first, post in pairs(posts) do
         if Alive(post) then
             items[#items + 1] = post
@@ -69,6 +72,10 @@ end
 function Groups.Post(text)
     local words = HC.Guild.Plain(text, WORDS_MAX)
     if words == "" then
+        return
+    end
+    if not HC.Family.Messages() then
+        Utils.Print(L["Family messages are off. They're in the settings, under Family."])
         return
     end
     if not HC.TestMode.active and not HC.Family.Send("5:G:" .. words) then
@@ -112,7 +119,9 @@ end
 
 -- A line from a cousin (Family.lua has checked who it's from).
 function Groups.Heard(kind, rest, member)
-    if kind == "G" then
+    if not HC.Family.Messages() then
+        return
+    elseif kind == "G" then
         local words = HC.Guild.Plain(rest, WORDS_MAX)
         if words == "" then
             return
@@ -122,7 +131,7 @@ function Groups.Heard(kind, rest, member)
             asked = old and old.asked or nil }
         local relative = Kin.Seen({ first = member.first, faction = Utils.Call(UnitFactionGroup, "player"), quiet = true,
             online = true, usesAddon = true })
-        if HeyCousinDB.familyGroups ~= false and not (old and old.words == words) then
+        if HC.Family.GroupsOn() and not (old and old.words == words) then
             local color = Utils.ClassColor(relative and relative.class, true)
             HC.Family.Tell(string.format(L["%s looks for a group: %s"], Theme.Paint(member.full, color), words))
         end
@@ -279,6 +288,8 @@ function Groups.Paint(keep)
     PaintSend()
     local items = Groups.List()
     list:SetItems(items, keep)
+    empty:SetText(HC.Family.Messages() and L["No cousin is looking for a group right now."]
+        or L["Family messages are off. They're in the settings, under Family."])
     empty:SetShown(#items == 0)
 end
 

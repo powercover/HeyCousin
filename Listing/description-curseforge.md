@@ -26,7 +26,7 @@ Cousins who have the addon find each other through a hidden family channel. They
 - **Find a group:** say what you're looking for on the **Groups** tab. Cousins see it and can click **Join**. That asks you, and the invite stays your click.
 - **Hear the news:** a line in chat when a cousin comes online or reaches a round level.
 
-Your addon tells them your class, level and crest, and that you're online: nothing `/who` doesn't show, but that you run the addon. Each of these can be turned off in the settings. The game's ignore list counts here too.
+Your addon tells them your class, level and crest, and that you're online: nothing `/who` doesn't show, but that you run the addon. Each of these can be turned off in the settings, or all of them with one switch. The game's ignore list counts here too.
 
 ## And for fun
 

@@ -40,7 +40,7 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
   marked "(uses addon)" and see when each other come online. `/fam` talks to all of them, a line
   tells when one reaches a round level, and the **Groups** tab says what you're looking for: Join asks
   the one who posted, and the invite stays their click. It says nothing `/who` doesn't show, but that
-  you run the addon. Each can be turned off, and the game's ignore list counts.
+  you run the addon. Each can be turned off, or all with one switch, and the game's ignore list counts.
 - **Look up a family**: who's online with any surname, by the same `/who` search. Nobody joins your
   family by it.
 - **The settings**: every choice, grouped by what it's for, with a page in the game's Options > AddOns

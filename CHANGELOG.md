@@ -17,7 +17,7 @@
   family window.
 
 Chat, groups, news and the online line go through the family channel. Each can be turned off in the
-settings, and the game's ignore list counts. They've had little testing with real cousins yet: please
+settings, or all with one switch, and the game's ignore list counts. They've had little testing with real cousins yet: please
 tell me how far they reach.
 
 ## 1.0.0

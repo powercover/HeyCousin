@@ -37,6 +37,8 @@ local DEFAULTS = {
     familyChat = true,
     -- a line in chat when a cousin looks for a group
     familyGroups = true,
+    -- all of the family's messages, both ways: off beats the three above and presence
+    familyMessages = true,
 }
 
 local function SavedDefaults()

@@ -36,6 +36,15 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
   hidden family channel), every few seconds while you move, never in a fight or a dungeon. It works
   beside map addons that keep the game's map (Mapster, Leatrix Maps, TomTom, HandyNotes, Questie),
   and on OpenMap's stitched map, across all its zones.
+- **Family chat, news and groups**: through the same hidden channel, cousins who have the addon are
+  marked "(uses addon)" and see when each other come online. `/fam` talks to all of them, a line
+  tells when one reaches a round level, and the **Groups** tab says what you're looking for: Join asks
+  the one who posted, and the invite stays their click. It says nothing `/who` doesn't show, but that
+  you run the addon. Each can be turned off, and the game's ignore list counts.
+- **Look up a family**: who's online with any surname, by the same `/who` search. Nobody joins your
+  family by it.
+- **The settings**: every choice, grouped by what it's for, with a page in the game's Options > AddOns
+  that leads to them. A click on the version number shows what's new.
 - **The setup**: make your crest (shape, pattern, colors, a symbol, or roll the dice), write a
   motto, pick your alerts, the family map and your look; a guild master makes their guild a family.
 - **Three looks**: Pixel (chunky and cartoonish), Forever (the classic game's parchment pages in
@@ -49,6 +58,10 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - `/cousin` (or `/heycousin`): your family
 - `/cousin tree`: your guild as a family tree
 - `/cousin recruit`: invite the cousins who have no guild
+- `/cousin groups`: cousins looking for a group
+- `/cousin find Surname`: who's online with any surname
+- `/fam your words`: talk to every cousin online who has the addon
+- `/cousin settings`: every choice, by what it's for
 - `/cousin setup`: your crest, alerts and look
 - `/cousin test`: a pop-up to try
 - `/cousin test map`: made-up cousins on your map for two minutes, to try

@@ -1613,7 +1613,7 @@ check(HeyCousinDB.familyNews == false and HeyCousinDB.familyChat == false and He
 Row(options, "Family groups"):Click()
 Row(options, "Family news"):Click()
 Row(options, "Family chat"):Click()
-ButtonWith(options, "The family map"):Click()
+ButtonWith(options, "Map"):Click()
 Row(options, "Share it with your family"):Click()
 check(HeyCousinDB.mapShare == true, "sharing where you are")
 Row(options, "Share it with your family"):Click()

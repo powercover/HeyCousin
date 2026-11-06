@@ -1,4 +1,24 @@
-# Hey Cousin! 1.0.0
+# Hey Cousin! 1.1.0
+
+- **Settings.** Every choice in one place, by what it's for: the gear, the minimap's right-click or
+  `/cousin settings`, and a page in the game's Options > AddOns. The setup runs from there. A click on
+  the version number shows what's new.
+- **"(uses addon)".** Cousins who run Hey Cousin! are marked, their own crests show, and a line tells
+  you when they come online. It says nothing `/who` doesn't show, but that you run the addon.
+- **Family chat.** `/fam` talks to every cousin online who has the addon, in any guild.
+- **Family news.** A line in chat when a cousin reaches a round level.
+- **Groups.** A new tab: say what you're looking for, and cousins can click Join. That asks you, and
+  the invite stays your click.
+- **Recruit.** The cousins with no guild, each with an Invite button and a welcome you write.
+- **Your other characters** show in your family, and a crown marks the eldest cousin we know.
+- **Look up a family.** Who's online with any surname: `/cousin find Surname`, or the magnifier in the
+  family window.
+
+Chat, groups, news and the online line go through the family channel. Each can be turned off in the
+settings, and the game's ignore list counts. They've had little testing with real cousins yet: please
+tell me how far they reach.
+
+## 1.0.0
 
 The first release, for World of Warcraft Forever.
 

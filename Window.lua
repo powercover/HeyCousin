@@ -942,9 +942,7 @@ local function PaintHeader()
     if surname then
         header.title:SetText(string.format(L["House %s"], surname))
         local _, class = Utils.Call(UnitClass, "player")
-        local count = total == 1 and L["1 relative"] or string.format(L["%d relatives"], total)
-        header.sub:SetText(Theme.Paint(Names.Full(first or "", surname), Utils.ClassColor(class))
-            .. Theme.Paint("  ·  " .. count, C.text2))
+        header.sub:SetText(Theme.Paint(Names.Full(first or "", surname), Utils.ClassColor(class)))
     else
         header.title:SetText(L["Hey Cousin!"])
         header.sub:SetText(L["Your surname isn't known yet."])

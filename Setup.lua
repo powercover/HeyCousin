@@ -426,7 +426,7 @@ local function BuildAlertsPage(parent)
         { L["A pop-up when you first meet a cousin"], L["With a sound. Click it to target them."], "popup", true },
         { L["Every time you meet"], L["Not only the first time."], "popupEvery", false },
         { L["Black sheep too"], L["Cousins from the other faction."], "enemyAlerts", true },
-        { L["Cousins coming online"], L["A line in chat. They see when you're online too."], "presence", true },
+        { L["Cousins coming online"], L["A line in chat. They see you too."], "presence", true },
         { L["Your crest in chat"], L["At the start of a relative's message."], "chatCrest", true },
         { L["A family line in tooltips"], L["\"Family: Ashbrook (cousin)\""], "tooltipLine", true },
         { L["The minimap crest"], L["Click it for your family."], "showMinimap", true },

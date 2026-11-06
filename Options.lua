@@ -181,7 +181,7 @@ local function BuildFamily()
         end,
     }
     Heading(p, L["Your cousins"])
-    Toggle(p, L["Cousins coming online"], L["A line in chat. They see when you're online too."], "presence", true)
+    Toggle(p, L["Cousins coming online"], L["A line in chat. They see you too."], "presence", true)
     Toggle(p, L["Family news"], L["A line in chat when a cousin reaches a round level."], "familyNews", true)
     Toggle(p, L["Family chat"], L["/fam talks to every cousin online who has the addon."], "familyChat", true)
     Toggle(p, L["Family groups"], L["A line in chat when a cousin looks for a group."], "familyGroups", true)
@@ -322,7 +322,7 @@ local function Build()
     heading:SetText(L["Settings"])
     local title = Theme.Title()
     heading:SetTextColor(title[1], title[2], title[3])
-    local labels = { alerts = L["Alerts"], family = L["Family"], map = L["The family map"], game = L["In the game"],
+    local labels = { alerts = L["Alerts"], family = L["Family"], map = L["Map"], game = L["In the game"],
         look = L["Look & language"], about = L["About"] }
     nav = {}
     for index, key in ipairs(ORDER) do

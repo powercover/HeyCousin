@@ -41,16 +41,16 @@ test mode, they all say so.
 
 ### Gallery addresses
 
-As uploaded to CurseForge: [description-curseforge.md](description-curseforge.md) is `description.md` with these in
-place of the placeholders, without the animated crest at the top until it's uploaded too.
+As uploaded to each site: [description-curseforge.md](description-curseforge.md) and [description-wago.md](description-wago.md) are
+`description.md` with these in place of the placeholders, without the animated crest at the top until it's uploaded too.
 
-| Placeholder | CurseForge |
-| --- | --- |
-| `IMAGE_FOUND` | https://media.forgecdn.net/attachments/2156/174/found-png.png |
-| `IMAGE_PAGE` | https://media.forgecdn.net/attachments/2156/175/page-png.png |
-| `IMAGE_CRESTS` | https://media.forgecdn.net/attachments/2156/176/crests-png.png |
-| `IMAGE_TREE` | https://media.forgecdn.net/attachments/2156/177/tree-png.png |
-| `IMAGE_LOOKS` | https://media.forgecdn.net/attachments/2156/178/looks-png.png |
+| Placeholder | CurseForge | Wago |
+| --- | --- | --- |
+| `IMAGE_FOUND` | https://media.forgecdn.net/attachments/2156/174/found-png.png | https://cdn.wago.io/gallery/HO2UjIkBq20Z4TB2bGA95Z8NBsl0raaFjRWZiMqi.png |
+| `IMAGE_PAGE` | https://media.forgecdn.net/attachments/2156/175/page-png.png | https://cdn.wago.io/gallery/LzjDreoTZii1dGhgdgtKZbmq9k0HoJQG9wHSsna7.png |
+| `IMAGE_CRESTS` | https://media.forgecdn.net/attachments/2156/176/crests-png.png | https://cdn.wago.io/gallery/HHHBUQ9XK1szpaVraUmtZo1jrvJGgFBfRJCSXArS.png |
+| `IMAGE_TREE` | https://media.forgecdn.net/attachments/2156/177/tree-png.png | https://cdn.wago.io/gallery/KmflmYpZWqHuVA7N3IkpoGIsCYfdcFMcWPVmNRcv.png |
+| `IMAGE_LOOKS` | https://media.forgecdn.net/attachments/2156/178/looks-png.png | https://cdn.wago.io/gallery/1wiWqHacqtD5SbhnZ36LuSg5db75LpdidglQ1f4G.png |
 
 ### One picture to take in the game
 

@@ -106,19 +106,18 @@ def sparkle(img, at):
     return out
 
 
-def emblem():
+def emblem(name="emblem.gif", size=480, hold=HOLD, flip=FLIP, delay=DELAY):
     """The animated crest, one seamless loop: each design shines, then turns into the next."""
     faces = [face(*spec) for spec in FACES]
     frames = []
     for index, img in enumerate(faces):
-        for step in range(HOLD):
-            at = step / (HOLD - 1)
+        for step in range(hold):
+            at = step / (hold - 1)
             frames.append(sparkle(shine(img, at), at))
         following = faces[(index + 1) % len(faces)]
-        for step in range(FLIP):
-            turn = (step + 1) / (FLIP + 1) * math.pi
+        for step in range(flip):
+            turn = (step + 1) / (flip + 1) * math.pi
             frames.append(squeezed(img if turn < math.pi / 2 else following, abs(math.cos(turn))))
-    size = 480
     out = []
     for frame in frames:
         big = Image.fromarray(frame, "RGBA").resize((size, size), Image.NEAREST)
@@ -127,13 +126,13 @@ def emblem():
         indexed.paste(255, alpha.point(lambda a: 255 if a < 128 else 0))
         indexed.info["transparency"] = 255
         out.append(indexed)
-    path = os.path.join(HERE, "emblem.gif")
-    out[0].save(path, save_all=True, append_images=out[1:], duration=DELAY, loop=0, disposal=2, transparency=255,
+    path = os.path.join(HERE, name)
+    out[0].save(path, save_all=True, append_images=out[1:], duration=delay, loop=0, disposal=2, transparency=255,
                 optimize=False)
     saved = Image.open(path)
     delays = [frame.info.get("duration") for frame in ImageSequence.Iterator(saved)]
-    assert len(delays) == len(out) and set(delays) == {DELAY}, "the frames must stay apart, all " + str(DELAY) + " ms"
-    print("drew emblem.gif", size, len(out), "frames at", DELAY, "ms,", sum(delays), "ms a loop,",
+    assert len(delays) == len(out) and set(delays) == {delay}, "the frames must stay apart, all " + str(delay) + " ms"
+    print("drew", name, size, len(out), "frames at", delay, "ms,", sum(delays), "ms a loop,",
           os.path.getsize(path) // 1024, "KB")
 
 
@@ -245,6 +244,8 @@ def looks_card():
 
 def main():
     emblem()
+    # for a logo, which CurseForge shows small: a lighter file, the same 5.8 seconds a loop
+    emblem("emblem-small.gif", size=256, hold=12, flip=4, delay=90)
     logos()
     window_card("found.png", "1b-found.png", "ONE CLICK FINDS YOUR FAMILY",
                 "Everyone online with your exact surname, with their level and zone. New cousins join your family as you find them.")

@@ -37,6 +37,10 @@ Your addon tells them your class, level and crest, and that you're online: nothi
 - **The family window.** Everyone you met or found, who is near you or online now, and a page for each cousin: every time you met, where, when and how, what they said, their gear when you were close.
 - **The family tree.** Your guild as a family, each rank a generation. A guild where most share one surname is a family by itself, and its guild master can give each rank a family word and write a welcome line.
 - **Recruit.** The cousins with no guild, each with an Invite button and a welcome you write. A whisper is never sent by itself.
+- **"Hey cousin!"** One click on the pop-up and you wave and say "Hey cousin Mira!" out loud, so everyone around sees it.
+- **Crests on nameplates.** Spot a cousin in a crowd. It works with any nameplate addon, and you can drag and resize the crest in the settings.
+- **The family race.** You and your cousins with the addon, by level. A line tells you when one passes you.
+- **The family portrait.** Your house on one card, made for a screenshot.
 - **Your other characters** show in your family, and a crown marks the eldest cousin we know, by a good guess.
 - **Look up a family.** Who's online with any surname, not only yours.
 - **Stats.** How many relatives you have, who you meet most, and the surnames you see most.
@@ -56,6 +60,8 @@ Pixel, Forever (the classic game's parchment) and Smooth. Switch any time in the
 - `/cousin`: your family
 - `/cousin tree`: your guild as a family tree
 - `/cousin groups`: cousins looking for a group
+- `/cousin race`: the family race, by level
+- `/cousin portrait`: your house on one card, for a screenshot
 - `/cousin recruit`: invite the cousins who have no guild
 - `/cousin find Surname`: who's online with any surname
 - `/fam`: talk to every cousin online who has the addon

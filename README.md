@@ -41,6 +41,12 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
   tells when one reaches a round level, and the **Groups** tab says what you're looking for: Join asks
   the one who posted, and the invite stays their click. It says nothing `/who` doesn't show, but that
   you run the addon. Each can be turned off, or all with one switch, and the game's ignore list counts.
+- **"Hey cousin!"**: a button on the pop-up and on a near cousin's page: you wave and say "Hey cousin
+  Mira!" out loud. Only ever from a click.
+- **Crests on nameplates**: on the game's own plate frame, so they follow the plate under any nameplate
+  addon. The settings draw a sample plate: drag the crest, scroll to resize it, and real plates follow.
+- **The family race**: you and the cousins who have the addon, by level, with a line when one passes you.
+- **The family portrait**: your house on one card, made for a screenshot.
 - **Look up a family**: who's online with any surname, by the same `/who` search. Nobody joins your
   family by it.
 - **The settings**: every choice, grouped by what it's for, with a page in the game's Options > AddOns
@@ -61,6 +67,8 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - `/cousin tree`: your guild as a family tree
 - `/cousin recruit`: invite the cousins who have no guild
 - `/cousin groups`: cousins looking for a group
+- `/cousin race`: the family race, by level
+- `/cousin portrait`: your house on one card, for a screenshot
 - `/cousin find Surname`: who's online with any surname
 - `/fam your words`: talk to every cousin online who has the addon
 - `/cousin settings`: every choice, by what it's for

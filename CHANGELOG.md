@@ -11,6 +11,11 @@
 - **Family news.** A line in chat when a cousin reaches a round level.
 - **Groups.** A new tab: say what you're looking for, and cousins can click Join. That asks you, and
   the invite stays your click.
+- **"Hey cousin!"** A button on the pop-up and on a near cousin's page: you wave and say it out loud.
+- **Crests on nameplates.** Works with any nameplate addon. Drag and resize the crest on a sample
+  plate in the settings.
+- **The family race.** You and your cousins with the addon, by level, on the Stats tab.
+- **The family portrait.** Your house on one card, made for a screenshot.
 - **Recruit.** The cousins with no guild, each with an Invite button and a welcome you write.
 - **Your other characters** show in your family, and a crown marks the eldest cousin we know.
 - **Look up a family.** Who's online with any surname: `/cousin find Surname`, or the magnifier in the

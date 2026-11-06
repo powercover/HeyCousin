@@ -11,7 +11,7 @@ local Kin = HC.Kin
 local L = HC.L
 local C = Theme.C
 
-local WIDTH, HEIGHT = 560, 92
+local WIDTH, HEIGHT = 590, 92
 local SHOW_FOR = 8      -- seconds on screen; pointing at it holds it
 local QUEUE_MAX = 5
 local STALE = 90        -- a waiting pop-up older than this is dropped

@@ -15,8 +15,8 @@
 - **The family map, fixed, and on your minimap.** Sharing beyond a guild didn't reach anyone in 1.0.0:
   the game doesn't deliver addon messages on a channel. Now they go straight to each cousin, and
   cousins who share show on your minimap too.
-- **Crests on nameplates.** Works with any nameplate addon. Drag and resize the crest on a sample
-  plate in the settings.
+- **Crests on nameplates.** Made to work with any nameplate addon. Drag and resize the crest on a
+  sample plate in the settings.
 - **The family race.** You and your cousins with the addon, by level, on the Stats tab.
 - **The family portrait.** Your house on one card, made for a screenshot.
 - **Recruit.** The cousins with no guild, each with an Invite button and a welcome you write.
@@ -24,9 +24,10 @@
 - **Look up a family.** Who's online with any surname: `/cousin find Surname`, or the magnifier in the
   family window.
 
-Chat, groups, news and the online line go through the family channel. Each can be turned off in the
-settings, or all with one switch, and the game's ignore list counts. They've had little testing with real cousins yet: please
-tell me how far they reach.
+Chat, groups, news and the online line go straight to the cousins in your family channel. Each can be
+turned off in the settings, or all with one switch, and the game's ignore list counts. Chat and the map
+are tested between real players. The rest, the minimap and nameplate crests above all, are new: please
+tell me how they work for you, and which nameplate addon you use.
 
 ## 1.0.0
 

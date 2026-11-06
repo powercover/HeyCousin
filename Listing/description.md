@@ -38,7 +38,7 @@ Your addon tells them your class, level and crest, and that you're online: nothi
 - **The family tree.** Your guild as a family, each rank a generation. A guild where most share one surname is a family by itself, and its guild master can give each rank a family word and write a welcome line.
 - **Recruit.** The cousins with no guild, each with an Invite button and a welcome you write. A whisper is never sent by itself.
 - **"Hey cousin!"** One click on the pop-up and you wave and say "Hey cousin Mira!" out loud, so everyone around sees it.
-- **Crests on nameplates.** Spot a cousin in a crowd. It works with any nameplate addon, and you can drag and resize the crest in the settings.
+- **Crests on nameplates.** Spot a cousin in a crowd. It's made to work with any nameplate addon, and you can drag and resize the crest in the settings.
 - **The family race.** You and your cousins with the addon, by level. A line tells you when one passes you.
 - **The family portrait.** Your house on one card, made for a screenshot.
 - **Your other characters** show in your family, and a crown marks the eldest cousin we know, by a good guess.
@@ -74,6 +74,6 @@ Pixel, Forever (the classic game's parchment) and Smooth. Switch any time in the
 
 ## Still young
 
-The game is new, and so is this. The guild features and everything that goes through the family channel (chat, groups, news, the map beyond a guild) have had the least testing in the live game. If something looks wrong, please say so in the comments or on [GitHub](https://github.com/powercover/HeyCousin/issues).
+The game is new, and so is this. Family chat and the map are tested between real players. The guild features, groups, and the minimap and nameplate crests have had the least testing in the live game. If something looks wrong, please say so in the comments or on [GitHub](https://github.com/powercover/HeyCousin/issues).
 
 The [source code](https://github.com/powercover/HeyCousin) is there too, so you can read exactly what the addon sends. All rights reserved.

@@ -10,6 +10,8 @@ local _, HC = ...
 -- measure restricted regions"), so such a part is placed by how it's anchored: its font, words and color
 -- can still be read. A plate whose bar can't be placed isn't kept: half a plate is worse than a plain one.
 -- Names aren't kept: a sample shows its own, and of the other words only numbers (a level, a percent).
+-- Often the game keeps a plate's words secret: their font and place still count, and the biggest is
+-- taken for the name. A color that's the copied player's class is marked, so a sample can show its own.
 HC.PlateLook = {}
 
 local PlateLook = HC.PlateLook
@@ -31,6 +33,8 @@ local listeners = {}
 local trace
 -- bars on the plate being read that couldn't be placed
 local unplaced = 0
+-- the class color of the player on the plate being read
+local theirColor
 
 local function Why(reason)
     if trace then
@@ -163,6 +167,15 @@ local function Seen(region)
     return alpha > 0.01, alpha
 end
 
+-- Whether a color is the copied player's class color.
+local function ByClass(r, g, b)
+    if not theirColor then
+        return nil
+    end
+    local near = math.abs(r - theirColor[1]) < 0.02 and math.abs(g - theirColor[2]) < 0.02 and math.abs(b - theirColor[3]) < 0.02
+    return near or nil
+end
+
 -- A plain color (SetColorTexture) can't be read back, so it's left out: painting it would come out white.
 local function Art(texture)
     local atlas = texture:GetAtlas()
@@ -227,7 +240,7 @@ local function ReadBar(bar, plate, level)
     local share = Usable(value, least, most) and most > least and (value - least) / (most - least) or nil
     return { x = x, y = y, w = width, h = height, file = file, atlas = atlas, coords = { fill:GetTexCoord() }, r = r, g = g,
         b = b, a = (Utils.IsUsableNumber(a) and a or 1) * alpha, layer = "ARTWORK", sublevel = 0,
-        level = level, bar = true, share = share }
+        level = level, bar = true, share = share, byClass = ByClass(r, g, b) }
 end
 
 local function ReadText(text, plate, level, first)
@@ -236,12 +249,13 @@ local function ReadText(text, plate, level, first)
         return Why("hidden")
     end
     local words = text:GetText()
-    if not Utils.IsUsableString(words) then
-        return Why("no words, or secret")
+    local secret = Utils.IsSecret(words)
+    if not secret and not Utils.IsUsableString(words) then
+        return Why("no words")
     end
-    local plain = words:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
-    local isName = first ~= nil and plain:find(first, 1, true) ~= nil
-    if not isName and not plain:match("^[%d%s%.,%%/%+%-%?kKmM]+$") then
+    local plain = not secret and words:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "") or nil
+    local isName = plain ~= nil and first ~= nil and plain:find(first, 1, true) ~= nil
+    if plain and not isName and not plain:match("^[%d%s%.,%%/%+%-%?kKmM]+$") then
         return Why("other words")
     end
     -- (words show even if nobody can say where: they go in the middle)
@@ -254,7 +268,7 @@ local function ReadText(text, plate, level, first)
     local shadowX, shadowY = Utils.Call(text.GetShadowOffset, text)
     local shadowR, shadowG, shadowB, shadowA = Utils.Call(text.GetShadowColor, text)
     return { x = x or 0, y = y or 0, w = width or 0, h = height or 0, text = true, name = isName or nil,
-        words = not isName and plain or nil, font = Utils.IsUsableString(font) and font or nil,
+        guess = secret or nil, byClass = ByClass(r, g, b), words = not isName and plain or nil, font = Utils.IsUsableString(font) and font or nil,
         size = Utils.IsUsableNumber(size) and size or nil, flags = Utils.IsUsableString(flags) and flags or nil,
         r = r, g = g, b = b, a = (Utils.IsUsableNumber(a) and a or 1) * alpha,
         layer = (Utils.Call(text.GetDrawLayer, text)), justify = (Utils.Call(text.GetJustifyH, text)),
@@ -319,6 +333,28 @@ local function SettleBars(pieces)
     end
 end
 
+-- Words the game keeps secret: with no name read, the biggest is the name. The rest can't be shown.
+local function SettleNames(pieces)
+    local best
+    local named = false
+    for _, piece in ipairs(pieces) do
+        named = named or piece.name == true
+        if piece.guess and (not best or (piece.size or 0) > (best.size or 0)) then
+            best = piece
+        end
+    end
+    if best and not named then
+        best.name = true
+    end
+    for index = #pieces, 1, -1 do
+        local piece = pieces[index]
+        if piece.guess and not piece.name then
+            table.remove(pieces, index)
+        end
+        piece.guess = nil
+    end
+end
+
 -- "friend" or "enemy", and whether it's a player; nothing for you, or a unit the game hides.
 local function KindOf(unit)
     if Utils.Call(UnitExists, unit) ~= true or Utils.Call(UnitIsUnit, unit, "player") == true or Utils.UnitHidden(unit) then
@@ -348,6 +384,9 @@ local function Read(unit)
     local first = Names.Unit(unit) or Utils.Call(UnitName, unit)
     local pieces = {}
     unplaced = 0
+    local _, class = Utils.Call(UnitClass, unit)
+    -- (raw: as the game has it, as a plate shows it)
+    theirColor = Utils.IsUsableString(class) and Utils.ClassColor(class, true) or nil
     -- (a frame that won't answer ends the walk, not the page)
     local ok, problem = pcall(Walk, plate, plate, HC.Plates.CrestOn(unit), 1, first, pieces)
     if not ok and trace then
@@ -355,6 +394,7 @@ local function Read(unit)
         trace.lastError = tostring(problem)
     end
     SettleBars(pieces)
+    SettleNames(pieces)
     return pieces
 end
 
@@ -469,7 +509,7 @@ end
 
 -- --- drawing it ----------------------------------------------------------------------------------
 
-local function PaintTexture(texture, piece, holder)
+local function PaintTexture(texture, piece, holder, classColor)
     if piece.atlas then
         texture:SetAtlas(piece.atlas)
     else
@@ -480,7 +520,8 @@ local function PaintTexture(texture, piece, holder)
     end
     texture:SetDrawLayer(piece.layer or "ARTWORK", piece.sublevel or 0)
     texture:SetBlendMode(piece.blend or "BLEND")
-    texture:SetVertexColor(piece.r, piece.g, piece.b, piece.a or 1)
+    local tint = piece.byClass and classColor or { piece.r, piece.g, piece.b }
+    texture:SetVertexColor(tint[1], tint[2], tint[3], piece.a or 1)
     texture:SetSize(piece.w, piece.h)
     texture:ClearAllPoints()
     texture:SetPoint("CENTER", holder, "CENTER", piece.x, piece.y)
@@ -488,13 +529,14 @@ local function PaintTexture(texture, piece, holder)
 end
 
 -- (the font first, on no words: letters set before a change of font can turn to boxes)
-local function PaintText(text, piece, holder, name)
+local function PaintText(text, piece, holder, name, nameColor, classColor)
     text:SetText("")
     if piece.font and piece.size and piece.size > 0 then
         pcall(text.SetFont, text, piece.font, piece.size, piece.flags or "")
     end
     text:SetDrawLayer(piece.layer or "OVERLAY")
-    text:SetTextColor(piece.r, piece.g, piece.b, piece.a or 1)
+    local tint = piece.name and nameColor or piece.byClass and classColor or { piece.r, piece.g, piece.b }
+    text:SetTextColor(tint[1], tint[2], tint[3], piece.a or 1)
     if piece.shadowX and piece.shadowY then
         text:SetShadowOffset(piece.shadowX, piece.shadowY)
     end
@@ -520,9 +562,10 @@ local function LevelOf(piece)
     return type(piece) == "table" and type(piece.level) == "number" and piece.level or 0
 end
 
--- Draws a copied look on `holder`, with `name` for the name on it. One frame per level, as on the plate,
--- so what lay on top still does; drawn again, it reuses what it made.
-function PlateLook.Draw(holder, look, name)
+-- Draws a copied look on `holder`, with `name` for the name on it. `nameColor` and `classColor`, if given,
+-- replace the copied player's: the sample isn't them. One frame per level, as on the plate, so what lay on
+-- top still does; drawn again, it reuses what it made.
+function PlateLook.Draw(holder, look, name, nameColor, classColor)
     holder.layers = holder.layers or {}
     for _, layer in ipairs(holder.layers) do
         for _, region in ipairs(layer.textures) do
@@ -563,7 +606,7 @@ function PlateLook.Draw(holder, look, name)
                     layer.texts[layer.usedTexts] = text
                 end
                 -- (a broken saved piece is one piece less)
-                pcall(PaintText, text, piece, holder, name)
+                pcall(PaintText, text, piece, holder, name, nameColor, classColor)
             else
                 layer.usedTextures = layer.usedTextures + 1
                 local texture = layer.textures[layer.usedTextures]
@@ -571,7 +614,7 @@ function PlateLook.Draw(holder, look, name)
                     texture = layer:CreateTexture(nil, "ARTWORK")
                     layer.textures[layer.usedTextures] = texture
                 end
-                pcall(PaintTexture, texture, piece, holder)
+                pcall(PaintTexture, texture, piece, holder, classColor)
             end
         end
     end

@@ -1696,6 +1696,8 @@ local sheepName = TextOn(page, "Grom Ashbrook")
 check(mine and mine:GetFont() == "Fonts\\FRIZQT__.TTF" and select(2, mine:GetFont()) == 14 and mine.anchors.CENTER.y == 28, "your name, on your friendly plate's copy")
 check(sheepName and sheepName.textColor[1] == 1 and sheepName.textColor[2] == 0.5, "a black sheep's on your enemy plate's copy")
 check(TextOn(page, "30%") ~= nil, "with what else it shows")
+local myColor = HC.Theme.Readable(HC.Utils.ClassColor(Mock.units.player.class))
+check(mine.textColor[1] == myColor[1] and mine.textColor[2] == myColor[2], "your name in your own color, not the copied player's")
 check(not TextOn(page, "Not seen yet: the plain look, until a player's plate is on screen."), "no hint: these are real")
 check(mine.parent.parent.scale == 1.5, "drawn bigger, as the crest is")
 -- drawn again: nothing piles up
@@ -1792,7 +1794,8 @@ function secretBar:GetWidth() return 120 end
 Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
 Mock.Advance(1)
 local secretLook = HC.PlateLook.Get("enemy")
-check(secretLook and #Pieces(secretLook, function(p) return p.name end) == 0, "a secret name is left out")
+local secretNames = Pieces(secretLook, function(p) return p.name end)
+check(secretLook and #secretNames == 1 and secretNames[1].size == 14 and secretNames[1].words == nil, "a secret name: its font and place count, the words never do")
 check(Pieces(secretLook, function(p) return p.bar end)[1].r == 0.3, "a secret color: the bar's own art's")
 Mock.units.nameplate1 = nil
 Mock.units.nameplate2 = { name = "Grom", surname = "Ashbrook", guid = "Unit-empty", class = "MAGE", faction = "Horde" }
@@ -1828,6 +1831,31 @@ HC.PlateLook.Scan()
 local fadedName = Pieces(HC.PlateLook.Get("friend"), function(p) return p.name end)
 check(#fadedName == 1 and fadedName[1].a == 0.5, "half faded: the name, half faded")
 Mock.units.nameplate6 = nil
+-- a bar in the copied player's class color: on the Cousin sample, in yours
+HeyCousinDB.plateLook = {}
+do
+    local theirs = HC.Utils.ClassColor("MAGE", true)
+    local plateOf, classBar = RealPlate("nameplate9", "Fern", "Ashbrook", "Alliance", false, nil, theirs)
+    Mock.units.player.class = "WARRIOR"
+    HC.PlateLook.Scan()
+    check(Pieces(HC.PlateLook.Get("friend"), function(p) return p.bar end)[1].byClass == true, "a bar in their class color is marked")
+    HC.Options.Show("plates")
+    local mineColor = HC.Utils.ClassColor("WARRIOR")
+    local function BarOn(root)
+        for _, region in ipairs(root.regions or {}) do
+            if region.w == 120 and region.h == 10 and region:IsVisible() then return region end
+        end
+        for _, child in ipairs(root.children or {}) do
+            local found = BarOn(child)
+            if found then return found end
+        end
+    end
+    local drawn = BarOn(_G.HeyCousinOptions)
+    check(drawn and drawn.color[1] == mineColor[1] and drawn.color[2] == mineColor[2], "and drawn in yours")
+    _G.HeyCousinOptions:Hide()
+    Mock.units.nameplate9 = nil
+    check(plateOf ~= nil and classBar ~= nil, "(the plate was real)")
+end
 -- the game won't measure a restricted part of a plate: it's placed by its anchors
 HeyCousinDB.plateLook = {}
 do

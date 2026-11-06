@@ -367,10 +367,13 @@ local function BuildPlates()
             local look = PlateLook.Get(kind)
             plain:SetShown(not look)
             holder:SetShown(look ~= nil)
-            if look then
-                PlateLook.Draw(holder, look, name)
-            end
             local nameOnly = not enemy and Utils.Call(GetCVar, "nameplateShowOnlyNameForFriendlyPlayerUnits") == "1"
+            local white = nameOnly and Utils.Call(GetCVar, "nameplateUseClassColorForFriendlyPlayerUnitNames") == "0"
+            local tint = white and { 1, 1, 1 } or Theme.Readable(color)
+            if look then
+                -- (a black sheep's stays as copied: nobody's class in particular)
+                PlateLook.Draw(holder, look, name, not enemy and tint or nil, not enemy and color or nil)
+            end
             back:SetShown(not nameOnly)
             bar:SetShown(not nameOnly)
             nameFrame:SetScale(nameOnly and PLATE_ZOOM or 1)
@@ -382,8 +385,6 @@ local function BuildPlates()
             else
                 shown:SetPoint("BOTTOM", bar, "TOP", 0, 4)
             end
-            local white = nameOnly and Utils.Call(GetCVar, "nameplateUseClassColorForFriendlyPlayerUnitNames") == "0"
-            local tint = white and { 1, 1, 1 } or Theme.Readable(color)
             shown:SetTextColor(tint[1], tint[2], tint[3])
             shown:SetText(name)
             hint:SetText(look and "" or L["Not seen yet: the plain look, until a player's plate is on screen."])

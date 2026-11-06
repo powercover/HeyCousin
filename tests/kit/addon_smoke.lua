@@ -741,6 +741,42 @@ Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:P:1429:5000:2500", "GUILD", "Mira As
 Mock.Advance(121)
 Mock.ShowMap(1429)
 check(#MapPins() == 0, "a cousin whose addon went quiet leaves the map")
+-- OpenMap's stitched map: a cousin in another zone shows past the edges of the map underneath, above its art
+local openMapStitched = true
+local openMapCalls = {}
+_G.OpenMapAPI = {
+    IsStitched = function() return openMapStitched end,
+    ArtTopLevel = function() return 5000 end,
+    WorldFromMap = function(map, x, y) openMapCalls[#openMapCalls + 1] = map; return 0.2 + x / 10, 0.4 + y / 10 end,
+    MapFromWorld = function(_, u, v) return (u - 0.2) * 10 + 1, (v - 0.4) * 10 end,
+}
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:P:1429:9000:2500", "GUILD", "Mira Ashbrook")
+Mock.ShowMap(1453)
+mapPins = MapPins()
+check(#mapPins == 1 and math.abs(mapPins[1].x - 1.9) < 0.001 and math.abs(mapPins[1].y - 0.25) < 0.001,
+    "on a stitched map, a cousin past the edges of the map underneath: " .. #mapPins .. " at " .. tostring(mapPins[1] and mapPins[1].x))
+check(openMapCalls[1] == 1429 and mapPins[1]:GetFrameLevel() == 5001, "from their own zone, above the stitched art")
+Mock.ShowMap(1429)
+mapPins = MapPins()
+check(#mapPins == 1 and mapPins[1].x == 0.9, "on their own zone's map as ever")
+openMapStitched = false
+Mock.ShowMap(1453)
+mapPins = MapPins()
+check(#mapPins == 0, "OpenMap's map turned off: the game's map rules again: " .. #mapPins .. " at " .. tostring(mapPins[1] and mapPins[1].x))
+_G.OpenMapAPI = { IsStitched = function() error("broken") end }
+Mock.ShowMap(1429)
+check(#MapPins() == 1, "a broken OpenMap doesn't take the crests away")
+_G.OpenMapAPI = nil
+-- /cousin test map: made-up cousins to see, where nobody shares yet
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:X", "GUILD", "Mira Ashbrook")
+SlashCmdList.HEYCOUSIN("test map")
+Mock.ShowMap(1429)
+mapPins = MapPins()
+-- (two around you, and the capital that's on this mock map; the other capital isn't)
+check(#mapPins == 3 and mapPins[1].spot.word == "Cousin", "/cousin test map shows made-up cousins around you: " .. #mapPins)
+Mock.Advance(121)
+Mock.ShowMap(1429)
+check(#MapPins() == 0, "and they leave after two minutes")
 WorldMapFrame:Hide()
 NoErrors(HC, "the family map")
 -- the guild master's words, from their addon (in two parts); a member's are not theirs to give

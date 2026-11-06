@@ -357,6 +357,8 @@ HC.Locale.Register("koKR", {
     ["your guild as a family tree"] = "내 길드를 가계도로 보기",
     ["your crest, alerts and look"] = "가문 문장, 알림, 테마",
     ["a pop-up to try"] = "팝업 미리 보기",
+    ["made-up cousins on your map, to try"] = "지도에 가상의 사촌 표시 (시험용)",
+    ["Made-up cousins are on your map for two minutes. Open it to see them."] = "2분 동안 지도에 가상의 사촌이 표시돼요. 지도를 열어 확인하세요.",
     ["the next look"] = "다음 테마",
     ["what the game tells the addon about you"] = "게임이 애드온에 알려 주는 내 정보",
     ["the launch-day name test (on or off)"] = "출시일 이름 테스트 (켜기/끄기)",

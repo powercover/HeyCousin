@@ -28,7 +28,8 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - **The family map**: the cousins in your guild who share where they are show as crests on the
   game's own world map, with their names. Sharing is off until you turn it on; it goes only to your
   guild (one faction), every few seconds while you move, never in a fight or a dungeon. It works
-  beside map addons that keep the game's map (Mapster, Leatrix Maps, TomTom, HandyNotes, Questie).
+  beside map addons that keep the game's map (Mapster, Leatrix Maps, TomTom, HandyNotes, Questie),
+  and on OpenMap's stitched map, across all its zones.
 - **The setup**: make your crest (shape, pattern, colors, a symbol, or roll the dice), write a
   motto, pick your alerts, the family map and your look; a guild master makes their guild a family.
 - **Three looks**: Forever (the classic game's parchment pages in stone frames, red buttons), Pixel
@@ -43,6 +44,7 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - `/cousin tree`: your guild as a family tree
 - `/cousin setup`: your crest, alerts and look
 - `/cousin test`: a pop-up to try
+- `/cousin test map`: made-up cousins on your map for two minutes, to try
 - `/cousin theme`: the next look
 - `/cousin status`: what the game tells the addon about you
 - `/cousin probe`: the name test: a short checklist that writes down how the game gives names to

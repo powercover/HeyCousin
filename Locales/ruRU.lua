@@ -351,6 +351,8 @@ HC.Locale.Register("ruRU", {
     ["your guild as a family tree"] = "твоя гильдия как семейное древо",
     ["your crest, alerts and look"] = "твой герб, оповещения и стиль",
     ["a pop-up to try"] = "пробное всплывающее окно",
+    ["made-up cousins on your map, to try"] = "выдуманные кузены на твоей карте, для пробы",
+    ["Made-up cousins are on your map for two minutes. Open it to see them."] = "Выдуманные кузены будут на твоей карте две минуты. Открой её, чтобы увидеть.",
     ["the next look"] = "следующий стиль",
     ["what the game tells the addon about you"] = "что игра сообщает аддону о тебе",
     ["the launch-day name test (on or off)"] = "проверка имён в день запуска (вкл./выкл.)",

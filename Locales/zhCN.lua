@@ -355,6 +355,8 @@ HC.Locale.Register("zhCN", {
     ["your guild as a family tree"] = "以家族树显示你的公会",
     ["your crest, alerts and look"] = "你的家徽、提醒和外观",
     ["a pop-up to try"] = "试看一次弹出提示",
+    ["made-up cousins on your map, to try"] = "在地图上显示虚构的表亲，试试看",
+    ["Made-up cousins are on your map for two minutes. Open it to see them."] = "虚构的表亲会在你的地图上显示两分钟。打开地图查看。",
     ["the next look"] = "换成下一个外观",
     ["what the game tells the addon about you"] = "游戏告诉插件关于你的哪些信息",
     ["the launch-day name test (on or off)"] = "开服当天的名字测试（开启或关闭）",

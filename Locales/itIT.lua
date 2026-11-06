@@ -357,6 +357,8 @@ HC.Locale.Register("itIT", {
     ["your guild as a family tree"] = "la tua gilda come albero genealogico",
     ["your crest, alerts and look"] = "il tuo stemma, gli avvisi e l'aspetto",
     ["a pop-up to try"] = "un pop-up di prova",
+    ["made-up cousins on your map, to try"] = "cugini inventati sulla tua mappa, da provare",
+    ["Made-up cousins are on your map for two minutes. Open it to see them."] = "Ci sono cugini inventati sulla tua mappa per due minuti. Aprila per vederli.",
     ["the next look"] = "l'aspetto successivo",
     ["what the game tells the addon about you"] = "cosa dice di te il gioco all'addon",
     ["the launch-day name test (on or off)"] = "il test dei nomi del giorno del lancio (attiva o disattiva)",

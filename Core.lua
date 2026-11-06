@@ -77,6 +77,7 @@ local function PrintHelp()
     Utils.Print("/cousin tree - " .. L["your guild as a family tree"])
     Utils.Print("/cousin setup - " .. L["your crest, alerts and look"])
     Utils.Print("/cousin test - " .. L["a pop-up to try"])
+    Utils.Print("/cousin test map - " .. L["made-up cousins on your map, to try"])
     Utils.Print("/cousin theme - " .. L["the next look"])
     Utils.Print("/cousin status - " .. L["what the game tells the addon about you"])
     Utils.Print("/cousin probe - " .. L["the launch-day name test (on or off)"])
@@ -97,6 +98,8 @@ local function HandleSlash(message)
         else
             HC.Alert.Preview()
         end
+    elseif command == "test map" then
+        HC.Map.Preview()
     elseif command == "theme" or command == "look" then
         HC.Theme.SetSkin(HC.Theme.Next(HC.Theme.Skin().key))
         Utils.Print(string.format(L["Look: %s"], HC.Theme.Skin().name))

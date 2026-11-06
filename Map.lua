@@ -159,11 +159,64 @@ local function MakeUp()
     end
 end
 
--- Where a spot falls on map `shown` (0 to 1 across and down): through the world's coordinates
--- when it's another map (a zone on its continent's map); nothing when it isn't on it.
+-- /cousin test map: made-up cousins on your real map for a while, to see the crests where nobody
+-- is sharing yet: around you, and in the two capitals (other zones, for the continent map and
+-- OpenMap's stitched map).
+local PREVIEW = {
+    { "Mira", "MAGE", 0.07, -0.06 }, { "Elowen", "PALADIN", -0.085, 0.02 },
+    { "Thane", "WARRIOR", 0.5, 0.5, 1454 }, { "Lia", "PRIEST", 0.5, 0.5, 1453 },
+}
+
+function Map.Preview()
+    local map = C_Map and Utils.Call(C_Map.GetBestMapForUnit, "player")
+    local x, y
+    if Utils.IsUsableNumber(map) then
+        x, y = Utils.Call(function()
+            return C_Map.GetPlayerMapPosition(map, "player"):GetXY()
+        end)
+    end
+    local surname = select(2, Names.Me())
+    for _, row in ipairs(PREVIEW) do
+        local first, class, a, b, capital = unpack(row)
+        local spot = capital and { map = capital, x = a, y = b }
+            or Utils.IsUsableNumber(map) and { map = map, x = math.min(0.98, math.max(0.02, (x or 0.5) + a)),
+                y = math.min(0.98, math.max(0.02, (y or 0.5) + b)) }
+        if spot then
+            local full = Names.Full(first, surname)
+            spot.at = GetTime()
+            spot.kin = { member = { first = first, full = full, class = class, level = 20 }, word = L["Cousin"] }
+            spots[full] = spot
+        end
+    end
+    Utils.Print(L["Made-up cousins are on your map for two minutes. Open it to see them."])
+    Map.Refresh()
+end
+
+-- OpenMap (an addon) shows one stitched world over the game's map, past the edges of the map
+-- underneath. Its API says where things fall on it, and how high its art reaches.
+local function OpenMap()
+    local api = _G.OpenMapAPI
+    if type(api) == "table" and type(api.IsStitched) == "function" and Utils.Call(api.IsStitched) == true then
+        return api
+    end
+end
+
+-- Where a spot falls on map `shown` (0 to 1 across and down, or past that on a stitched map):
+-- through the world's coordinates when it's another map (a zone on its continent's map); nothing
+-- when it isn't on it.
 local function Place(spot, shown)
     if spot.map == shown then
         return spot.x, spot.y
+    end
+    local stitched = OpenMap()
+    if stitched then
+        local u, v = Utils.Call(stitched.WorldFromMap, spot.map, spot.x, spot.y)
+        if Utils.IsUsableNumber(u) and Utils.IsUsableNumber(v) then
+            local x, y = Utils.Call(stitched.MapFromWorld, shown, u, v)
+            if Utils.IsUsableNumber(x) and Utils.IsUsableNumber(y) then
+                return x, y
+            end
+        end
     end
     if not (C_Map and C_Map.GetWorldPosFromMapPos and C_Map.GetMapPosFromWorldPos) or type(CreateVector2D) ~= "function" then
         return nil
@@ -271,8 +324,14 @@ function Map.Refresh()
         local surname = guildFamily and guildFamily.surname or select(2, Names.Me())
         local canvas = map:GetCanvas()
         local level = canvas:GetFrameLevel() + 100
+        -- above a stitched map's art
+        local stitched = OpenMap()
+        local artTop = stitched and Utils.Call(stitched.ArtTopLevel)
+        if Utils.IsUsableNumber(artTop) then
+            level = math.max(level, artTop + 1)
+        end
         for full, spot in pairs(spots) do
-            local kin = family[full]
+            local kin = spot.kin or family[full]
             if now - spot.at > FORGET then
                 spots[full] = nil
             elseif kin and not spot.away then
@@ -317,6 +376,11 @@ local function Hook()
     end)
     provider.OnCanvasScaleChanged = Utils.Protect("map zoom", Scale)
     WorldMapFrame:AddDataProvider(provider)
+    -- OpenMap's map on or off: the places change
+    local api = _G.OpenMapAPI
+    if type(api) == "table" and type(api.RegisterCallback) == "function" then
+        pcall(api.RegisterCallback, "HeyCousin", "OpenMap_StitchedChanged", refreshSoon)
+    end
 end
 
 -- --- events ------------------------------------------------------------------------------------

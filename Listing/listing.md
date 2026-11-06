@@ -38,6 +38,19 @@ They aren't game screenshots.
 The gallery's own order, best first: found, page, crests, looks, tree. The pop-ups aren't here: drawn in
 test mode, they all say so.
 
+### Gallery addresses
+
+As uploaded to CurseForge: [description-curseforge.md](description-curseforge.md) is `description.md` with these in
+place of the placeholders, without the animated crest at the top until it's uploaded too.
+
+| Placeholder | CurseForge |
+| --- | --- |
+| `IMAGE_FOUND` | https://media.forgecdn.net/attachments/2156/174/found-png.png |
+| `IMAGE_PAGE` | https://media.forgecdn.net/attachments/2156/175/page-png.png |
+| `IMAGE_CRESTS` | https://media.forgecdn.net/attachments/2156/176/crests-png.png |
+| `IMAGE_TREE` | https://media.forgecdn.net/attachments/2156/177/tree-png.png |
+| `IMAGE_LOOKS` | https://media.forgecdn.net/attachments/2156/178/looks-png.png |
+
 ### One picture to take in the game
 
 The store page should show the family map on the real game map, and only a screenshot can. Don't use

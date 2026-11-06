@@ -114,6 +114,15 @@ function Screens.lookup(skin)
     return { frames = { HeyCousinLookup } }
 end
 
+-- The family race
+function Screens.race(skin)
+    local HC = Boot(skin)
+    HC.Window.Show("stats")
+    HC.Window.Race(true)
+    HeyCousinWindow.badge:Hide()
+    return { frames = { HeyCousinWindow } }
+end
+
 -- Mira's page: every meeting, the one before the last in full
 function Screens.cousin(skin)
     local HC = Boot(skin)

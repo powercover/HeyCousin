@@ -35,6 +35,9 @@ local eldest
 -- the Recruit page, over the family's list
 local recruitPanel
 local groupsPanel
+-- the family race, over the stats
+local racePanel
+local racing = false
 local recruiting = false
 local ticker
 
@@ -544,9 +547,20 @@ local function BuildPage()
         HC.Layer.Ask(first, surname)
         Window.Refresh(true)
     end))
+    -- wave and say hello, while they're near enough to hear it
+    page.hey = Theme.Button(page, L["Hey cousin!"], "secondary", 100, 26)
+    page.hey:SetPoint("TOPRIGHT", 0, -112)
+    Theme.Fit(page.hey, 10, 90)
+    Theme.Tip(page.hey, L["Hey cousin!"], L["You wave and say hello, out loud."])
+    Theme.OnClick(page.hey, "hey cousin", function()
+        if page.first then
+            HC.Family.Hey(page.first, page.heyUnit)
+        end
+    end)
     -- every meeting, the newest first; a click shows it in full below
     page.heading = Theme.Text(page, "Headline")
     page.heading:SetPoint("TOPLEFT", 0, -118)
+    page.heading:SetPoint("RIGHT", page.hey, "LEFT", -8, 0)
     page.list = Theme.List(page, MEETING_ROW, NewMeetingRow, PaintMeetingRow)
     page.list:SetPoint("TOPLEFT", 0, -144)
     page.list:SetPoint("BOTTOMRIGHT", 0, DETAIL + 8)
@@ -612,6 +626,8 @@ local function PaintPage(keep)
         end
     end
     page.model:SetShown(live == true)
+    page.heyUnit = live and unit or nil
+    page.hey:SetShown(Kin.IsNear(opened) and not sheep)
     page.crest:SetShown(not live)
     if not live then
         page.crest:SetCrest(Kin.CrestOf(opened), surname, sheep)
@@ -708,6 +724,16 @@ local function BuildStats()
         nameRow.count:SetPoint("RIGHT", -6, 0)
         stats.nameRows[i] = nameRow
     end
+    Heading(L["Family race"], -340)
+    stats.raceLine = Theme.Text(stats, "Small", C.text2)
+    stats.raceLine:SetPoint("TOPLEFT", 2, -366)
+    stats.raceLine:SetPoint("RIGHT", stats, "RIGHT", -2, 0)
+    stats.raceButton = Theme.Button(stats, L["See the race"], "secondary", 120, 26)
+    stats.raceButton:SetPoint("TOPLEFT", 0, -386)
+    Theme.Fit(stats.raceButton, 12, 110)
+    Theme.OnClick(stats.raceButton, "family race", function()
+        Window.Race(true)
+    end)
 end
 
 local function PaintStats()
@@ -759,6 +785,7 @@ local function PaintStats()
             nameRow:Hide()
         end
     end
+    stats.raceLine:SetText(HC.Race.Line())
 end
 
 -- --- the window --------------------------------------------------------------------------------
@@ -837,7 +864,7 @@ local function Build()
 
     tabs = Theme.Tabs(window, { { key = "family", label = L["Family"] }, { key = "tree", label = L["Tree"] },
         { key = "groups", label = L["Groups"] }, { key = "stats", label = L["Stats"] } }, function()
-            recruiting = false
+            recruiting, racing = false, false
             Window.Refresh()
         end, 340, 30)
     tabs:SetPoint("TOPLEFT", PAD, -96)
@@ -887,6 +914,7 @@ local function Build()
     tree = HC.Tree.Build(window, PAD, LIST_TOP - 28, 42)
     recruitPanel = HC.Recruit.Build(window, PAD, LIST_TOP - 28, 42)
     groupsPanel = HC.Groups.Build(window, PAD, LIST_TOP - 28, 42)
+    racePanel = HC.Race.Build(window, PAD, LIST_TOP - 28, 42)
 
     -- the line along the bottom
     window.footer = Theme.Text(window, "Small", C.text3)
@@ -1022,11 +1050,16 @@ function Window.Refresh(keep)
     if onGroups then
         HC.Groups.Paint(keep)
     end
+    local onRace = onStats and racing
+    racePanel:SetShown(onRace)
+    if onRace then
+        HC.Race.Paint(keep)
+    end
     if not onList then
         list:Hide()
         empty:Hide()
-        stats:SetShown(onStats)
-        if onStats then
+        stats:SetShown(onStats and not racing)
+        if onStats and not racing then
             PaintStats()
         end
         return
@@ -1084,6 +1117,12 @@ function Window.Recruit(on)
     Window.Refresh(true)
 end
 
+-- The family race on, or back to the stats.
+function Window.Race(on)
+    racing = on == true
+    Window.Refresh(true)
+end
+
 -- Over the world map, which may fill the screen, until the window closes (a crest's click).
 function Window.Raise()
     if window then
@@ -1117,7 +1156,7 @@ Theme.OnSkin(function()
     local shown = window:IsShown()
     window:Hide()
     window, list, page, stats, empty, tree, tabs, search, header, recruitPanel = nil, nil, nil, nil, nil, nil, nil, nil, nil, nil
-    groupsPanel = nil
+    groupsPanel, racePanel = nil, nil
     if shown then
         Window.Show()
     end

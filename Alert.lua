@@ -11,7 +11,7 @@ local Kin = HC.Kin
 local L = HC.L
 local C = Theme.C
 
-local WIDTH, HEIGHT = 470, 92
+local WIDTH, HEIGHT = 560, 92
 local SHOW_FOR = 8      -- seconds on screen; pointing at it holds it
 local QUEUE_MAX = 5
 local STALE = 90        -- a waiting pop-up older than this is dropped
@@ -140,7 +140,6 @@ local function Build()
     toast.note:SetPoint("RIGHT", toast, "RIGHT", -16, 0)
     -- how many more wait, by the timer
     toast.more = Theme.Text(toast, "Small", C.text2)
-    toast.more:SetPoint("BOTTOMRIGHT", toast, "BOTTOMRIGHT", -14, 12)
 
     -- how long it stays: a thin line along the bottom that empties
     toast.timer = Theme.Texture(toast, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 3)
@@ -205,6 +204,20 @@ local function Build()
     Theme.OnClick(toast.close, "pop-up close", function()
         Alert.Dismiss()
     end)
+
+    -- wave and say hello: above the click that targets them
+    toast.hey = Theme.Button(toast, L["Hey cousin!"], "primary", 100, 26)
+    toast.hey:SetPoint("BOTTOMRIGHT", -12, 12)
+    Theme.Fit(toast.hey, 10, 90)
+    toast.hey:SetFrameLevel(click:GetFrameLevel() + 2)
+    Theme.Tip(toast.hey, L["Hey cousin!"], L["You wave and say hello, out loud."])
+    Theme.OnClick(toast.hey, "hey cousin", function()
+        if toast.item then
+            HC.Family.Hey(toast.item.first, toast.item.unit)
+        end
+    end)
+    toast.more:SetPoint("RIGHT", toast.hey, "LEFT", -8, 0)
+    toast.note:SetPoint("RIGHT", toast.hey, "LEFT", -8, 0)
 
     toast:SetScript("OnUpdate", Utils.Protect("pop-up timer", function(self, elapsed)
         if not self.hovered and not self.leaving then
@@ -291,6 +304,8 @@ local function Paint(item)
 
     toast.click:SetAttribute("macrotext1", "/cleartarget\n/targetexact " .. full)
     toast.more:SetText(#queue > 0 and ("+" .. #queue) or "")
+    -- (you can't wave at a preview of yourself, and a black sheep can't understand what you say)
+    toast.hey:SetShown(not item.preview and not sheep)
 end
 
 local function Present(item)

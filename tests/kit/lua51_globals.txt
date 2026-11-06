@@ -28,6 +28,7 @@ CreateFrame
 CreateFromMixins
 CreateVector2D
 DEFAULT_CHAT_FRAME
+DoEmote
 ERR_CHAT_PLAYER_NOT_FOUND_S
 Enum
 GameFontHighlight
@@ -85,6 +86,7 @@ PlaySoundFile
 RAID_CLASS_COLORS
 RegionalUniqueNamesEnabled
 ReloadUI
+SendChatMessage
 Settings
 SettingsPanel
 SlashCmdList

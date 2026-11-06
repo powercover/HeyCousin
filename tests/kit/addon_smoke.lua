@@ -1109,6 +1109,85 @@ check(Mock.Said("Family chat is off"), "and /fam says why")
 HeyCousinDB.familyChat = true
 NoErrors(HC, "family news and chat")
 
+-- "Hey cousin!": only from a click, and it says their name
+HC = Mock.Boot("forever", { setupDone = true })
+house = HC.Kin.House()
+Mock.units.nameplate8 = { name = "Fern", surname = "Ashbrook", guid = "Player-1-FERN", class = "DRUID", race = "NightElf",
+    level = 22, sex = 3, faction = "Alliance" }
+Mock.said, Mock.emotes = {}, {}
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate8")
+Settle()
+check(#Mock.said == 0 and #Mock.emotes == 0, "nothing is said by itself")
+local heyAlert = _G.HeyCousinAlert
+check(heyAlert:IsShown() and heyAlert.hey:IsVisible(), "the pop-up has the button")
+heyAlert.hey:Click()
+check(Mock.said[1] and Mock.said[1].text == "Hey cousin Fern!" and Mock.said[1].kind == "SAY", "a click says it out loud: " .. tostring(Mock.said[1] and Mock.said[1].text))
+check(Mock.emotes[1] and Mock.emotes[1].token == "WAVE" and Mock.emotes[1].unit == "nameplate8", "and waves at them")
+heyAlert.hey:Click()
+check(#Mock.said == 1, "a double click isn't two")
+-- their page has it while they're near, and not once they've gone
+HC.Window.ShowRelative("Fern")
+Settle()
+local heyPage = All(_G.HeyCousinWindow, function(f) return f.heyUnit ~= nil or f.hey ~= nil end)[1]
+check(heyPage and heyPage.hey:IsVisible(), "their page has it while they're near")
+Mock.Advance(11)
+heyPage.hey:Click()
+check(#Mock.said == 2 and Mock.emotes[2].unit == "nameplate8", "from the page, it waves at them too")
+Mock.Advance(11)
+Mock.units.nameplate8 = nil
+HC.Window.Refresh(true)
+heyPage.hey:Click()
+check(#Mock.said == 3 and Mock.emotes[3].unit == "none", "and at nobody once the game can't see them")
+Mock.Advance(200)
+HC.Window.Refresh(true)
+check(not heyPage.hey:IsVisible(), "gone from near you: no button")
+_G.HeyCousinWindow:Hide()
+HC.Alert.Dismiss()
+Settle()
+-- your own preview has no button
+HC.Alert.Preview()
+Settle()
+check(not heyAlert.hey:IsVisible(), "not on a preview of yourself")
+HC.Alert.Dismiss()
+Settle()
+NoErrors(HC, "hey cousin")
+
+-- the family race: you and those with the addon, by level
+HC = Mock.Boot("forever", { setupDone = true, houses = { Ashbrook = { relatives = {
+    Kit = { class = "MAGE", level = 30, usesAddon = true, faction = "Alliance", met = 0 },
+    Lia = { class = "PRIEST", level = 12, usesAddon = true, faction = "Alliance", met = 0 },
+    Bram = { class = "WARRIOR", level = 50, faction = "Alliance", met = 1 },
+    Sly = { class = "ROGUE", level = 55, usesAddon = true, faction = "Horde", met = 1 },
+} } } })
+house = HC.Kin.House()
+Mock.Fire("PLAYER_ENTERING_WORLD")
+Mock.Advance(60)
+local racers = HC.Race.List()
+check(#racers == 3 and racers[1].first == "Kit" and racers[2].first == "Rowan" and racers[2].me and racers[3].first == "Lia",
+    "the addon's cousins and you, by level; no others, no black sheep")
+SlashCmdList.HEYCOUSIN("race")
+Settle()
+local raceRows = All(_G.HeyCousinWindow, function(f) return f.rank ~= nil and f.item and f:IsVisible() end)
+check(#raceRows == 3, "a row each")
+local stayed = ButtonWith(_G.HeyCousinWindow, "See the race")
+check(stayed == nil, "the race is over the stats")
+HC.Window.Race(false)
+check(ButtonWith(_G.HeyCousinWindow, "See the race") ~= nil, "back on the stats, with the way to it")
+ButtonWith(_G.HeyCousinWindow, "See the race"):Click()
+check(ButtonWith(_G.HeyCousinWindow, "See the race") == nil, "the button opens it")
+ButtonWith(_G.HeyCousinWindow, "Family"):Click()
+ButtonWith(_G.HeyCousinWindow, "Stats"):Click()
+check(ButtonWith(_G.HeyCousinWindow, "See the race") ~= nil, "another tab leaves it")
+_G.HeyCousinWindow:Hide()
+-- being passed is news
+chatBefore = #Mock.chat
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:L:PRIEST:21:", "CHANNEL", "Lia Ashbrook", "", 0, 7, "HCashbrookA")
+check(Mock.chat[#Mock.chat]:find("Lia Ashbrook", 1, true) and Mock.chat[#Mock.chat]:find("just passed you", 1, true), "a cousin passes you: news")
+chatBefore = #Mock.chat
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:L:MAGE:31:", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+check(#Mock.chat == chatBefore, "one already ahead: no line")
+NoErrors(HC, "the family race")
+
 -- one switch for all the family's messages, both ways
 HC = Mock.Boot("forever", { setupDone = true })
 house = HC.Kin.House()

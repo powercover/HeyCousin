@@ -32,6 +32,8 @@ local NEWS_EVERY = 5
 -- lines about cousins (online, a new level, a group): this many a minute at most, so a big family
 -- doesn't fill your chat
 local LINES_MAX, LINES_SPAN = 3, 60
+-- "Hey cousin!" rests this long, so a double click isn't two
+local HEY_REST = 10
 -- family chat: this many letters at most (it has to fit an addon message), and one line a moment
 local WORDS_MAX = 50
 local WORDS_GAP = 0.5
@@ -44,6 +46,7 @@ local quietUntil = 0
 local answered = {}  -- [full name] = GetTime() of the last answer to their hello
 local levelled = false  -- you've levelled up: it goes with the next tick
 local linesFrom, linesCount = 0, 0
+local heyAt  -- GetTime() of your last "Hey cousin!"
 local spoke = {}  -- [first name] = GetTime() of their last line in family chat
 
 -- --- the channel -------------------------------------------------------------------------------
@@ -141,6 +144,22 @@ function Family.Tell(text)
     end
 end
 
+-- "Hey cousin Mira!": you wave and say it out loud, for everyone around. Only ever from a click of
+-- yours (`unit`: them, when the game can see them; you wave at nobody otherwise).
+function Family.Hey(first, unit)
+    if HC.TestMode.active then
+        Utils.Print(L["Test mode: made-up cousins can't hear you."])
+        return
+    end
+    local now = GetTime()
+    if heyAt and now - heyAt < HEY_REST then
+        return
+    end
+    heyAt = now
+    Utils.Call(DoEmote, "WAVE", unit or "none")
+    Utils.Call((C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage, string.format(L["Hey cousin %s!"], first), "SAY")
+end
+
 -- The channel's "joined" and "left" lines stay out of your chat.
 local function HideNotice(_, _, _, _, _, shown, _, _, _, _, base)
     local name = ChannelName()
@@ -224,6 +243,8 @@ local function Heard(text, sender)
         return
     end
     local wasOnline = Kin.IsOnline(member.first) or Kin.IsNear(member.first)
+    local house = Kin.House()
+    local before = house and house.relatives[member.first] and house.relatives[member.first].level
     class = class ~= "" and class or nil
     local relative = Kin.Seen({
         first = member.first, class = class, level = tonumber(level), faction = Utils.Call(UnitFactionGroup, "player"),
@@ -235,7 +256,10 @@ local function Heard(text, sender)
     end
     if kind == "L" then
         local color = Utils.ClassColor(relative.class, true)
-        if Family.NewsOn() and relative.level and relative.level % NEWS_EVERY == 0 then
+        local mine = Utils.Call(UnitLevel, "player") or 0
+        if Family.NewsOn() and relative.level and before and before <= mine and relative.level > mine then
+            Family.Tell(string.format(L["%s just passed you in the family race!"], Theme.Paint(member.full, color)))
+        elseif Family.NewsOn() and relative.level and relative.level % NEWS_EVERY == 0 then
             Family.Tell(string.format(L["%s reached level %d!"], Theme.Paint(member.full, color), relative.level))
         end
         return

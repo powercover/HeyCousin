@@ -374,6 +374,10 @@ local function Globals()
         RegisterAddOnCategory = function(category) Mock.optionsPage = category end,
     }
     function ReloadUI() Mock.reloads = (Mock.reloads or 0) + 1 end
+    -- saying and emoting (Mock.said, Mock.emotes)
+    Mock.said, Mock.emotes = {}, {}
+    function SendChatMessage(text, kind) table.insert(Mock.said, { text = text, kind = kind }) end
+    function DoEmote(token, unit) table.insert(Mock.emotes, { token = token, unit = unit }) end
 
     TooltipDataProcessor = { AddTooltipPostCall = function(kind, fn) Mock.postCalls[kind] = fn end }
     Enum = { TooltipDataType = { Unit = 2 },

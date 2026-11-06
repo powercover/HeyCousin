@@ -200,7 +200,7 @@ frame:SetScript("OnEvent", Utils.Protect("event", function(_, event, arg1)
             welcomed = true
             Utils.After(4, "welcome", function()
                 if not InCombatLockdown() and not HeyCousinDB.setupDone then
-                    HC.Setup.Show()
+                    HC.Setup.ShowFirst()
                 end
             end)
         end

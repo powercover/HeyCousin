@@ -43,6 +43,7 @@ check(minimap.badge.text.text == "13", "the minimap badge counts the made-up fam
 Mock.Advance(5)
 local setup = _G.HeyCousinSetup
 check(setup and setup:IsShown(), "the setup opens by itself the first time")
+check(HeyCousinDB.setupDone == true, "and counts as seen at once: it won't open by itself again")
 -- a frame with no place never shows in the game
 check(next(setup.anchors) ~= nil, "the setup has a place on screen")
 NoErrors(HC, "boot")
@@ -1686,6 +1687,34 @@ ButtonWith(guildPage, "Back"):Click()
 check(ButtonWith(guildPage, "Family").kind == "primary", "back on Family")
 guildPage:Hide()
 NoErrors(HC, "the settings in test mode")
+
+-- === The setup opens by itself once, however it's closed ======================================
+
+local firstSaved = {}
+HC = Mock.Boot("forever", firstSaved)
+Mock.Advance(5)
+check(_G.HeyCousinSetup:IsShown() and ButtonWith(_G.HeyCousinSetup, "Skip for now") ~= nil, "a first install: the setup, with Skip")
+-- closed with the X (Escape hides the window the same way)
+_G.HeyCousinSetup.close:Click()
+check(not _G.HeyCousinSetup:IsShown(), "the X closes it")
+HC = Mock.Boot("forever", HeyCousinDB, { name = "Hollis", surname = "Ashbrook", class = "MAGE", race = "Human", level = 5, sex = 2,
+    faction = "Alliance", guid = "Player-1-HOLLIS" })
+Mock.Advance(5)
+check(not (_G.HeyCousinSetup and _G.HeyCousinSetup:IsShown()), "after the X: not at the next login, not on another character")
+-- never closed at all: logged out with it open
+HC = Mock.Boot("forever", {})
+Mock.Advance(5)
+check(_G.HeyCousinSetup:IsShown(), "another first install")
+-- (logging out takes the old window with it, and nothing closes it first)
+_G.HeyCousinSetup = nil
+HC = Mock.Boot("forever", HeyCousinDB)
+Mock.Advance(5)
+check(not (_G.HeyCousinSetup and _G.HeyCousinSetup:IsShown()), "left open and logged out: not again")
+-- asked for, it still opens, with no Skip
+SlashCmdList.HEYCOUSIN("setup")
+check(_G.HeyCousinSetup:IsShown() and ButtonWith(_G.HeyCousinSetup, "Skip for now") == nil, "/cousin setup opens it any time, with no Skip")
+_G.HeyCousinSetup:Hide()
+NoErrors(HC, "the setup, once")
 
 -- === Broken saved data ========================================================================
 

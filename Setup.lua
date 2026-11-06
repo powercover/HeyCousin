@@ -30,6 +30,8 @@ local window, pages, page, editor
 -- are, and every step as it was when the setup opened. A new look builds the window again and keeps it.
 local session
 local rebuilding = false
+-- the setup opening by itself is starting (Setup.ShowFirst)
+local first = false
 
 local function Settings()
     return HeyCousinDB
@@ -196,7 +198,7 @@ local function ShowPage(index)
     local last = index == #pages
     window.back:SetShown(index > 1)
     -- the first time, the setup can wait; later the X closes it
-    window.skip:SetShown(index == 1 and not Settings().setupDone)
+    window.skip:SetShown(index == 1 and session.first == true)
     window.next:SetText(last and L["Done"] or L["Next"])
     Theme.SetArt(window.next.icon, Theme.Icon(last and "Check" or "ChevronRight"))
     Theme.Fit(window.next, 20, 110)
@@ -231,7 +233,6 @@ local function Reset()
 end
 
 local function Finish()
-    Settings().setupDone = true
     window:Hide()
     -- a first look at a cousin
     if HC.TestMode.active then
@@ -373,7 +374,6 @@ local function Build()
     Theme.Fit(window.reset, 16, 96)
     Theme.Tip(window.reset, L["Reset this step"], L["Back to how it was when you opened the setup."])
     Theme.OnClick(window.skip, "setup skip", function()
-        Settings().setupDone = true
         window:Hide()
     end)
     Theme.OnClick(window.back, "setup back", function()
@@ -403,7 +403,7 @@ local function Begin()
     local crest = Crest.Normalize(house and house.crest)
     local motto = house and house.motto or ""
     -- a first Forever house takes the crest made in test mode, if there is one
-    if not HC.TestMode.active and not Settings().setupDone and type(Settings().testCrest) == "table" then
+    if not HC.TestMode.active and first and type(Settings().testCrest) == "table" then
         crest = Crest.Normalize(Settings().testCrest)
         motto = type(Settings().testMotto) == "string" and Settings().testMotto or motto
     end
@@ -411,7 +411,7 @@ local function Begin()
     for _, key in ipairs(FAMILY_KEYS) do
         settings[key] = Utils.Copy(Settings()[key])
     end
-    session = { page = CREST, visited = {}, crest = crest, motto = motto,
+    session = { page = CREST, visited = {}, crest = crest, motto = motto, first = first,
         start = { crest = Utils.Copy(crest), motto = motto, settings = settings } }
 end
 
@@ -435,6 +435,15 @@ function Setup.Show(startPage)
     pages[FAMILY].Refresh()
     ShowPage(pages[startPage or session.page] and (startPage or session.page) or CREST)
     window:Show()
+end
+
+-- The one time the setup opens by itself. It counts as seen from here, however it's closed (X, Escape,
+-- a reload, logging out), and for every character on the account: it never opens by itself again.
+function Setup.ShowFirst()
+    Settings().setupDone = true
+    first = true
+    Setup.Show()
+    first = false
 end
 
 function Setup.Hide()

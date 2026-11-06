@@ -4,6 +4,8 @@
 ## Author: powercover
 ## Version: 1.0.0
 ## X-License: All Rights Reserved
+## X-Curse-Project-ID: 1787212
+## X-Wago-ID: O67b3PN3
 ## SavedVariables: HeyCousinDB
 ## AllowLoadGameType: camelot
 ## Category: Social

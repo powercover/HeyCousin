@@ -9,7 +9,7 @@ import os
 import sys
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageSequence
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..")
@@ -62,7 +62,10 @@ FACES = [
     ("Banner", (112, 62, 172), SILVER, "Crown"),
     ("Kite", (34, 134, 112), GOLD, "Key"),
 ]
-HOLD, FLIP, FPS = 22, 7, 20  # frames: each face holds, then turns
+# Frames: each face holds, then turns. Every frame lasts DELAY ms and every frame differs: CurseForge's
+# thumbnails give all frames the first one's delay, and a GIF merges equal frames into a longer one,
+# which made its loop three times slower.
+HOLD, FLIP, DELAY = 18, 6, 60
 
 
 def shine(img, at):
@@ -70,11 +73,13 @@ def shine(img, at):
     out = img.astype(float)
     ys, xs = np.mgrid[0:32, 0:32]
     road = xs + ys
-    middle = -10 + at * 84
-    band = np.clip(1 - np.abs(road - middle) / 5, 0, 1).round()
     # (not the black outline: light on it reads as specks around the crest)
     outline = (img[..., 0] == INK[0]) & (img[..., 1] == INK[1]) & (img[..., 2] == INK[2])
-    lit = (img[..., 3] > 0) & (band > 0) & ~outline
+    body = (img[..., 3] > 0) & ~outline
+    # (always on this crest, whatever its shape: no two frames alike)
+    middle = road[body].min() + at * (road[body].max() - road[body].min())
+    band = np.clip(1 - np.abs(road - middle) / 5, 0, 1).round()
+    lit = body & (band > 0)
     out[lit, :3] = out[lit, :3] * 0.5 + 255 * 0.5
     return out.astype(np.uint8)
 
@@ -122,9 +127,14 @@ def emblem():
         indexed.paste(255, alpha.point(lambda a: 255 if a < 128 else 0))
         indexed.info["transparency"] = 255
         out.append(indexed)
-    out[0].save(os.path.join(HERE, "emblem.gif"), save_all=True, append_images=out[1:], duration=1000 // FPS, loop=0,
-                disposal=2, transparency=255, optimize=False)
-    print("drew emblem.gif", size, len(out), "frames", os.path.getsize(os.path.join(HERE, "emblem.gif")) // 1024, "KB")
+    path = os.path.join(HERE, "emblem.gif")
+    out[0].save(path, save_all=True, append_images=out[1:], duration=DELAY, loop=0, disposal=2, transparency=255,
+                optimize=False)
+    saved = Image.open(path)
+    delays = [frame.info.get("duration") for frame in ImageSequence.Iterator(saved)]
+    assert len(delays) == len(out) and set(delays) == {DELAY}, "the frames must stay apart, all " + str(DELAY) + " ms"
+    print("drew emblem.gif", size, len(out), "frames at", DELAY, "ms,", sum(delays), "ms a loop,",
+          os.path.getsize(path) // 1024, "KB")
 
 
 def logos():

@@ -242,6 +242,30 @@ def looks_card():
     save(card, "looks.png", optimize=True)
 
 
+def map_card():
+    """The family map: wide, so it goes under the words."""
+    card = blank()
+    window = window_of(column("12-family-map.png", 1))
+    scale = min(1, 1500 / window.width, 980 / window.height)
+    size = (int(window.width * scale), int(window.height * scale))
+    words(card, "YOUR FAMILY ON THE MAP", "Cousins who share where they are, on the world map and the minimap. "
+          "Off until you turn it on. Never in a fight or a dungeon.", 400, W - MARGIN * 2 - size[0] - 90)
+    place(card, window, W - MARGIN - size[0], (H - size[1]) // 2, size)
+    save(card, "map.png", optimize=True)
+
+
+def hey_card():
+    """The pop-up, with its button: a short window, big."""
+    card = blank()
+    window = window_of(column("3b-hey.png", 1))
+    words(card, "HEY COUSIN!", "A pop-up when a cousin is near. One click and you wave and say it out loud, so everyone around sees it.",
+          330, W - MARGIN * 2)
+    width = W - MARGIN * 2
+    size = (width, int(window.height * width / window.width))
+    place(card, window, MARGIN, 640, size)
+    save(card, "hey.png", optimize=True)
+
+
 def main():
     emblem()
     # for a logo, which CurseForge shows small: a lighter file, the same 5.8 seconds a loop
@@ -256,6 +280,16 @@ def main():
     window_card("crests.png", "9-crests.png", "MAKE YOUR OWN CREST",
                 "Shape, pattern, colors and a symbol, or roll the dice. It shows in cousins' chat lines, in tooltips and on the minimap.")
     looks_card()
+    window_card("groups.png", "1e-groups.png", "FIND A GROUP IN THE FAMILY",
+                "Say what you're looking for. Cousins see it and click Join. That asks you, and the invite stays your click.")
+    window_card("race.png", "2bb-race.png", "THE FAMILY RACE",
+                "You and your cousins with the addon, by level. A line in chat tells you when one passes you.")
+    window_card("portrait.png", "2bc-portrait.png", "A FAMILY PORTRAIT",
+                "Your house on one card: crest, motto, numbers and the cousins you meet most. Made for a screenshot.")
+    window_card("nameplates.png", "5f-settings-plates.png", "SPOT A COUSIN IN A CROWD",
+                "Crests on your cousins' nameplates, made to work with any nameplate addon. Drag and resize the crest, and real plates follow.")
+    map_card()
+    hey_card()
 
 
 if __name__ == "__main__":

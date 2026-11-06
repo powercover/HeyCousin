@@ -114,9 +114,12 @@ function Screens.lookup(skin)
     return { frames = { HeyCousinLookup } }
 end
 
--- The family race
+-- The family race: a family that has all taken the addon
 function Screens.race(skin)
     local HC = Boot(skin)
+    for _, relative in pairs(HC.TestMode.House().relatives) do
+        relative.usesAddon = true
+    end
     HC.Window.Show("stats")
     HC.Window.Race(true)
     HeyCousinWindow.badge:Hide()
@@ -128,6 +131,15 @@ function Screens.portrait(skin)
     local HC = Boot(skin)
     HC.Portrait.Show()
     return { frames = { HeyCousinPortrait } }
+end
+
+-- a pop-up as a player sees it, for the store page: Forever, a cousin near you
+function Screens.heypop(skin)
+    local HC = Boot(skin, "forever", { houses = { Ashbrook = {} } })
+    local relative = { class = "MAGE", race = "Gnome", level = 23, sex = 3, faction = "Alliance", met = 1 }
+    HC.Kin.House().relatives.Mira = relative
+    HC.Alert.Show({ first = "Mira", relative = relative, new = false })
+    return { frames = { HeyCousinAlert } }
 end
 
 -- Mira's page: every meeting, the one before the last in full

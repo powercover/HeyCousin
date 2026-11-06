@@ -18,6 +18,8 @@ The game's `/who` shows your own faction and lists 50 people at most. If so many
 
 Cousins who share where they are show as crests on the world map, with their names, and on your minimap. Click one to open their page. It works beside addons that keep the game's map, like Questie and TomTom, and on **OpenMap**'s stitched map.
 
+![Your family on the map](IMAGE_MAP)
+
 **Sharing is off until you turn it on.** When it's on, your guild and anyone with your surname who runs Hey Cousin! can see where you are, every few seconds while you move. Never in a fight or a dungeon. The other faction's addon never joins your family's channel. Turn it off, and your crest leaves their maps at once.
 
 ## Your family, together
@@ -29,6 +31,8 @@ Cousins who have the addon find each other through a hidden family channel. They
 - **Hear the news:** a line in chat when a cousin comes online or reaches a round level.
 
 Your addon tells them your class, level and crest, and that you're online: nothing `/who` doesn't show, but that you run the addon. Each of these can be turned off in the settings, or all of them with one switch. The game's ignore list counts here too.
+
+![Find a group in the family](IMAGE_GROUPS)
 
 ## And for fun
 
@@ -44,6 +48,14 @@ Your addon tells them your class, level and crest, and that you're online: nothi
 - **Your other characters** show in your family, and a crown marks the eldest cousin we know, by a good guess.
 - **Look up a family.** Who's online with any surname, not only yours.
 - **Stats.** How many relatives you have, who you meet most, and the surnames you see most.
+
+![Hey cousin!](IMAGE_HEY)
+
+![Spot a cousin in a crowd](IMAGE_PLATES)
+
+![The family race](IMAGE_RACE)
+
+![A family portrait](IMAGE_PORTRAIT)
 
 ![Make your own crest](IMAGE_CRESTS)
 

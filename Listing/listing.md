@@ -8,7 +8,7 @@ What to fill in when creating the project on each site. Nothing in this folder s
 | --- | --- |
 | Name | Hey Cousin! |
 | URL slug (CurseForge) | `hey-cousin` |
-| Summary | One click finds everyone online with your surname in WoW Forever. Whisper, invite or join their layer, and see cousins who share on your map. |
+| Summary | One click finds everyone online with your surname in WoW Forever. Family chat, groups, a family map and crests on nameplates. |
 | Description | [description.md](description.md), as Markdown, with the image addresses filled in (see below) |
 | Logo | On CurseForge: [emblem-small.gif](emblem-small.gif), animated, and it works there. Its thumbnails give every frame the first frame's delay, so a logo needs the same delay on all frames. [logo.png](logo.png) and [logo-transparent.png](logo-transparent.png) are the still ones (1024 x 1024) |
 | License | All Rights Reserved |
@@ -35,14 +35,22 @@ They aren't game screenshots.
 | `IMAGE_CRESTS` | [crests.png](crests.png): some of the crests you can make |
 | `IMAGE_TREE` | [tree.png](tree.png): the Tree tab |
 | `IMAGE_LOOKS` | [looks.png](looks.png): the three looks side by side |
+| `IMAGE_MAP` | [map.png](map.png): the family map (a made-up map, drawn from the addon's own crests) |
+| `IMAGE_GROUPS` | [groups.png](groups.png): the Groups tab |
+| `IMAGE_HEY` | [hey.png](hey.png): the pop-up, with its "Hey cousin!" button |
+| `IMAGE_PLATES` | [nameplates.png](nameplates.png): the settings' sample nameplate |
+| `IMAGE_RACE` | [race.png](race.png): the family race |
+| `IMAGE_PORTRAIT` | [portrait.png](portrait.png): the family portrait |
 
-The gallery's own order, best first: found, page, crests, looks, tree. The pop-ups aren't here: drawn in
-test mode, they all say so.
+The gallery's own order, best first: found, map, hey, groups, nameplates, portrait, page, race, crests, looks,
+tree.
 
 ### Gallery addresses
 
 As uploaded to each site: [description-curseforge.md](description-curseforge.md) and [description-wago.md](description-wago.md) are
-`description.md` with these in place of the placeholders, without the animated crest at the top until it's uploaded too.
+`description.md` with these in place of the placeholders, and a picture with no address yet left out. The
+addresses live in [build_descriptions.py](build_descriptions.py): change them there and run it. The table below
+is the first upload's.
 
 | Placeholder | CurseForge | Wago |
 | --- | --- | --- |

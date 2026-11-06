@@ -482,9 +482,10 @@ local function BuildPage()
     page.met = Theme.Text(page, "Small", C.text3)
     page.met:SetPoint("TOPLEFT", page.line, "BOTTOMLEFT", 0, -5)
     page.met:SetPoint("RIGHT", page, "RIGHT", 0, 0)
-    -- the buttons, in a row under them, each as wide as its label
+    -- the buttons, in a row under them, each as wide as its label: from the page's left edge, as
+    -- the pixel font is wide
     page.whisper = Theme.Button(page, L["Whisper"], "secondary", 96, 30)
-    page.whisper:SetPoint("TOPLEFT", 36, -74)
+    page.whisper:SetPoint("TOPLEFT", 0, -74)
     Theme.ButtonIcon(page.whisper, "Whisper")
     page.invite = Theme.Button(page, L["Invite"], "secondary", 90, 30)
     page.invite:SetPoint("LEFT", page.whisper, "RIGHT", 6, 0)
@@ -561,7 +562,8 @@ local function PaintPage(keep)
     end
     page.line:SetText(table.concat(parts, "  ·  "))
     local met = relative.met or 0
-    local notMet = relative.found and L["Not met yet: found by searching"] or L["Not met yet: known from the guild"]
+    local notMet = relative.found and L["Not met yet: found by searching"]
+        or relative.shared and L["Not met yet: they share their place on the map"] or L["Not met yet: known from the guild"]
     local metText = met <= 0 and notMet or met == 1 and L["Met once"] or string.format(L["Met %d times"], met)
     if HC.Layer then
         HC.Layer.Query(opened, surname)
@@ -883,6 +885,7 @@ local function Build()
         search.edit:ClearFocus()
         -- a model drops while hidden: load it again next time
         page.modelFor = nil
+        window:SetFrameStrata("HIGH")
     end)
     tabs:Select("family")
 end
@@ -998,7 +1001,14 @@ function Window.Toggle()
     end
 end
 
--- Opens the family on one relative's page (the pop-up's right-click).
+-- Over the world map, which may fill the screen, until the window closes (a crest's click).
+function Window.Raise()
+    if window then
+        window:SetFrameStrata("FULLSCREEN_DIALOG")
+    end
+end
+
+-- Opens the family on one relative's page (the pop-up's right-click, a crest's click).
 function Window.ShowRelative(first)
     Window.Show("family")
     query = ""

@@ -284,9 +284,11 @@ HC.Locale.Register("zhCN", {
     ["Your family on the world map"] = "在世界地图上显示家族",
     ["Cousins who share where they are."] = "会分享位置的本家。",
     ["Where you are"] = "你的位置",
-    ["Share it with your guild"] = "分享给公会",
-    ["Your guild sees you move."] = "公会能看到你的行踪。",
-    ["Every few seconds while you move; never in a fight or a dungeon. A guild is one faction: the other side never sees you."] = "移动时每隔几秒更新一次；战斗中和地下城里不会分享。公会只有一个阵营：另一阵营永远看不到你。",
+    ["Share it with your family"] = "与家人共享",
+    ["Cousins and your guild see you move."] = "表亲和公会能看到你的位置。",
+    ["Every few seconds while you move; never in a fight or a dungeon. Anyone with your surname who runs Hey Cousin! can see you. The other faction can't."] = "移动时每隔几秒发送；战斗和副本中不发送。任何同姓并使用 Hey Cousin! 的人都能看到你。另一阵营看不到。",
+    ["Click to open their page"] = "点击打开其页面",
+    ["Not met yet: they share their place on the map"] = "尚未见过：正在共享地图位置",
     ["How it looks"] = "效果预览",
 
     -- The setup: your guild's family

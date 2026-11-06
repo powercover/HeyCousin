@@ -191,8 +191,8 @@ end
 
 -- A player with your surname was seen. `info`: first (their first name), class, level, race,
 -- sex, faction, guild, zone, guid, near (seen around you, not only heard of), quiet (learned,
--- not met: the guild roster, trade chat), online and found (a search found them), seenAt (when, if
--- not now), and for the meeting: how (nameplate, mouseover, target, group, say, whisper), group
+-- not met: the guild roster, trade chat), online and found (a search found them), shared (they share
+-- their place on the map), seenAt (when, if not now), and for the meeting: how (nameplate, mouseover, target, group, say, whisper), group
 -- (they're in yours), said. Returns the
 -- relative, whether you never met them before, and whether this counts as a new meeting.
 function Kin.Seen(info)
@@ -261,6 +261,9 @@ function Kin.Seen(info)
     end
     if info.found then
         relative.found = true
+    end
+    if info.shared then
+        relative.shared = true
     end
     Kin.Changed()
     return relative, new, meeting

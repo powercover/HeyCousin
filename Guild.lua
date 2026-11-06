@@ -338,11 +338,11 @@ local function Throttled(result)
 end
 
 -- A message to your guild's addons; false when the game held it back, to send again.
-local function Send(text)
+local function Send(text, channel, target)
     if not (C_ChatInfo and type(C_ChatInfo.SendAddonMessage) == "function") then
         return true
     end
-    local ok, result = pcall(C_ChatInfo.SendAddonMessage, PREFIX, text, "GUILD")
+    local ok, result = pcall(C_ChatInfo.SendAddonMessage, PREFIX, text, channel or "GUILD", target)
     return not (ok and Throttled(result))
 end
 

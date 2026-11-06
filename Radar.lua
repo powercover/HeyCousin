@@ -115,14 +115,15 @@ local function ReadRoster()
     if fighting or not Radar.running or type(GetGuildRosterInfo) ~= "function" then
         return
     end
-    local _, mine = Names.Me()
+    local me, mine = Names.Me()
     local guild = Utils.Call(GetGuildInfo, "player")
     local count = Utils.Call(GetNumGuildMembers) or 0
     local now = time()
     for i = 1, count do
         local full, _, _, level, _, zone, _, _, online, _, class, _, _, _, _, _, guid = GetGuildRosterInfo(i)
         local first, surname = Names.Split(full)
-        if first and Names.Same(surname, mine) and not Utils.IsSecret(full) then
+        -- (you're on the roster too: not your own cousin)
+        if first and Names.Same(surname, mine) and not Names.Same(first, me) and not Utils.IsSecret(full) then
             local seen
             if online then
                 seen = now

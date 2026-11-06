@@ -25,15 +25,16 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
   where most share one surname is a family by itself; its guild master can give the family a word
   for each rank (Elder, Parent, Cousin, or their own) and a welcome line, and every member who
   runs Hey Cousin! gets them by themselves.
-- **The family map**: the cousins in your guild who share where they are show as crests on the
-  game's own world map, with their names. Sharing is off until you turn it on; it goes only to your
-  guild (one faction), every few seconds while you move, never in a fight or a dungeon. It works
+- **The family map**: the cousins who share where they are show as crests on the game's own world
+  map, with their names; a click opens their page. Sharing is off until you turn it on; then your
+  guild and anyone with your surname who runs the addon can see you (your faction only, through a
+  hidden family channel), every few seconds while you move, never in a fight or a dungeon. It works
   beside map addons that keep the game's map (Mapster, Leatrix Maps, TomTom, HandyNotes, Questie),
   and on OpenMap's stitched map, across all its zones.
 - **The setup**: make your crest (shape, pattern, colors, a symbol, or roll the dice), write a
   motto, pick your alerts, the family map and your look; a guild master makes their guild a family.
-- **Three looks**: Forever (the classic game's parchment pages in stone frames, red buttons), Pixel
-  (chunky and cartoonish) and Smooth (dark and gold).
+- **Three looks**: Pixel (chunky and cartoonish), Forever (the classic game's parchment pages in
+  stone frames, red buttons) and Smooth (dark and gold).
 - **12 languages**: English, German, French, Italian, Spanish (Spain and Latin America), Brazilian
   Portuguese, Russian, Ukrainian, Korean, and Chinese (simplified and traditional).
 - **Test mode on Retail**: a made-up family, so you can try everything before WoW Forever opens.

@@ -286,9 +286,11 @@ HC.Locale.Register("koKR", {
     ["Your family on the world map"] = "세계 지도에 가족 표시",
     ["Cousins who share where they are."] = "위치를 공유하는 사촌이 보여요.",
     ["Where you are"] = "내 위치",
-    ["Share it with your guild"] = "길드와 공유",
-    ["Your guild sees you move."] = "길드원이 내 이동을 볼 수 있어요.",
-    ["Every few seconds while you move; never in a fight or a dungeon. A guild is one faction: the other side never sees you."] = "움직이는 동안 몇 초마다 공유해요. 전투 중이나 던전에서는 안 해요. 길드는 한 진영이라 다른 진영에는 절대 안 보여요.",
+    ["Share it with your family"] = "가족과 공유",
+    ["Cousins and your guild see you move."] = "사촌과 길드가 내 위치를 봐요.",
+    ["Every few seconds while you move; never in a fight or a dungeon. Anyone with your surname who runs Hey Cousin! can see you. The other faction can't."] = "이동 중 몇 초마다 공유돼요. 전투나 던전에서는 공유하지 않아요. 같은 성씨로 Hey Cousin!을 쓰는 사람은 누구나 볼 수 있어요. 상대 진영은 볼 수 없어요.",
+    ["Click to open their page"] = "클릭하면 페이지가 열려요",
+    ["Not met yet: they share their place on the map"] = "아직 못 만남: 지도에 위치를 공유 중",
     ["How it looks"] = "이렇게 보여요",
 
     -- The setup: your guild's family

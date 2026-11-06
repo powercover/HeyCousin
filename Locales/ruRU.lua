@@ -280,9 +280,11 @@ HC.Locale.Register("ruRU", {
     ["Your family on the world map"] = "Семья на карте мира",
     ["Cousins who share where they are."] = "Кузены, которые делятся местом.",
     ["Where you are"] = "Где ты",
-    ["Share it with your guild"] = "Показывать гильдии",
-    ["Your guild sees you move."] = "Гильдия видит твой путь.",
-    ["Every few seconds while you move; never in a fight or a dungeon. A guild is one faction: the other side never sees you."] = "Раз в несколько секунд, пока ты в пути; никогда в бою или подземелье. Гильдия — одна фракция: другая сторона тебя не увидит.",
+    ["Share it with your family"] = "Показывать семье",
+    ["Cousins and your guild see you move."] = "Кузены и гильдия видят твой путь.",
+    ["Every few seconds while you move; never in a fight or a dungeon. Anyone with your surname who runs Hey Cousin! can see you. The other faction can't."] = "Раз в несколько секунд, пока ты в пути; никогда в бою или подземелье. Тебя увидит любой с твоей фамилией и Hey Cousin!. Другая фракция не увидит.",
+    ["Click to open their page"] = "Нажми, чтобы открыть страницу",
+    ["Not met yet: they share their place on the map"] = "Ещё не встречались: делится местом на карте",
     ["How it looks"] = "Как это выглядит",
 
     -- The setup: your guild

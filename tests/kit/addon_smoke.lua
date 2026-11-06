@@ -34,9 +34,9 @@ end
 
 local HC = Mock.Boot("retail", nil)
 check(HC.IsForever == false and HC.TestMode.active == true, "Retail runs the test mode")
-check(HeyCousinDB.skin == "forever" and HeyCousinDB.setupDone == false, "defaults: the Forever look, no setup yet")
-check(HC.Theme.Skin().key == "forever" and HC.Theme.ORDER[2] == "pixel" and HC.Theme.ORDER[3] == "smooth",
-    "Forever is the look in use, then Pixel, then Smooth")
+check(HeyCousinDB.skin == "pixel" and HeyCousinDB.setupDone == false, "defaults: the Pixel look, no setup yet")
+check(HC.Theme.Skin().key == "pixel" and HC.Theme.ORDER[2] == "forever" and HC.Theme.ORDER[3] == "smooth",
+    "Pixel is the look in use, then Forever, then Smooth")
 local minimap = _G.HeyCousinMinimapButton
 check(minimap and minimap:IsShown(), "the minimap crest shows")
 check(minimap.badge.text.text == "13", "the minimap badge counts the made-up family: " .. tostring(minimap.badge.text.text))
@@ -51,7 +51,7 @@ NoErrors(HC, "boot")
 check(ButtonWith(setup, "Crest") and ButtonWith(setup, "Alerts") and ButtonWith(setup, "Crest").node.kind == "primary",
     "a step bar, on the first step")
 check(ButtonWith(setup, "Skip for now") ~= nil and ButtonWith(setup, "Back") == nil, "the first time: skip, no back")
-check(setup.look and setup.look.forward:IsVisible() and setup.look.name.text == "Forever", "the look on top of the step")
+check(setup.look and setup.look.forward:IsVisible() and setup.look.name.text == "Pixel", "the look on top of the step")
 check(not ButtonWith(setup, "Reset"):IsEnabled(), "nothing to reset yet")
 
 -- the crest page
@@ -87,7 +87,7 @@ check(type(HeyCousinDB.testCrest) == "table" and HeyCousinDB.testCrest.shape == 
 local made = HC.Crest.Normalize(big.crest)
 setup.look.forward:Click()
 NoErrors(HC, "look arrow")
-check(HC.Theme.Skin().key == "pixel" and HeyCousinDB.skin == "pixel", "the look arrow switches the look")
+check(HC.Theme.Skin().key == "forever" and HeyCousinDB.skin == "forever", "the look arrow switches the look")
 setup = _G.HeyCousinSetup
 big = Crest(setup, 160)
 motto = All(setup, function(f) return f.kind == "EditBox" and f:IsVisible() end)[1]
@@ -176,7 +176,7 @@ setup = _G.HeyCousinSetup
 setup.look.forward:Click()
 NoErrors(HC, "look arrows")
 setup = _G.HeyCousinSetup
-check(HC.Theme.Skin().key == "forever" and setup:IsShown() and ButtonWith(setup, "Done") ~= nil,
+check(HC.Theme.Skin().key == "pixel" and setup:IsShown() and ButtonWith(setup, "Done") ~= nil,
     "the setup comes back in each look, on the same step")
 Settle()
 local done = ButtonWith(setup, "Done")
@@ -307,7 +307,7 @@ NoErrors(HC, "the map in test mode")
 
 -- the next look, with the window open: it's built again in it
 SlashCmdList.HEYCOUSIN("theme")
-check(HC.Theme.Skin().key == "pixel", "/cousin theme goes to the next look")
+check(HC.Theme.Skin().key == "forever", "/cousin theme goes to the next look")
 window = _G.HeyCousinWindow
 check(window:IsShown(), "the open window comes back in the new look")
 Settle()
@@ -694,11 +694,13 @@ check(#treeBoxes == 5 and treeBoxes[1].line.text:find("Elder", 1, true) == 1, "t
 local function MapPins()
     return All(WorldMapFrame, function(f) return f.spot ~= nil and f:IsShown() end)
 end
+-- (no room for the family channel at first: your guild still hears you)
+Mock.channels, Mock.channelsFull = {}, true
 HeyCousinDB.mapShare = true
 local mapSent = #Mock.addonSent
 HC.Map.Apply()
 local where = Mock.addonSent[#Mock.addonSent]
-check(#Mock.addonSent == mapSent + 1 and where.channel == "GUILD" and where.text == "3:P:1429:4210:6530",
+check(#Mock.addonSent == mapSent + 1 and where.channel == "GUILD" and where.text == "3:P:1429:4210:6530:WARRIOR:20",
     "sharing: where you are goes to your guild's addons: " .. tostring(where.text))
 Mock.Advance(20)
 check(#Mock.addonSent == mapSent + 1, "standing still: nothing more for a while")
@@ -706,7 +708,7 @@ Mock.Advance(30)
 check(#Mock.addonSent == mapSent + 2, "then a word now and then, so you stay on their maps")
 Mock.x = 0.45
 Mock.Advance(5)
-check(Mock.addonSent[#Mock.addonSent].text == "3:P:1429:4500:6530", "a move goes in a moment")
+check(Mock.addonSent[#Mock.addonSent].text == "3:P:1429:4500:6530:WARRIOR:20", "a move goes in a moment")
 mapSent = #Mock.addonSent
 Mock.combat, Mock.x = true, 0.5
 Mock.Advance(10)
@@ -767,17 +769,97 @@ _G.OpenMapAPI = { IsStitched = function() error("broken") end }
 Mock.ShowMap(1429)
 check(#MapPins() == 1, "a broken OpenMap doesn't take the crests away")
 _G.OpenMapAPI = nil
+-- a crest's click opens that cousin's page, above the map
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:P:1429:5000:2500", "GUILD", "Mira Ashbrook")
+house.relatives.Mira = house.relatives.Mira or { class = "MAGE", met = 1, lastSeen = 0 }
+Mock.ShowMap(1429)
+mapPins = MapPins()
+_G.HeyCousinWindow:Hide()
+Mock.Run(mapPins[1], "OnMouseUp", "RightButton")
+check(not _G.HeyCousinWindow:IsShown(), "a right-click isn't for the crest")
+Mock.Run(mapPins[1], "OnMouseUp", "LeftButton")
+Settle()
+check(_G.HeyCousinWindow:IsShown() and _G.HeyCousinWindow.strata == "FULLSCREEN_DIALOG", "a click opens the window over the map")
+check(All(_G.HeyCousinWindow, function(f) return f.name and f.name.text == "Mira Ashbrook" and f.whisper and f:IsVisible() end)[1],
+    "on that cousin's page, with its buttons")
+_G.HeyCousinWindow:Hide()
+check(_G.HeyCousinWindow.strata == "HIGH", "closed: back where it belongs")
+-- the family channel: 15 seconds after you log in, so the game's own channels come first
+Mock.channelsFull = false
+HC.Map.Apply()
+check(Mock.channels.HCashbrookA == 7, "in your family's channel, for your surname and faction")
+HeyCousinDB.mapShare = true
+HC.Map.Apply()
+local onChannel
+for _, sentLine in ipairs(Mock.addonSent) do
+    if sentLine.channel == "CHANNEL" then onChannel = sentLine end
+end
+check(onChannel and onChannel.target == 7 and onChannel.text:find("^3:P:1429:%d+:%d+:%u+:%d+$"),
+    "sharing tells your family's channel, with your class and level: " .. tostring(onChannel and onChannel.text))
+HeyCousinDB.mapShare = false
+HC.Map.Apply()
+check(Mock.addonSent[#Mock.addonSent].channel == "CHANNEL" and Mock.addonSent[#Mock.addonSent].text == "3:X", "a stop reaches the channel too")
+-- a cousin outside your guild, who shares
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:P:1429:3000:3000:ROGUE:17", "CHANNEL", "Faraway Ashbrook", "", 0, 7, "HCashbrookA")
+check(house.relatives.Faraway and house.relatives.Faraway.class == "ROGUE" and house.relatives.Faraway.level == 17
+    and house.relatives.Faraway.met == 0 and house.relatives.Faraway.shared, "a cousin who shares joins your family, not met")
+check(HC.Kin.IsOnline("Faraway"), "and is online")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:P:1429:3000:3000:MAGE:9", "CHANNEL", "Sneaky Stranger", "", 0, 7, "HCashbrookA")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:P:1429:3000:3000:MAGE:9", "CHANNEL", "Other Ashbrook", "", 0, 3, "SomeOtherChannel")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:P:1429:3000:3000:MAGE:9", "CHANNEL", "Rowan Ashbrook", "", 0, 7, "HCashbrookA")
+check(house.relatives.Sneaky == nil and house.relatives.Other == nil and house.relatives.Rowan == nil,
+    "another surname, another channel and your own lines are left out")
+Mock.ShowMap(1429)
+mapPins = MapPins()
+local farawayPin
+for _, pin in ipairs(mapPins) do
+    if pin.spot.member.first == "Faraway" then farawayPin = pin end
+end
+check(farawayPin and farawayPin.spot.word == "Cousin" and #mapPins == 2, "their crest is on your map: " .. #mapPins)
+Mock.Run(farawayPin, "OnMouseUp", "LeftButton")
+Settle()
+check(All(_G.HeyCousinWindow, function(f) return f.name and f.name.text == "Faraway Ashbrook" and f.met
+    and f.met.text:find("share their place", 1, true) and f:IsVisible() end)[1], "and a click opens their page")
+_G.HeyCousinWindow:Hide()
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:X", "CHANNEL", "Faraway Ashbrook", "", 0, 7, "HCashbrookA")
+Mock.ShowMap(1429)
+check(#MapPins() == 1, "they stopped sharing: gone at once")
+-- showing nobody and sharing nothing: out of the channel
+HeyCousinDB.mapShow = false
+HC.Map.Apply()
+check(Mock.channels.HCashbrookA == nil, "the family map off: out of the channel")
+HeyCousinDB.mapShow = true
+HC.Map.Apply()
+check(Mock.channels.HCashbrookA == 7, "back on: in it again")
+local hideNotice = Mock.filters.CHAT_MSG_CHANNEL_NOTICE and Mock.filters.CHAT_MSG_CHANNEL_NOTICE[1]
+check(hideNotice and hideNotice(nil, "CHAT_MSG_CHANNEL_NOTICE", "YOU_CHANGED", "", "", "7. HCashbrookA", "", "", 0, 7, "HCashbrookA") == true,
+    "the channel's notices stay out of your chat")
+check(hideNotice(nil, "CHAT_MSG_CHANNEL_NOTICE", "YOU_CHANGED", "", "", "1. General", "", "", 0, 1, "General") == false, "the others' don't")
 -- /cousin test map: made-up cousins to see, where nobody shares yet
 Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:X", "GUILD", "Mira Ashbrook")
 SlashCmdList.HEYCOUSIN("test map")
 Mock.ShowMap(1429)
 mapPins = MapPins()
--- (two around you, and the capital that's on this mock map; the other capital isn't)
-check(#mapPins == 3 and mapPins[1].spot.word == "Cousin", "/cousin test map shows made-up cousins around you: " .. #mapPins)
+-- (cousins you know around you, and the capital that's on this mock map; the other capital isn't)
+check(#mapPins >= 2 and mapPins[1].spot.word == "Cousin", "/cousin test map shows cousins around you: " .. #mapPins)
+local previewReal, previewMade
+for _, pin in ipairs(mapPins) do
+    if pin.spot.madeUp then previewMade = pin else previewReal = pin end
+end
+check(previewReal and house.relatives[previewReal.spot.member.first], "a cousin you know, whose page a click opens")
+check(previewMade and previewMade.spot.member.first == "Lia" or previewMade == nil, "and a made-up one in the capital")
+local chatBefore = #Mock.chat
+if previewMade then
+    Mock.Run(previewMade, "OnMouseUp", "LeftButton")
+    check(#Mock.chat == chatBefore + 1 and not _G.HeyCousinWindow:IsShown(), "a made-up cousin has no page: it says so")
+end
 Mock.Advance(121)
 Mock.ShowMap(1429)
 check(#MapPins() == 0, "and they leave after two minutes")
 WorldMapFrame:Hide()
+-- (the tests below go on from the Tree tab)
+HC.Window.Show("tree")
+HC.Window.Open(nil)
 NoErrors(HC, "the family map")
 -- the guild master's words, from their addon (in two parts); a member's are not theirs to give
 local payload = "1~Ashbrook~Round.Fess.azure.argent.or.charge.Heart~^^Kid^Little cousin^^^^^^~Welcome home, cousin!~"
@@ -1012,7 +1094,7 @@ HC = Mock.Boot("forever", { skin = "nope", chats = "x", setupDone = true, window
 house = HC.Kin.House()
 check(house.crest.shape == "Heater" and house.crest.symbol == "initial" and type(house.relatives) == "table",
     "a broken saved house is mended")
-check(HC.Theme.Skin().key == "forever", "an unknown look falls back to Forever")
+check(HC.Theme.Skin().key == "pixel", "an unknown look falls back to Pixel")
 SlashCmdList.HEYCOUSIN("")
 Settle()
 SlashCmdList.HEYCOUSIN("setup")

@@ -1,10 +1,11 @@
 local _, HC = ...
 
--- The family map: the cousins in your guild who share where they are show as crests on the
--- game's own world map, beside its quest marks. Sharing is yours to turn on (the setup's Map
--- step): your addon tells your guild's addons where you are every few seconds while you move,
--- never in a fight or a dungeon. A guild is one faction, so the other side never sees you. The
--- crests change only while the map is open, and nothing runs every frame.
+-- The family map: the cousins who share where they are show as crests on the game's own world
+-- map, beside its quest marks. Sharing is yours to turn on (the setup's Map step): your addon tells
+-- your guild's addons and your family's channel where you are every few seconds while you move,
+-- never in a fight or a dungeon. The family channel is a hidden chat channel for one surname and one
+-- faction, so the other side's addon never joins it. The crests change only while the map is open,
+-- and nothing runs every frame.
 HC.Map = {}
 
 local Map = HC.Map
@@ -23,6 +24,10 @@ local LOOK_GAP, STILL_GAP = 5, 45
 local FORGET = 120
 -- a move worth telling: this share of the map
 local MOVED = 0.002
+-- the family channel waits this long after you log in, so the game's own channels keep /1, /2...
+local JOIN_WAIT = 15
+-- a cousin who shares is noted in your family this often, not on every move
+local LEARN_GAP = 60
 -- a crest's size on the map, whatever the zoom
 local PIN = 24
 local WHITE = "Interface\\Buttons\\WHITE8X8"
@@ -34,12 +39,78 @@ local ticker
 local provider    -- the addon's crests on the game's world map
 local pins = {}
 local madeUp      -- test mode: the made-up cousins online stand around you
+local channelReady = false -- the wait after you log in is over
+local learned = {} -- [full name] = GetTime() of the last time a cousin who shares was noted
+
+-- --- the family channel -------------------------------------------------------------------------
+
+-- Your family's channel: one for your surname and your faction.
+local function ChannelName()
+    local _, surname = Names.Me()
+    local faction = Utils.Call(UnitFactionGroup, "player")
+    if not Utils.IsUsableString(surname) or (faction ~= "Horde" and faction ~= "Alliance") then
+        return nil
+    end
+    return "HC" .. surname:lower() .. faction:sub(1, 1)
+end
+
+-- The channel's number once you're in it, and its name.
+local function Channel()
+    local name = ChannelName()
+    local id = name and Utils.Call(GetChannelName, name)
+    return Utils.IsUsableNumber(id) and id > 0 and id or nil, name
+end
+
+-- In it while you show cousins on your map or share with them; a full channel list means no
+-- channel, and the guild still hears you.
+local function KeepChannel()
+    if not channelReady then
+        return
+    end
+    local id, name = Channel()
+    if not name then
+        return
+    end
+    local wanted = HeyCousinDB.mapShow ~= false or HeyCousinDB.mapShare == true
+    if wanted and not id then
+        Utils.Call(JoinTemporaryChannel, name)
+    elseif id and not wanted then
+        Utils.Call(LeaveChannelByName, name)
+    end
+end
+
+-- The channel's "joined" and "left" lines stay out of your chat.
+local function HideNotice(_, _, _, _, _, shown, _, _, _, _, base)
+    local name = ChannelName()
+    if not name then
+        return false
+    end
+    for _, text in ipairs({ shown or "", base or "" }) do
+        if Utils.IsUsableString(text) and text:lower():find(name:lower(), 1, true) then
+            return true
+        end
+    end
+    return false
+end
 
 -- --- sharing where you are ---------------------------------------------------------------------
 
--- Whether your addon shares where you are: you turned it on, on Forever, in a guild.
+-- Whether your addon shares where you are: you turned it on, on Forever.
 local function Sharing()
-    return HeyCousinDB.mapShare == true and Names.HaveSurnames() and HC.Guild.Mine() ~= nil
+    return HeyCousinDB.mapShare == true and Names.HaveSurnames()
+end
+
+-- Tells your guild and your family's channel; whether either took it.
+local function Tell(text)
+    local told = false
+    if HC.Guild.Mine() ~= nil then
+        told = HC.Guild.Send(text)
+    end
+    local id = Channel()
+    if id then
+        told = HC.Guild.Send(text, "CHANNEL", id) or told
+    end
+    return told
 end
 
 -- Your map and your place on it (0 to 1 across and down); `away` in a dungeon, where the game
@@ -62,7 +133,8 @@ local function Where()
     return map, false, x, y
 end
 
--- Tells your guild's addons where you are, when you moved (or, standing still, now and then).
+-- Tells your cousins where you are, when you moved (or, standing still, now and then), with your
+-- class and level: a cousin outside your guild may know nothing else about you.
 local function Look()
     if not Sharing() or Utils.Call(InCombatLockdown) == true then
         return
@@ -70,7 +142,7 @@ local function Look()
     local map, away, x, y = Where()
     local now = GetTime()
     if away then
-        if not sent.away and HC.Guild.Send("3:D") then
+        if not sent.away and Tell("3:D") then
             sent = { away = true, at = now }
         end
         return
@@ -79,9 +151,13 @@ local function Look()
         return
     end
     local moved = map ~= sent.map or math.abs(x - sent.x) >= MOVED or math.abs(y - sent.y) >= MOVED
-    if (moved or now - sent.at >= STILL_GAP)
-        and HC.Guild.Send(string.format("3:P:%d:%d:%d", map, math.floor(x * 10000 + 0.5), math.floor(y * 10000 + 0.5))) then
-        sent = { map = map, x = x, y = y, at = now }
+    if moved or now - sent.at >= STILL_GAP then
+        local _, class = Utils.Call(UnitClass, "player")
+        local text = string.format("3:P:%d:%d:%d:%s:%d", map, math.floor(x * 10000 + 0.5), math.floor(y * 10000 + 0.5),
+            Utils.IsUsableString(class) and class or "", Utils.Call(UnitLevel, "player") or 0)
+        if Tell(text) then
+            sent = { map = map, x = x, y = y, at = now }
+        end
     end
 end
 
@@ -95,9 +171,12 @@ function Map.Apply()
         ticker:Cancel()
         ticker = nil
         if sent.at then
-            HC.Guild.Send("3:X")
+            Tell("3:X")
         end
         sent = {}
+    end
+    if Names.HaveSurnames() then
+        KeepChannel()
     end
     Map.Refresh()
 end
@@ -108,23 +187,53 @@ local refreshSoon = Utils.Debounce(0.5, "map crests", function()
     Map.Refresh()
 end)
 
-local function Heard(text, sender)
+-- Who a line on the family channel is from: a cousin with your surname, not you, nobody else.
+local function Cousin(sender)
+    local first, surname = Names.Split(sender)
+    local me, mine = Names.Me()
+    if not first or not Names.Same(surname, mine) or Names.Same(first, me) then
+        return nil
+    end
+    return { first = first, surname = surname, full = Names.Full(first, surname) }
+end
+
+-- A cousin who shares joins your family, learned, not met.
+local function Learn(member, map)
+    local now = GetTime()
+    if learned[member.full] and now - learned[member.full] < LEARN_GAP then
+        return
+    end
+    learned[member.full] = now
+    local info = C_Map and Utils.Call(C_Map.GetMapInfo, map)
+    Kin.Seen({
+        first = member.first, class = member.class, level = member.level, zone = type(info) == "table" and info.name or nil,
+        faction = Utils.Call(UnitFactionGroup, "player"), quiet = true, online = true, shared = true,
+    })
+end
+
+local function Heard(text, sender, onChannel)
     if not Utils.IsUsableString(text) then
         return
     end
     local kind, rest = text:match("^3:(%a)(.*)$")
-    -- only your guild's members (and not your own, coming back)
-    local member = kind and HC.Guild.Sender(sender)
+    -- only your guild's members or your family (and not your own, coming back)
+    local member = kind and (onChannel and Cousin(sender) or not onChannel and HC.Guild.Sender(sender))
     if not member or member.me then
         return
     end
     if kind == "P" then
-        local map, x, y = rest:match("^:(%d+):(%d+):(%d+)$")
+        local map, x, y, class, level = rest:match("^:(%d+):(%d+):(%d+):?(%u*):?(%d*)$")
         map, x, y = tonumber(map), tonumber(x), tonumber(y)
         if not map or x > 10000 or y > 10000 then
             return
         end
-        spots[member.full] = { map = map, x = x / 10000, y = y / 10000, at = GetTime() }
+        local spot = { map = map, x = x / 10000, y = y / 10000, at = GetTime() }
+        if onChannel then
+            member.class, member.level = class ~= "" and class or nil, tonumber(level)
+            spot.cousin = member
+            Learn(member, map)
+        end
+        spots[member.full] = spot
     elseif kind == "D" then
         spots[member.full] = { away = true, at = GetTime() }
     elseif kind == "X" then
@@ -159,9 +268,9 @@ local function MakeUp()
     end
 end
 
--- /cousin test map: made-up cousins on your real map for a while, to see the crests where nobody
--- is sharing yet: around you, and in the two capitals (other zones, for the continent map and
--- OpenMap's stitched map).
+-- /cousin test map: cousins on your real map for a while, to see the crests where nobody is
+-- sharing yet: around you (cousins you know, so a click opens a real page; made up without any), and
+-- in the two capitals (other zones, for the continent map and OpenMap's stitched map).
 local PREVIEW = {
     { "Mira", "MAGE", 0.07, -0.06 }, { "Elowen", "PALADIN", -0.085, 0.02 },
     { "Thane", "WARRIOR", 0.5, 0.5, 1454 }, { "Lia", "PRIEST", 0.5, 0.5, 1453 },
@@ -176,15 +285,21 @@ function Map.Preview()
         end)
     end
     local surname = select(2, Names.Me())
-    for _, row in ipairs(PREVIEW) do
+    local known = Kin.List()
+    for index, row in ipairs(PREVIEW) do
         local first, class, a, b, capital = unpack(row)
+        local real = not capital and known[index]
+        if real then
+            first, class = real.first, real.relative.class
+        end
         local spot = capital and { map = capital, x = a, y = b }
             or Utils.IsUsableNumber(map) and { map = map, x = math.min(0.98, math.max(0.02, (x or 0.5) + a)),
                 y = math.min(0.98, math.max(0.02, (y or 0.5) + b)) }
         if spot then
             local full = Names.Full(first, surname)
             spot.at = GetTime()
-            spot.kin = { member = { first = first, full = full, class = class, level = 20 }, word = L["Cousin"] }
+            spot.kin = { member = { first = first, full = full, class = class, level = real and real.relative.level or 20 },
+                word = L["Cousin"], madeUp = not real }
             spots[full] = spot
         end
     end
@@ -264,7 +379,32 @@ local function Tip(pin)
         parts[#parts + 1] = string.format(L["Level %d %s"], member.level, className)
     end
     GameTooltip:AddLine(table.concat(parts, "  ·  "), C.tip2[1], C.tip2[2], C.tip2[3])
+    if not spot.madeUp then
+        GameTooltip:AddLine(L["Click to open their page"], C.tip3[1], C.tip3[2], C.tip3[3])
+    end
     GameTooltip:Show()
+end
+
+-- A click on a crest: that cousin's page; someone only in your guild (another surname, or not known
+-- yet): the Tree tab, where they are.
+local function OpenPage(pin, button)
+    local spot = pin.spot
+    if not spot or button ~= "LeftButton" then
+        return
+    end
+    if spot.madeUp then
+        Utils.Print(L["Test mode: made-up cousins can't hear you."])
+        return
+    end
+    local member = spot.member
+    local house, surname = Kin.House()
+    GameTooltip:Hide()
+    if house and house.relatives[member.first] and (member.surname == nil or Names.Same(member.surname, surname)) then
+        HC.Window.ShowRelative(member.first)
+    else
+        HC.Window.Show("tree")
+    end
+    HC.Window.Raise()
 end
 
 local function NewPin(canvas)
@@ -285,6 +425,7 @@ local function NewPin(canvas)
     pin:SetScript("OnLeave", function()
         GameTooltip:Hide()
     end)
+    pin:SetScript("OnMouseUp", Utils.Protect("map crest", OpenPage))
     return pin
 end
 
@@ -306,7 +447,7 @@ local function Scale()
     end
 end
 
--- Puts a crest on the open map for each cousin in your guild whose addon told where they are.
+-- Puts a crest on the open map for each cousin whose addon told where they are.
 function Map.Refresh()
     local map = provider and provider:GetMap()
     if not map or not map:IsShown() then
@@ -331,7 +472,7 @@ function Map.Refresh()
             level = math.max(level, artTop + 1)
         end
         for full, spot in pairs(spots) do
-            local kin = spot.kin or family[full]
+            local kin = spot.kin or family[full] or (spot.cousin and { member = spot.cousin, word = L["Cousin"] })
             if now - spot.at > FORGET then
                 spots[full] = nil
             elseif kin and not spot.away then
@@ -340,9 +481,14 @@ function Map.Refresh()
                     count = count + 1
                     local pin = pins[count] or NewPin(canvas)
                     pins[count] = pin
-                    pin.spot, pin.x, pin.y = { member = kin.member, word = kin.word }, x, y
+                    pin.spot, pin.x, pin.y = { member = kin.member, word = kin.word, madeUp = kin.madeUp }, x, y
                     pin:SetFrameLevel(level)
-                    pin.crest:SetCrest(crest, surname)
+                    -- the guild's crest for its family; your house's for the cousins beyond it
+                    if family[full] then
+                        pin.crest:SetCrest(crest, surname)
+                    else
+                        pin.crest:SetCrest(Kin.Crest(), select(2, Names.Me()))
+                    end
                     local color = Utils.ClassColor(kin.member.class, true)
                     pin.bar:SetVertexColor(color[1], color[2], color[3])
                     pin.name:SetText(kin.member.first or full)
@@ -387,9 +533,15 @@ end
 
 frame:SetScript("OnEvent", Utils.Protect("map", function(_, event, ...)
     if event == "CHAT_MSG_ADDON" then
-        local prefix, text, channel, sender = ...
+        local prefix, text, channel, sender, _, _, localID, channelName = ...
         if prefix == PREFIX and channel == "GUILD" then
-            Heard(text, sender)
+            Heard(text, sender, false)
+        elseif prefix == PREFIX and channel == "CHANNEL" then
+            -- only your family's channel
+            local id, name = Channel()
+            if name and ((id and localID == id) or channelName == name) then
+                Heard(text, sender, true)
+            end
         end
     elseif event == "ADDON_LOADED" then
         if (...) == "Blizzard_WorldMap" then
@@ -398,6 +550,13 @@ frame:SetScript("OnEvent", Utils.Protect("map", function(_, event, ...)
     elseif event == "PLAYER_ENTERING_WORLD" then
         -- after a loading screen, where you are is told again
         sent = {}
+        if not channelReady and not frame.joining then
+            frame.joining = true
+            Utils.After(JOIN_WAIT, "family channel", function()
+                channelReady = true
+                Map.Apply()
+            end)
+        end
     else
         Map.Apply()
     end
@@ -410,6 +569,18 @@ function Map.Start()
     if Names.HaveSurnames() then
         for _, event in ipairs({ "CHAT_MSG_ADDON", "PLAYER_GUILD_UPDATE", "GUILD_ROSTER_UPDATE", "PLAYER_ENTERING_WORLD" }) do
             frame:RegisterEvent(event)
+        end
+        local add = (ChatFrameUtil and ChatFrameUtil.AddMessageEventFilter) or ChatFrame_AddMessageEventFilter
+        if type(add) == "function" then
+            local filter = Utils.Protect("family channel", HideNotice)
+            for _, event in ipairs({ "CHAT_MSG_CHANNEL_NOTICE", "CHAT_MSG_CHANNEL_NOTICE_USER" }) do
+                -- through securecall, as the chat crests are
+                if type(securecall) == "function" then
+                    securecall(add, event, filter)
+                else
+                    add(event, filter)
+                end
+            end
         end
         Map.Apply()
     end

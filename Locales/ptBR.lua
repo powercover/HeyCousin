@@ -287,9 +287,11 @@ HC.Locale.Register("ptBR", {
     ["Your family on the world map"] = "Sua família no mapa-múndi",
     ["Cousins who share where they are."] = "Primos que mostram onde estão.",
     ["Where you are"] = "Onde você está",
-    ["Share it with your guild"] = "Compartilhar com a guilda",
-    ["Your guild sees you move."] = "Sua guilda vê você se mover.",
-    ["Every few seconds while you move; never in a fight or a dungeon. A guild is one faction: the other side never sees you."] = "A cada poucos segundos enquanto você anda; nunca em combate nem em masmorras. Uma guilda é de uma facção só: o outro lado nunca vê você.",
+    ["Share it with your family"] = "Compartilhar com a família",
+    ["Cousins and your guild see you move."] = "Primos e sua guilda veem você.",
+    ["Every few seconds while you move; never in a fight or a dungeon. Anyone with your surname who runs Hey Cousin! can see you. The other faction can't."] = "A cada poucos segundos enquanto você anda; nunca em combate ou masmorra. Quem tem seu sobrenome e usa Hey Cousin! pode ver você. A outra facção não.",
+    ["Click to open their page"] = "Clique para abrir a página",
+    ["Not met yet: they share their place on the map"] = "Ainda não encontrado: compartilha o local no mapa",
     ["How it looks"] = "Como fica",
 
     -- The setup: your guild

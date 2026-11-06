@@ -365,7 +365,8 @@ local function Globals()
         -- (Mock.throttle: how many messages the game holds back, as when a prefix sends too many)
         SendAddonMessage = function(prefix, text, channel, target)
             assert(type(text) == "string" and #text <= 255, "an addon message is 255 bytes at most")
-            assert(channel == "GUILD" or (type(target) == "string" and channel == "WHISPER"))
+            assert(channel == "GUILD" or (type(target) == "string" and channel == "WHISPER")
+                or (type(target) == "number" and channel == "CHANNEL"))
             if Mock.throttle > 0 then
                 Mock.throttle = Mock.throttle - 1
                 return Enum.SendAddonMessageResult.AddonMessageThrottle
@@ -375,6 +376,13 @@ local function Globals()
         end,
     }
     C_PartyInfo = { InviteUnit = function(name) table.insert(Mock.invites, name) end }
+    -- chat channels: Mock.channels[name] = its number, the game's own six taken (Mock.channelsFull: no room)
+    Mock.channels, Mock.channelsFull = {}, false
+    function GetChannelName(name) local id = Mock.channels[name]; return id or 0, id and name or nil end
+    function JoinTemporaryChannel(name)
+        if not Mock.channelsFull then Mock.channels[name] = 7 end
+    end
+    function LeaveChannelByName(name) Mock.channels[name] = nil end
     -- /who: Mock.whoSent has the searches, Mock.who the answers ({ fullName, level, area, ... })
     C_FriendList = {
         SetWhoToUi = function() end,

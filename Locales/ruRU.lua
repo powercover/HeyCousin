@@ -350,6 +350,7 @@ HC.Locale.Register("ruRU", {
     ["Between name and surname: %s"] = "Между именем и фамилией: %s",
     ["Your name: %s, then %s"] = "Твоё имя: %s, затем %s",
     ["Your layer: %s"] = "Твой слой: %s",
+    ["Your character ID: %s"] = "ID твоего персонажа: %s",
     ["No errors caught."] = "Ошибок не поймано.",
     ["your family"] = "твоя семья",
     ["your guild as a family tree"] = "твоя гильдия как семейное древо",

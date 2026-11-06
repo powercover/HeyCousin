@@ -515,6 +515,7 @@ ButtonWith(window, "Invite"):Click()
 check(Mock.invites[#Mock.invites] == "Mira Ashbrook", "Invite invites them")
 SlashCmdList.HEYCOUSIN("status")
 check(Mock.Said("Your layer: 5151") and Mock.Said("\"Ashbrook\""), "status shows your surname and your layer")
+check(Mock.Said("Your character ID: \"Player-1-ME\""), "and your character ID")
 NoErrors(HC, "forever window")
 
 -- the launch-day name test: a checklist, and what the game hands over written down

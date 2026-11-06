@@ -356,6 +356,7 @@ HC.Locale.Register("koKR", {
     ["Between name and surname: %s"] = "이름과 성씨 사이: %s",
     ["Your name: %s, then %s"] = "내 이름: %s, 그다음 %s",
     ["Your layer: %s"] = "내 레이어: %s",
+    ["Your character ID: %s"] = "내 캐릭터 ID: %s",
     ["No errors caught."] = "잡힌 오류가 없어요.",
     ["your family"] = "내 가족",
     ["your guild as a family tree"] = "내 길드를 가계도로 보기",

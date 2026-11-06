@@ -59,6 +59,7 @@ function HC.PrintStatus()
         Utils.Print(string.format(L["Your name: %s, then %s"], Utils.Shown(name), Utils.Shown(second)))
     end
     Utils.Print(string.format(L["Your layer: %s"], Utils.Shown(HC.Layer.Current())))
+    Utils.Print(string.format(L["Your character ID: %s"], Utils.Shown((Utils.Call(UnitGUID, "player")))))
 end
 
 -- The errors the addon caught (Utils.Protect), the newest last.

@@ -356,6 +356,7 @@ HC.Locale.Register("ukUA", {
     ["Between name and surname: %s"] = "Між ім'ям і прізвищем: %s",
     ["Your name: %s, then %s"] = "Твоє ім'я: %s, далі %s",
     ["Your layer: %s"] = "Твій шар: %s",
+    ["Your character ID: %s"] = "ID твого персонажа: %s",
     ["No errors caught."] = "Помилок не перехоплено.",
     ["your family"] = "твоя родина",
     ["your guild as a family tree"] = "твоя гільдія як родинне дерево",

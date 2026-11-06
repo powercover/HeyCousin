@@ -46,7 +46,7 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - `/cousin test`: a pop-up to try
 - `/cousin test map`: made-up cousins on your map for two minutes, to try
 - `/cousin theme`: the next look
-- `/cousin status`: what the game tells the addon about you
+- `/cousin status`: what the game tells the addon about you, your character ID too
 - `/cousin debug`: the errors the addon caught, in chat
 
 ## Tests

@@ -354,6 +354,7 @@ HC.Locale.Register("zhCN", {
     ["Between name and surname: %s"] = "名字和姓氏之间：%s",
     ["Your name: %s, then %s"] = "你的名字：%s，然后是%s",
     ["Your layer: %s"] = "你的位面：%s",
+    ["Your character ID: %s"] = "你的角色 ID：%s",
     ["No errors caught."] = "没有捕获到错误。",
     ["your family"] = "你的家族",
     ["your guild as a family tree"] = "以家族树显示你的公会",

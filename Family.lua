@@ -29,6 +29,9 @@ local QUIET = 30
 local CREST_FIELDS = { "shape", "division", "field", "second", "metal", "symbol", "charge" }
 -- a cousin's level is news on every fifth one
 local NEWS_EVERY = 5
+-- lines about cousins (online, a new level, a group): this many a minute at most, so a big family
+-- doesn't fill your chat
+local LINES_MAX, LINES_SPAN = 3, 60
 -- family chat: this many letters at most (it has to fit an addon message), and one line a moment
 local WORDS_MAX = 50
 local WORDS_GAP = 0.5
@@ -40,6 +43,7 @@ local lastTold = 0
 local quietUntil = 0
 local answered = {}  -- [full name] = GetTime() of the last answer to their hello
 local levelled = false  -- you've levelled up: it goes with the next tick
+local linesFrom, linesCount = 0, 0
 local spoke = {}  -- [first name] = GetTime() of their last line in family chat
 
 -- --- the channel -------------------------------------------------------------------------------
@@ -112,6 +116,18 @@ function Family.Cousin(sender)
         return nil
     end
     return { first = first, surname = surname, full = full }
+end
+
+-- A line about a cousin, if this minute has room for it.
+function Family.Tell(text)
+    local now = GetTime()
+    if now - linesFrom >= LINES_SPAN then
+        linesFrom, linesCount = now, 0
+    end
+    if linesCount < LINES_MAX then
+        linesCount = linesCount + 1
+        Utils.Print(text)
+    end
 end
 
 -- The channel's "joined" and "left" lines stay out of your chat.
@@ -209,7 +225,7 @@ local function Heard(text, sender)
     if kind == "L" then
         local color = Utils.ClassColor(relative.class, true)
         if Family.NewsOn() and relative.level and relative.level % NEWS_EVERY == 0 then
-            Utils.Print(string.format(L["%s reached level %d!"], Theme.Paint(member.full, color), relative.level))
+            Family.Tell(string.format(L["%s reached level %d!"], Theme.Paint(member.full, color), relative.level))
         end
         return
     end
@@ -222,7 +238,7 @@ local function Heard(text, sender)
             Family.quietCount = (Family.quietCount or 0) + 1
         else
             local color = Utils.ClassColor(relative.class, true)
-            Utils.Print(string.format(L["%s is online."], Theme.Paint(member.full, color)))
+            Family.Tell(string.format(L["%s is online."], Theme.Paint(member.full, color)))
         end
     end
     -- they've just come: tell them you're here, by yourself, a moment later

@@ -1109,6 +1109,22 @@ check(Mock.Said("Family chat is off"), "and /fam says why")
 HeyCousinDB.familyChat = true
 NoErrors(HC, "family news and chat")
 
+-- a big family doesn't fill your chat: a few lines a minute about cousins; chat itself is what people say
+HC = Mock.Boot("forever", { setupDone = true })
+Mock.Fire("PLAYER_ENTERING_WORLD")
+Mock.Advance(60)
+chatBefore = #Mock.chat
+for i = 1, 20 do
+    Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:H:MAGE:10:", "CHANNEL", "Busy" .. i .. " Ashbrook", "", 0, 7, "HCashbrookA")
+end
+check(#Mock.chat == chatBefore + 3, "twenty cousins coming online at once: three lines, got " .. (#Mock.chat - chatBefore))
+check(HC.Kin.House().relatives.Busy20 and HC.Kin.IsOnline("Busy20"), "and all of them are still known to be online")
+Mock.Advance(61)
+chatBefore = #Mock.chat
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:H:MAGE:10:", "CHANNEL", "Late Ashbrook", "", 0, 7, "HCashbrookA")
+check(#Mock.chat == chatBefore + 1, "a minute later, a line again")
+NoErrors(HC, "lines about cousins")
+
 -- === Family groups ============================================================================
 
 HC = Mock.Boot("forever", { setupDone = true })
@@ -1715,6 +1731,53 @@ SlashCmdList.HEYCOUSIN("setup")
 check(_G.HeyCousinSetup:IsShown() and ButtonWith(_G.HeyCousinSetup, "Skip for now") == nil, "/cousin setup opens it any time, with no Skip")
 _G.HeyCousinSetup:Hide()
 NoErrors(HC, "the setup, once")
+
+-- === A new player closes the setup at once: the defaults work, everything opens =================
+
+HC = Mock.Boot("forever", {})
+Mock.Advance(5)
+_G.HeyCousinSetup.close:Click()
+local defaults = { popup = true, popupEvery = false, enemyAlerts = true, sound = "auto", chatCrest = true, tooltipLine = true,
+    showMinimap = true, lockMinimap = false, mapShow = true, mapShare = false, presence = true, familyNews = true,
+    familyChat = true, familyGroups = true, skin = "pixel", language = "auto", setupDone = true }
+for key, value in pairs(defaults) do
+    check(HeyCousinDB[key] == value, "closed at once, the default stays: " .. key .. " = " .. tostring(HeyCousinDB[key]))
+end
+check(HC.Kin.House().crest.shape == "Heater" and HC.Kin.House().crest.symbol == "initial", "the default crest")
+local anySent = false
+for _, sent in ipairs(Mock.addonSent) do
+    anySent = anySent or sent.text:find("^3:P") ~= nil
+end
+check(not anySent, "where you are isn't shared")
+-- every window, every tab, every page, every command
+HC.Window.Show("family")
+Settle()
+for _, tab in ipairs({ "tree", "groups", "stats", "family" }) do
+    HC.Window.Show(tab)
+    Settle()
+end
+HC.Window.Recruit(true)
+Settle()
+HC.Window.Recruit(false)
+for _, page in ipairs({ "alerts", "family", "map", "game", "look", "about", "crest" }) do
+    HC.Options.Show(page)
+    Settle()
+end
+_G.HeyCousinOptions:Hide()
+for _, command in ipairs({ "tree", "recruit", "groups", "find", "find Stormvale", "settings", "setup", "test", "test map", "theme",
+    "theme", "theme", "status", "help", "debug", "debug", "forget Nobody", "nonsense" }) do
+    SlashCmdList.HEYCOUSIN(command)
+    Settle()
+end
+SlashCmdList.HEYCOUSINFAM("hello")
+Mock.Advance(40)
+-- and it finds a cousin as it should
+Mock.units.nameplate7 = { name = "Fern", surname = "Ashbrook", guid = "Player-1-FERN", class = "DRUID", race = "NightElf",
+    level = 22, sex = 3, faction = "Alliance" }
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate7")
+Settle()
+check(HC.Kin.House().relatives.Fern ~= nil and _G.HeyCousinAlert and _G.HeyCousinAlert:IsShown(), "a cousin near you: known, with a pop-up")
+NoErrors(HC, "a new player who closed the setup")
 
 -- === Broken saved data ========================================================================
 

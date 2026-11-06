@@ -124,7 +124,7 @@ function Groups.Heard(kind, rest, member)
             online = true, usesAddon = true })
         if HeyCousinDB.familyGroups ~= false and not (old and old.words == words) then
             local color = Utils.ClassColor(relative and relative.class, true)
-            Utils.Print(string.format(L["%s looks for a group: %s"], Theme.Paint(member.full, color), words))
+            HC.Family.Tell(string.format(L["%s looks for a group: %s"], Theme.Paint(member.full, color), words))
         end
         Changed()
     elseif kind == "X" then

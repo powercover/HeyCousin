@@ -48,4 +48,6 @@ Pixel, Forever (the classic game's parchment) and Smooth. Switch any time in the
 
 ## This is the first version
 
-The game is new, and so is this. The guild features and sharing beyond a guild have had the least testing in the live game. If something looks wrong, please say so in the comments.
+The game is new, and so is this. The guild features and sharing beyond a guild have had the least testing in the live game. If something looks wrong, please say so in the comments or on [GitHub](https://github.com/powercover/HeyCousin/issues).
+
+The [source code](https://github.com/powercover/HeyCousin) is there too, so you can read exactly what the addon sends. All rights reserved.

@@ -16,7 +16,8 @@ What to fill in when creating the project on each site. Nothing in this folder s
 | Main category (CurseForge) | Chat & Communication, or the closest there is |
 | More categories (CurseForge) | Guild, Map & Minimap |
 | Categories (Wago) | The same ones, or the closest Wago offers |
-| Source code and issue links | Leave empty: the repository is private. Feedback goes to the page's comments |
+| Source code link | `https://github.com/powercover/HeyCousin` |
+| Issues link | `https://github.com/powercover/HeyCousin/issues` |
 | Donation link | None (your call; keep it out of the addon) |
 
 ## Images

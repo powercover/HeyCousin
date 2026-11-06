@@ -1895,6 +1895,38 @@ do
     check(placed and placed.y == -6 and placed.w == 120, "a restricted bar with anchors and a size: kept")
     Mock.units.nameplate8 = nil
 end
+-- your setup changes: the saved look may not be what you see any more
+HeyCousinDB.plateLook = {}
+do
+    RealPlate("nameplate10", "Fern", "Ashbrook", "Alliance", false, nil, GREEN)
+    HC.PlateLook.Scan()
+    check(HC.PlateLook.Get("friend") ~= nil, "a saved look, while nothing's changed")
+    Mock.cvars = Mock.cvars or {}
+    Mock.cvars.nameplateShowOnlyNameForFriendlyPlayerUnits = "1"
+    check(HC.PlateLook.Get("friend") == nil, "the game's plate setting changes: forgotten")
+    Mock.cvars.nameplateShowOnlyNameForFriendlyPlayerUnits = nil
+    check(HC.PlateLook.Get("friend") ~= nil, "and back: it counts again")
+    local kept = HeyCousinDB.plateLook
+    HC = Mock.Boot("forever", { setupDone = true, plateLook = kept })
+    check(HC.PlateLook.Get("friend") ~= nil, "the next login, the same addons: it's kept")
+    Mock.addons = { "HeyCousin", "SomeOtherPlates" }
+    HC = Mock.Boot("forever", { setupDone = true, plateLook = kept })
+    check(HC.PlateLook.Get("friend") == nil, "a nameplate addon turned on or off: forgotten")
+    HC.Options.Show("plates")
+    local function Hint(root)
+        for _, region in ipairs(root.regions or {}) do
+            if region.text == "Not seen yet: the plain look, until a player's plate is on screen." and region:IsVisible() then return true end
+        end
+        for _, child in ipairs(root.children or {}) do
+            if Hint(child) then return true end
+        end
+        return false
+    end
+    check(Hint(_G.HeyCousinOptions), "and the page says it hasn't seen one")
+    _G.HeyCousinOptions:Hide()
+    Mock.addons = nil
+    Mock.units.player.faction = "Alliance"
+end
 -- a broken saved look is one thing less, not an error
 HeyCousinDB.plateLook = { enemy = { pieces = { "junk", { x = "bad", level = {} }, { text = true, x = {}, level = 1 } } }, friend = "junk" }
 HC.Options.Show("plates")

@@ -143,3 +143,4 @@ unpack
 UnitCastingInfo
 UnitChannelInfo
 UnitIsFriend
+C_AddOns

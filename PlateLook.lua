@@ -62,10 +62,40 @@ local function Saved()
     return HeyCousinDB.plateLook
 end
 
--- The look saved for "friend" or "enemy", or nothing.
+-- What a saved look depends on: the addons you run, and the game's own settings for plates. Any of them
+-- changed, and it may not be what you see any more: it's forgotten until a player's plate is seen again.
+local addonsAtStart
+
+local function HashOf(text)
+    local hash = 0
+    for index = 1, #text do
+        hash = (hash * 31 + text:byte(index)) % 2147483647
+    end
+    return hash
+end
+
+function PlateLook.Setup()
+    if not addonsAtStart then
+        local names = {}
+        local list = C_AddOns
+        for index = 1, list and Utils.Call(list.GetNumAddOns) or 0 do
+            local name = Utils.Call(list.GetAddOnInfo, index)
+            if Utils.IsUsableString(name) and Utils.Call(list.IsAddOnLoaded, index) then
+                names[#names + 1] = name
+            end
+        end
+        table.sort(names)
+        addonsAtStart = HashOf(table.concat(names, ","))
+    end
+    return addonsAtStart .. ":" .. tostring(Utils.Call(GetCVar, "nameplateShowOnlyNameForFriendlyPlayerUnits"))
+        .. ":" .. tostring(Utils.Call(GetCVar, "nameplateSize"))
+end
+
+-- The look saved for "friend" or "enemy" that's still yours, or nothing.
 function PlateLook.Get(kind)
     local look = Saved()[kind]
-    return type(look) == "table" and look.player == true and type(look.pieces) == "table" and look or nil
+    return type(look) == "table" and look.player == true and type(look.pieces) == "table"
+        and look.setup == PlateLook.Setup() and look or nil
 end
 
 -- A new look copied: `fn` runs.
@@ -406,7 +436,7 @@ local function Copy(unit, kind)
     if not pieces or #pieces == 0 or unplaced > 0 then
         return false
     end
-    Saved()[kind] = { player = true, pieces = pieces }
+    Saved()[kind] = { player = true, setup = PlateLook.Setup(), pieces = pieces }
     return true
 end
 
@@ -420,7 +450,7 @@ end
 -- its addon has drawn it.
 function PlateLook.Seen(unit)
     local kind, player = KindOf(unit)
-    if not kind or not player or done[kind] or waiting[kind] or (tries[kind] or 0) >= MOST_TRIES then
+    if not kind or not player or (done[kind] and PlateLook.Get(kind)) or waiting[kind] or (tries[kind] or 0) >= MOST_TRIES then
         return
     end
     waiting[kind] = true
@@ -432,7 +462,7 @@ function PlateLook.Seen(unit)
         local now = Utils.Call(UnitGUID, unit)
         local nowKind, nowPlayer = KindOf(unit)
         if nowKind == kind and nowPlayer and (not guid or not now or now == guid) and Copy(unit, kind) then
-            done[kind] = true
+            done[kind], tries[kind] = true, 0
             Told()
         end
     end)

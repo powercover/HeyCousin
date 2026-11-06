@@ -428,6 +428,12 @@ local function Globals()
     function IsIndoors() return Mock.indoors == true end
     function GetPlayerFacing() return Mock.facing or 0 end
     function GetCVar(name) return Mock.cvars and Mock.cvars[name] end
+    -- the addons you run: a test says with Mock.addons
+    C_AddOns = {
+        GetNumAddOns = function() return #(Mock.addons or { "HeyCousin" }) end,
+        GetAddOnInfo = function(index) return (Mock.addons or { "HeyCousin" })[index] end,
+        IsAddOnLoaded = function() return true, true end,
+    }
     DEFAULT_CHAT_FRAME = { AddMessage = function(_, text) table.insert(Mock.chat, text) end }
     SlashCmdList, UISpecialFrames = {}, {}
     GameFontHighlight = FontObject("Fonts\\FRIZQT__.TTF", 12)

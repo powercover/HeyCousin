@@ -17,17 +17,19 @@ It's useful from your first minute, even if nobody else in your family has it ye
 
 ## One click finds your family
 
-![One click finds your family](https://media.forgecdn.net/attachments/2156/174/found-png.png)
+![One click finds your family](https://media.forgecdn.net/attachments/2158/173/found-png.png)
 
 One click searches the game's `/who` for your surname and lists everyone online with **exactly** that surname, on your faction, with their level, zone and guild. Open a cousin's page to **whisper** them, **invite** them to your group, or **join their layer**.
 
 Your family grows by itself too: the addon also spots cousins around you, in chat and in your guild, and remembers every time you met: where, when, what they said and their gear.
 
-![A page for every cousin: Whisper, Invite and Join their layer](https://media.forgecdn.net/attachments/2156/175/page-png.png)
+![A page for every cousin: Whisper, Invite and Join their layer](https://media.forgecdn.net/attachments/2158/179/page-png.png)
 
 Want to see another family? **Look up any surname** with `/cousin find Surname`.
 
 ## "A cousin is near!"
+
+![Hey cousin!](https://media.forgecdn.net/attachments/2158/175/hey-png.png)
 
 A pop-up with their face and a sound the first time you meet, or every time if you want. Click it to target them. Click **Hey cousin!** and you wave and say "Hey cousin Mira!" out loud, so everyone around sees it.
 
@@ -35,15 +37,21 @@ A cousin on the other side of the war is the family's **black sheep**, with a po
 
 ## Spot a cousin in a crowd
 
+![Spot a cousin in a crowd](https://media.forgecdn.net/attachments/2158/177/nameplates-png.png)
+
 Your family's crests on nameplates, and a red one on a black sheep's enemy nameplate, so you know who you're fighting. Drag and resize the crest in the settings: while that page is open, the real nameplates around you show it too, so you see exactly where it goes. Tried on EllesmereUI's nameplates, and made to work with any other, such as Plater, ElvUI or Kui.
 
 ## The family map
+
+![Your family on the map](https://media.forgecdn.net/attachments/2158/174/map-png.png)
 
 Cousins who share where they are show as crests on the world map and the minimap, with their names. Click one to open their page. It works beside map addons like Questie, TomTom and HandyNotes, and on **OpenMap**'s stitched map.
 
 **Sharing is off until you turn it on.** Then your guild and anyone with your surname who runs Hey Cousin! can see where you are, on your faction only. Never in a fight or a dungeon. Turn it off, and your crest leaves their maps at once.
 
 ## Play together
+
+![Find a group in the family](https://media.forgecdn.net/attachments/2158/176/groups-png.png)
 
 When your cousins have the addon too, they're marked **(uses addon)**, you see their own crests, and you can:
 
@@ -53,13 +61,17 @@ When your cousins have the addon too, they're marked **(uses addon)**, you see t
 
 ## The family race and portrait
 
+![The family race](https://media.forgecdn.net/attachments/2158/180/race-png.png)
+
 Who's the highest level in your family? **The family race** ranks you and your cousins with the addon, and tells you when one passes you.
+
+![A family portrait](https://media.forgecdn.net/attachments/2158/178/portrait-png.png)
 
 **The family portrait** puts your house on one card: crest, motto, numbers and the cousins you meet most. Made for a screenshot to share with your family or Discord.
 
 ## Build your house
 
-![Make your own crest](https://media.forgecdn.net/attachments/2156/176/crests-png.png)
+![Make your own crest](https://media.forgecdn.net/attachments/2158/183/crests-png.png)
 
 - **Your crest:** shape, pattern, colors, a symbol and a motto, or roll the dice. It shows at the start of cousins' chat lines, in tooltips and on the minimap.
 - **Your other characters** show in your family, and a crown marks the eldest cousin we know, by a good guess.
@@ -69,14 +81,14 @@ Great for roleplay families, too.
 
 ## For guilds: recruit and make it a family
 
-![Your guild as a family tree](https://media.forgecdn.net/attachments/2156/177/tree-png.png)
+![Your guild as a family tree](https://media.forgecdn.net/attachments/2158/182/tree-png.png)
 
 - **Recruit:** the cousins with no guild, each with an Invite button and a welcome you write.
 - **The family tree:** your guild as a family, each rank a generation. A guild master can give each rank a family word and write a welcome line, and every member with the addon gets them.
 
 ## Three looks
 
-![Pixel, Forever and Smooth](https://media.forgecdn.net/attachments/2156/178/looks-png.png)
+![Pixel, Forever and Smooth](https://media.forgecdn.net/attachments/2158/181/looks-png.png)
 
 Pixel, Forever (the classic game's parchment) and Smooth. Switch any time.
 

@@ -206,6 +206,17 @@ local function ByClass(r, g, b)
     return near or nil
 end
 
+-- Why a texture or a bar can't be placed, for /cousin plates; nothing if it can.
+local function Unplaced(x, width, height)
+    if not x then
+        return "no anchors"
+    elseif not width or not height then
+        return "no size"
+    elseif width <= 0 or height <= 0 then
+        return "size zero"
+    end
+end
+
 -- A plain color (SetColorTexture) can't be read back, so it's left out: painting it would come out white.
 local function Art(texture)
     local atlas = texture:GetAtlas()
@@ -228,8 +239,9 @@ local function ReadTexture(texture, plate, level)
         return Why("plain color")
     end
     local x, y, width, height = Box(texture, plate)
-    if not x or not width or not height or width <= 0 or height <= 0 then
-        return Why("no place")
+    local problem = Unplaced(x, width, height)
+    if problem then
+        return Why(problem)
     end
     local coords = { texture:GetTexCoord() }
     local r, g, b, a = texture:GetVertexColor()
@@ -254,9 +266,10 @@ local function ReadBar(bar, plate, level)
         return Why("plain color")
     end
     local x, y, width, height = Box(bar, plate)
-    if not x or not width or not height or width <= 0 or height <= 0 then
+    local problem = Unplaced(x, width, height)
+    if problem then
         unplaced = unplaced + 1
-        return Why("no place")
+        return Why("bar: " .. problem)
     end
     local r, g, b, a = Utils.Call(bar.GetStatusBarColor, bar)
     if not Usable(r, g, b) then

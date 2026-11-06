@@ -1887,6 +1887,9 @@ do
     stuckBar.restricted = true
     HC.PlateLook.Scan()
     check(HC.PlateLook.Get("friend") == nil, "a bar that can't be placed: not kept")
+    Mock.chat = {}
+    SlashCmdList.HEYCOUSIN("plates")
+    check(table.concat(Mock.chat, "\n"):find("bar: no anchors 1", 1, true) ~= nil, "/cousin plates says why: " .. table.concat(Mock.chat, "\n"))
     -- a bar anchored to the plate with a size it may tell
     stuckBar:SetPoint("CENTER", C_NamePlate.GetNamePlateForUnit("nameplate8"), "CENTER", 0, -6)
     stuckBar.sizeAllowed = true

@@ -10,7 +10,7 @@ What to fill in when creating the project on each site. Nothing in this folder s
 | URL slug (CurseForge) | `hey-cousin` |
 | Summary | One click finds everyone online with your surname in WoW Forever. Whisper, invite or join their layer, and see cousins who share on your map. |
 | Description | [description.md](description.md), as Markdown, with the image addresses filled in (see below) |
-| Logo | [logo.png](logo.png) (1024 x 1024; CurseForge scales it down to 400 x 400). [logo-transparent.png](logo-transparent.png) has no background. Neither site's rules mention a GIF logo: submit the PNG, and the animation goes in the description |
+| Logo | On CurseForge: [emblem-small.gif](emblem-small.gif), animated, and it works there. Its thumbnails give every frame the first frame's delay, so a logo needs the same delay on all frames. [logo.png](logo.png) and [logo-transparent.png](logo-transparent.png) are the still ones (1024 x 1024) |
 | License | All Rights Reserved |
 | Game | World of Warcraft, WoW Forever only |
 | Main category (CurseForge) | Chat & Communication, or the closest there is |

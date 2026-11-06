@@ -48,7 +48,10 @@ local function Mute()
             -- which frames these are: to read in the saved file if a window ever opens anyway
             names[#names + 1] = tostring(Utils.Call(listener.GetName, listener))
             local top = Top(listener)
-            closed[top] = true
+            -- only what's closed now: a window open on another of its pages stays open
+            if Utils.Call(top.IsShown, top) ~= true then
+                closed[top] = true
+            end
             if pcall(listener.UnregisterEvent, listener, "WHO_LIST_UPDATE") then
                 muted[#muted + 1] = listener
             end

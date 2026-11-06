@@ -9,8 +9,12 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 
 ## What it does
 
-- **Finds your cousins**: players with your surname near you (your target, the mouse, nameplates,
-  your group), in chat, and in your guild.
+- **Find my family**: one click searches the game's `/who` for your surname and lists everyone
+  online with exactly that surname (of your faction), with their level, zone and guild, then
+  Whisper, Invite and Join their layer. Each search is one click; when the game's list of 50 is
+  full, the next clicks look through the levels.
+- **Finds your cousins by itself**: players with your surname near you (your target, the mouse,
+  nameplates, your group), in chat, and in your guild.
 - **"A cousin is near!"**: a pop-up with their face, a sound, and a click to target them. A cousin
   on the other side of the war is the family's black sheep, with a pop-up of their own.
 - **Your crest**: at the start of a relative's chat lines, in their tooltip, on the minimap.

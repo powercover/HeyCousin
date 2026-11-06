@@ -843,6 +843,91 @@ check(treeTab.title.text == "" and All(treeTab, function(f) return f.title and f
 _G.HeyCousinWindow:Hide()
 NoErrors(HC, "guild")
 
+-- === Find my family ===========================================================================
+
+HC = Mock.Boot("forever", { setupDone = true })
+house = HC.Kin.House()
+Mock.whoSent, Mock.who = {}, {
+    { fullName = "Rowan Ashbrook", filename = "ROGUE", level = 8, area = "Goldshire", fullGuildName = "" },
+    { fullName = "Perrin Ashbrook", filename = "MAGE", level = 18, area = "Lordamere Overlook", fullGuildName = "Vale Kin" },
+    { fullName = "Peg ashbrook", filename = "PRIEST", level = 7, area = "Mulgore", fullGuildName = "" },
+    { fullName = "Bram Bashbrook", filename = "PALADIN", level = 23, area = "Blackthorn Ridge", fullGuildName = "Ashbrook" },
+    { fullName = "Tobin Ashbrookel", filename = "PRIEST", level = 21, area = "Mulgore", fullGuildName = "" },
+    { fullName = Mock.SECRET, filename = "MAGE", level = 1 },
+}
+HC.Window.Show("stats")
+local findButton = _G.HeyCousinWindow.find
+check(findButton:GetText() == "Find my family" and findButton:IsEnabled(), "the Find my family button waits on every tab")
+findButton:Click()
+check(Mock.whoSent[1] == 'n-" Ashbrook"', "it asks /who for surnames only: " .. tostring(Mock.whoSent[1]))
+Settle()
+check(findButton:GetText() == "Looking..." and not findButton:IsEnabled(), "and shows it's looking")
+findButton:Click()
+check(#Mock.whoSent == 1, "a click while it looks asks nothing more")
+Mock.Fire("WHO_LIST_UPDATE")
+check(house.relatives.Perrin and house.relatives.Perrin.level == 18 and house.relatives.Perrin.zone == "Lordamere Overlook",
+    "a cousin it found, with their level and zone")
+check(house.relatives.Perrin.guild == "Vale Kin" and house.relatives.Perrin.met == 0 and house.relatives.Perrin.found,
+    "and their guild: found, not met")
+check(house.relatives.Peg and house.relatives.Peg.class == "PRIEST" and house.relatives.Peg.guild == nil, "big or small letters are one family")
+check(house.relatives.Rowan == nil, "you aren't your own cousin")
+check(house.relatives.Bram == nil and house.relatives.Tobin == nil, "a surname with yours only inside isn't family")
+check(HC.Kin.IsOnline("Perrin") and not HC.Kin.IsNear("Perrin"), "online, not near")
+Settle()
+check(select(4, HC.Kin.Counts()) == 2, "two of the family online")
+Mock.Advance(7)
+check(findButton:IsEnabled() and findButton:GetText() == "Find my family", "then it can search again")
+Mock.Fire("WHO_LIST_UPDATE")
+check(house.relatives.Bram == nil and #Mock.whoSent == 1, "the game's own /who window isn't read")
+Mock.Advance(5 * 60)
+check(not HC.Kin.IsOnline("Perrin"), "after a while it doesn't claim they're still online")
+-- a full list: each next click looks at one band of levels
+Mock.who = {}
+for i = 1, 50 do
+    Mock.who[i] = { fullName = "Other" .. i .. " Bashbrook", filename = "MAGE", level = 10, fullGuildName = "" }
+end
+findButton:Click()
+Mock.Fire("WHO_LIST_UPDATE")
+Mock.Advance(7)
+check(findButton:GetText() == "Keep looking (1/7)", "a full list: it offers to look further: " .. tostring(findButton:GetText()))
+Mock.who = { { fullName = "Hidden Ashbrook", filename = "DRUID", level = 5, area = "Durotar", fullGuildName = "" } }
+findButton:Click()
+check(Mock.whoSent[#Mock.whoSent] == 'n-" Ashbrook" 1-9', "the first band: " .. tostring(Mock.whoSent[#Mock.whoSent]))
+Mock.Fire("WHO_LIST_UPDATE")
+check(house.relatives.Hidden ~= nil, "and finds a cousin the full list hid")
+Mock.Advance(7)
+for _ = 2, 7 do
+    findButton:Click()
+    Mock.Fire("WHO_LIST_UPDATE")
+    Mock.Advance(7)
+end
+check(Mock.whoSent[#Mock.whoSent] == 'n-" Ashbrook" 60-99' and findButton:GetText() == "Find my family", "after the last band it's done")
+-- no answer: it says so, and you can try again
+local sentBefore = #Mock.whoSent
+findButton:Click()
+Mock.Advance(7)
+check(#Mock.whoSent == sentBefore + 1 and findButton:IsEnabled(), "no answer from the game: you can try again")
+-- their page says how you know them
+HC.Window.Open("Perrin")
+Settle()
+check(All(_G.HeyCousinWindow, function(f) return f.met and f.met.text and f.met.text:find("found by searching", 1, true) and f:IsVisible() end)[1],
+    "their page says a search found them")
+HC.Window.Open(nil)
+_G.HeyCousinWindow:Hide()
+NoErrors(HC, "find my family")
+
+-- test mode: the made-up family, and no search goes to the game
+HC = Mock.Boot("retail", { setupDone = true })
+Mock.whoSent = {}
+HC.Window.Show("family")
+_G.HeyCousinWindow.find:Click()
+Mock.Advance(2)
+local testHouse = HC.Kin.House()
+check(#Mock.whoSent == 0 and testHouse.relatives.Perrin and testHouse.relatives.Perrin.met == 0, "test mode finds a made-up cousin")
+check(testHouse.relatives.Nell == nil and testHouse.relatives.Gus == nil and HC.Kin.IsOnline("Mira"), "and leaves the near-names out")
+_G.HeyCousinWindow:Hide()
+NoErrors(HC, "find in test mode")
+
 -- === Broken saved data ========================================================================
 
 HC = Mock.Boot("forever", { skin = "nope", chats = "x", setupDone = true, windows = 5,

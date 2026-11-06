@@ -69,6 +69,10 @@ local SORTS = {
         if x ~= y then
             return x
         end
+        x, y = Kin.IsOnline(a.first), Kin.IsOnline(b.first)
+        if x ~= y then
+            return x
+        end
         local p, q = a.relative.lastSeen or 0, b.relative.lastSeen or 0
         if p ~= q then
             return p > q
@@ -205,16 +209,17 @@ local function PaintRow(row, item)
     row.level:SetText(relative.level and tostring(relative.level) or "")
     row.zone:SetText(relative.zone or "")
     local near = not item.me and Kin.IsNear(item.first)
+    local online = not item.me and not near and Kin.IsOnline(item.first)
     if item.me then
         row.seen:SetText("")
-    elseif near then
-        row.seen:SetText(L["now"])
+    elseif near or online then
+        row.seen:SetText(near and L["now"] or L["online"])
         row.seen:SetTextColor(C.near[1], C.near[2], C.near[3])
     else
         row.seen:SetText(Utils.Ago(relative.lastSeen))
         row.seen:SetTextColor(C.text3[1], C.text3[2], C.text3[3])
     end
-    row.dot:SetShown(near)
+    row.dot:SetShown(near or online)
     row.dot:SetPulse(near)
     row:SetChosen(item.first == selected and not item.me)
 end
@@ -548,12 +553,16 @@ local function PaintPage(keep)
         parts[#parts + 1] = string.format(L["Level %d %s"], relative.level, className)
     end
     if relative.zone then
-        parts[#parts + 1] = Kin.IsNear(opened) and string.format(L["%s, now"], relative.zone) or relative.zone
+        parts[#parts + 1] = (Kin.IsNear(opened) or Kin.IsOnline(opened)) and string.format(L["%s, now"], relative.zone)
+            or relative.zone
+    end
+    if Utils.IsUsableString(relative.guild) then
+        parts[#parts + 1] = "<" .. relative.guild .. ">"
     end
     page.line:SetText(table.concat(parts, "  ·  "))
     local met = relative.met or 0
-    local metText = met <= 0 and L["Not met yet: known from the guild"]
-        or met == 1 and L["Met once"] or string.format(L["Met %d times"], met)
+    local notMet = relative.found and L["Not met yet: found by searching"] or L["Not met yet: known from the guild"]
+    local metText = met <= 0 and notMet or met == 1 and L["Met once"] or string.format(L["Met %d times"], met)
     if HC.Layer then
         HC.Layer.Query(opened, surname)
     end
@@ -597,8 +606,7 @@ local function PaintPage(keep)
     page.list:SetItems(items, keep and page.listFor == opened)
     page.listFor = opened
     page.none:SetShown(#meetings == 0)
-    page.none:SetText(met > 0 and L["Meetings are kept from now on: the next one shows here."]
-        or L["Not met yet: known from the guild"])
+    page.none:SetText(met > 0 and L["Meetings are kept from now on: the next one shows here."] or notMet)
     page.detail:SetShown(shown ~= nil)
     if shown then
         PaintMeeting(shown, opened)
@@ -768,12 +776,24 @@ local function Build()
     header.title = Theme.Text(window, "Title")
     header.title:SetPoint("TOPLEFT", header.crest, "TOPRIGHT", 14, -6)
     header.title:SetPoint("RIGHT", window, "RIGHT", -88, 0)
+    -- the addon's core: the one big button, on every tab
+    header.find = Theme.Button(window, L["Find my family"], "primary", 150, 28)
+    header.find:SetPoint("TOPRIGHT", -PAD, -54)
+    Theme.ButtonIcon(header.find, "Search")
+    Theme.Tip(header.find, L["Find my family"],
+        L["One click searches the game's /who for your surname and lists everyone online with it."])
+    Theme.OnClick(header.find, "find my family", function()
+        Window.Show("family")
+        Window.Open(nil)
+        HC.Find.Start()
+    end)
+    window.find = header.find
     header.sub = Theme.Text(window, "Small", C.text2)
     header.sub:SetPoint("TOPLEFT", header.title, "BOTTOMLEFT", 0, -7)
-    header.sub:SetPoint("RIGHT", window, "RIGHT", -PAD, 0)
+    header.sub:SetPoint("RIGHT", header.find, "LEFT", -8, 0)
     header.motto = Theme.Text(window, "Small", C.text3)
     header.motto:SetPoint("TOPLEFT", header.sub, "BOTTOMLEFT", 0, -5)
-    header.motto:SetPoint("RIGHT", window, "RIGHT", -PAD, 0)
+    header.motto:SetPoint("RIGHT", header.find, "LEFT", -8, 0)
     local gear = Theme.IconButton(window, "Gear", 26, L["Setup"], L["Your crest, motto, alerts and look."])
     gear:SetPoint("RIGHT", window.close, "LEFT", -6, 0)
     Theme.OnClick(gear, "setup", function()
@@ -870,7 +890,10 @@ end
 local function PaintHeader()
     local house, surname = Kin.House()
     local first = Names.Me()
-    local total, nearby, sheep = Kin.Counts()
+    local total, nearby, sheep, online = Kin.Counts()
+    header.find:SetText(HC.Find.Label())
+    Theme.Fit(header.find, 12, 120)
+    header.find:SetEnabled(HC.Find.Ready())
     header.crest:SetCrest(house and house.crest, surname)
     local metal = Theme.Title()
     header.title:SetTextColor(metal[1], metal[2], metal[3])
@@ -889,6 +912,9 @@ local function PaintHeader()
     local parts = { total == 1 and L["1 relative"] or string.format(L["%d relatives"], total) }
     if nearby > 0 then
         parts[#parts + 1] = Theme.Paint(string.format(L["%d near you now"], nearby), C.near)
+    end
+    if online > 0 then
+        parts[#parts + 1] = Theme.Paint(string.format(L["%d online"], online), C.near)
     end
     if sheep > 0 then
         parts[#parts + 1] = sheep == 1 and L["1 black sheep"] or string.format(L["%d black sheep"], sheep)

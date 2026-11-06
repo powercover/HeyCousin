@@ -12,6 +12,8 @@ local Theme = HC.Theme
 local MEETING_GAP = 15 * 60
 -- A relative counts as near this long after they were last seen around you.
 local NEAR_FOR = 150
+-- A relative found by a search counts as online this long after it.
+local ONLINE_FOR = 5 * 60
 -- The surnames you meet: trimmed to the 200 met most once there are 400.
 local SURNAMES_KEEP, SURNAMES_MAX = 200, 400
 -- Each relative's meetings: the first one and the latest, this many in all (the count goes on).
@@ -20,6 +22,7 @@ local MEETINGS_KEEP = 100
 local SAID_MAX = 90
 
 local near = {}    -- [first name] = GetTime() of the last sighting around you (this session)
+local online = {}  -- [first name] = GetTime() of the last search that found them (this session)
 local counted = {} -- [full name] = true: each player counts once a session among the surnames
 local checked = {} -- [surname] = true: the saved house was checked this session
 local listeners = {}
@@ -130,6 +133,11 @@ function Kin.IsNear(first)
     return at ~= nil and GetTime() - at < NEAR_FOR
 end
 
+function Kin.IsOnline(first)
+    local at = online[first]
+    return at ~= nil and GetTime() - at < ONLINE_FOR
+end
+
 -- Where you are and how it is around you: a meeting's place (your map coordinates: they're near
 -- you) and conditions.
 local function Here()
@@ -183,8 +191,9 @@ end
 
 -- A player with your surname was seen. `info`: first (their first name), class, level, race,
 -- sex, faction, guild, zone, guid, near (seen around you, not only heard of), quiet (learned,
--- not met: the guild roster, trade chat), seenAt (when, if not now), and for the meeting: how
--- (nameplate, mouseover, target, group, say, whisper), group (they're in yours), said. Returns the
+-- not met: the guild roster, trade chat), online and found (a search found them), seenAt (when, if
+-- not now), and for the meeting: how (nameplate, mouseover, target, group, say, whisper), group
+-- (they're in yours), said. Returns the
 -- relative, whether you never met them before, and whether this counts as a new meeting.
 function Kin.Seen(info)
     local house = Kin.House()
@@ -246,6 +255,12 @@ function Kin.Seen(info)
     end
     if info.near then
         near[info.first] = GetTime()
+    end
+    if info.online then
+        online[info.first] = GetTime()
+    end
+    if info.found then
+        relative.found = true
     end
     Kin.Changed()
     return relative, new, meeting
@@ -351,22 +366,25 @@ function Kin.List()
     return list
 end
 
--- How many relatives, how many near you now, how many black sheep.
+-- How many relatives, how many near you now, how many black sheep, how many a search found online.
 function Kin.Counts()
     local house = Kin.House()
-    local total, nearby, sheep = 0, 0, 0
+    local total, nearby, sheep, found = 0, 0, 0, 0
     if house then
         for first, relative in pairs(house.relatives) do
             total = total + 1
             if Kin.IsNear(first) then
                 nearby = nearby + 1
             end
+            if Kin.IsOnline(first) then
+                found = found + 1
+            end
             if Kin.IsBlackSheep(relative) then
                 sheep = sheep + 1
             end
         end
     end
-    return total, nearby, sheep
+    return total, nearby, sheep, found
 end
 
 -- The family stats: meetings, the relatives met most, the surnames met most (top `limit`).

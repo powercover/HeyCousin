@@ -63,6 +63,25 @@ function Screens.family(skin)
     return { frames = { HeyCousinWindow } }
 end
 
+-- Find my family, clicked: the cousins online on top, one never met
+function Screens.found(skin)
+    local HC = Boot(skin)
+    HC.Window.Show("family")
+    HeyCousinWindow.find:Click()
+    Mock.Advance(2)
+    return { frames = { HeyCousinWindow } }
+end
+
+-- the cousin it found: never met, with their guild and what you can do
+function Screens.foundpage(skin)
+    local HC = Boot(skin)
+    HC.Window.Show("family")
+    HeyCousinWindow.find:Click()
+    Mock.Advance(2)
+    HC.Window.Open("Perrin")
+    return { frames = { HeyCousinWindow } }
+end
+
 -- Mira's page: every meeting, the one before the last in full
 function Screens.cousin(skin)
     local HC = Boot(skin)

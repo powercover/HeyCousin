@@ -32,6 +32,7 @@ Skins\Smooth.lua
 Crest.lua
 Names.lua
 Kin.lua
+Find.lua
 Gear.lua
 Guild.lua
 Map.lua

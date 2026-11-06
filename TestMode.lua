@@ -205,6 +205,24 @@ function TestMode.Guild()
     return members
 end
 
+-- The made-up answer to Find my family, as the game's /who lists it: cousins online, one you never
+-- met, and two whose surnames only have yours inside (the search leaves them out).
+function TestMode.Who()
+    local rows = {}
+    for _, row in ipairs(FAMILY) do
+        local first, class, level, _, side, zone, ago = unpack(row)
+        if side == "mine" and ago < HOUR then
+            rows[#rows + 1] = { fullName = HC.Names.Full(first, TestMode.SURNAME), filename = class, level = level,
+                area = zone, fullGuildName = TestMode.GUILD }
+        end
+    end
+    rows[#rows + 1] = { fullName = HC.Names.Full("Perrin", TestMode.SURNAME), filename = "ROGUE", level = 16,
+        area = Utils.Zone() or "Westfall", fullGuildName = "" }
+    rows[#rows + 1] = { fullName = "Nell Washbrook", filename = "PRIEST", level = 22, area = "Duskwood", fullGuildName = "" }
+    rows[#rows + 1] = { fullName = "Gus Ashbrooke", filename = "MAGE", level = 31, area = "Wetlands", fullGuildName = "" }
+    return rows
+end
+
 -- The made-up guild's family, as you (its guild master) gave it: its Initiates are Little cousins.
 function TestMode.GuildFamily()
     return { stamp = 1, surname = TestMode.SURNAME, words = { "", "", "", L["Little cousin"] },

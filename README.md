@@ -5,8 +5,6 @@ A World of Warcraft Forever addon that finds the players who share your surname.
 WoW Forever has no realms. Every character has a first name and a surname, so many players share
 a surname, like a family. Hey Cousin! finds your relatives and makes the family visible.
 
-**In development.** WoW Forever opens on November 4, 2026.
-
 ## What it does
 
 - **Find my family**: one click searches the game's `/who` for your surname and lists everyone
@@ -15,8 +13,9 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
   full, the next clicks look through the levels.
 - **Finds your cousins by itself**: players with your surname near you (your target, the mouse,
   nameplates, your group), in chat, and in your guild.
-- **"A cousin is near!"**: a pop-up with their face, a sound, and a click to target them. A cousin
-  on the other side of the war is the family's black sheep, with a pop-up of their own.
+- **"A cousin is near!"**: the first time you meet, a pop-up with their face, a sound, and a click to
+  target them (or every time, if you want). A cousin on the other side of the war is the family's
+  black sheep, with a pop-up of their own.
 - **Your crest**: at the start of a relative's chat lines, in their tooltip, on the minimap.
 - **The family window**: everyone you met, who is near you now, the family's stats, and a page for
   each cousin: every time you met (where, when, how, both your levels, what they said, their gear
@@ -48,8 +47,6 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - `/cousin test map`: made-up cousins on your map for two minutes, to try
 - `/cousin theme`: the next look
 - `/cousin status`: what the game tells the addon about you
-- `/cousin probe`: the name test: a short checklist that writes down how the game gives names to
-  addons (for launch day)
 - `/cousin debug`: the errors the addon caught, in chat
 
 ## Tests

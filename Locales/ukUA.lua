@@ -258,7 +258,9 @@ HC.Locale.Register("ukUA", {
 
     -- The setup: alerts
     ["On screen"] = "На екрані",
-    ["A pop-up when a cousin is near"] = "Спливне вікно, коли кузен поруч",
+    ["A pop-up when you first meet a cousin"] = "Вікно при першій зустрічі з кузеном",
+    ["Every time you meet"] = "При кожній зустрічі",
+    ["Not only the first time."] = "Не лише вперше.",
     ["With a sound. Click it to target them."] = "Зі звуком. Клацни, щоб узяти в ціль.",
     ["Black sheep too"] = "Чорні вівці теж",
     ["Cousins from the other faction."] = "Кузени з іншої фракції.",
@@ -363,7 +365,6 @@ HC.Locale.Register("ukUA", {
     ["Made-up cousins are on your map for two minutes. Open it to see them."] = "Вигадані кузени будуть на твоїй карті дві хвилини. Відкрий її, щоб побачити.",
     ["the next look"] = "наступний стиль",
     ["what the game tells the addon about you"] = "що гра повідомляє аддону про тебе",
-    ["the launch-day name test (on or off)"] = "тест імен у день запуску (увімкнути чи вимкнути)",
     ["the errors the addon caught, in chat (on or off)"] = "помилки, які перехопив аддон, у чаті (увімкнути чи вимкнути)",
     ["Look: %s"] = "Стиль: %s",
     ["Debug on: errors the addon catches show in chat."] = "Налагодження увімкнено: помилки, які перехоплює аддон, видно в чаті.",

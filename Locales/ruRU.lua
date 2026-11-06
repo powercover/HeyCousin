@@ -252,7 +252,9 @@ HC.Locale.Register("ruRU", {
 
     -- The setup: alerts
     ["On screen"] = "На экране",
-    ["A pop-up when a cousin is near"] = "Окно, когда кузен рядом",
+    ["A pop-up when you first meet a cousin"] = "Окно при первой встрече с кузеном",
+    ["Every time you meet"] = "При каждой встрече",
+    ["Not only the first time."] = "Не только в первый раз.",
     ["With a sound. Click it to target them."] = "Со звуком. Нажми, чтобы выбрать целью.",
     ["Black sheep too"] = "И паршивые овцы",
     ["Cousins from the other faction."] = "Кузены из другой фракции.",
@@ -357,7 +359,6 @@ HC.Locale.Register("ruRU", {
     ["Made-up cousins are on your map for two minutes. Open it to see them."] = "Выдуманные кузены будут на твоей карте две минуты. Открой её, чтобы увидеть.",
     ["the next look"] = "следующий стиль",
     ["what the game tells the addon about you"] = "что игра сообщает аддону о тебе",
-    ["the launch-day name test (on or off)"] = "проверка имён в день запуска (вкл./выкл.)",
     ["the errors the addon caught, in chat (on or off)"] = "пойманные аддоном ошибки в чате (вкл./выкл.)",
     ["Look: %s"] = "Стиль: %s",
     ["Debug on: errors the addon catches show in chat."] = "Отладка включена: пойманные ошибки появятся в чате.",

@@ -258,7 +258,9 @@ HC.Locale.Register("frFR", {
 
     -- The setup: alerts
     ["On screen"] = "À l'écran",
-    ["A pop-up when a cousin is near"] = "Alerte si un cousin est proche",
+    ["A pop-up when you first meet a cousin"] = "Une alerte à ta première rencontre",
+    ["Every time you meet"] = "À chaque rencontre",
+    ["Not only the first time."] = "Pas seulement la première fois.",
     ["With a sound. Click it to target them."] = "Avec un son. Clique pour le cibler.",
     ["Black sheep too"] = "Les moutons noirs aussi",
     ["Cousins from the other faction."] = "Les cousins de l'autre faction.",
@@ -363,7 +365,6 @@ HC.Locale.Register("frFR", {
     ["Made-up cousins are on your map for two minutes. Open it to see them."] = "Des cousins inventés sont sur ta carte pendant deux minutes. Ouvre-la pour les voir.",
     ["the next look"] = "le thème suivant",
     ["what the game tells the addon about you"] = "ce que le jeu dit de toi à l'addon",
-    ["the launch-day name test (on or off)"] = "le test des noms du jour du lancement (marche ou arrêt)",
     ["the errors the addon caught, in chat (on or off)"] = "les erreurs interceptées par l'addon, dans la discussion (marche ou arrêt)",
     ["Look: %s"] = "Thème : %s",
     ["Debug on: errors the addon catches show in chat."] = "Débogage activé : les erreurs interceptées par l'addon s'affichent dans la discussion.",

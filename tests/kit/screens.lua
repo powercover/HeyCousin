@@ -60,6 +60,8 @@ end
 function Screens.family(skin)
     local HC = Boot(skin)
     HC.Window.Show("family")
+    -- (this and the next ones are the store page's pictures: Listing/make_shots.py)
+    HeyCousinWindow.badge:Hide()
     return { frames = { HeyCousinWindow } }
 end
 
@@ -69,6 +71,7 @@ function Screens.found(skin)
     HC.Window.Show("family")
     HeyCousinWindow.find:Click()
     Mock.Advance(2)
+    HeyCousinWindow.badge:Hide()
     return { frames = { HeyCousinWindow } }
 end
 
@@ -79,6 +82,7 @@ function Screens.foundpage(skin)
     HeyCousinWindow.find:Click()
     Mock.Advance(2)
     HC.Window.Open("Perrin")
+    HeyCousinWindow.badge:Hide()
     return { frames = { HeyCousinWindow } }
 end
 
@@ -123,6 +127,7 @@ function Screens.tree(skin)
     if mira then
         mira:Click()
     end
+    HeyCousinWindow.badge:Hide()
     return { frames = { HeyCousinWindow } }
 end
 

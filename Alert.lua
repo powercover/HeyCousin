@@ -354,11 +354,14 @@ function Alert.Show(item)
     Alert.Next()
 end
 
--- The rules for a relative the radar just saw: pop-ups on, not one for them lately, black sheep
--- only when wanted.
+-- The rules for a relative the radar just saw: pop-ups on, the first time you meet (or every time,
+-- if you want that), not one for them lately, black sheep only when wanted.
 function Alert.Cousin(first, relative, new, unit)
     local settings = Settings()
     if settings.popup == false then
+        return
+    end
+    if settings.popupEvery ~= true and (relative.met or 0) > 1 then
         return
     end
     if Kin.IsBlackSheep(relative) and settings.enemyAlerts == false then

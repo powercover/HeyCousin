@@ -1,6 +1,6 @@
 local addonName, HC = ...
 
-HC.VERSION = "0.1.0"
+HC.VERSION = "1.0.0"
 HC.AUTHOR = "powercover"
 
 local Utils = HC.Utils
@@ -17,6 +17,7 @@ local DEFAULTS = {
     skin = "pixel",
     setupDone = false,
     popup = true,
+    popupEvery = false,
     enemyAlerts = true,
     sound = "auto",
     cooldown = 30,
@@ -80,7 +81,6 @@ local function PrintHelp()
     Utils.Print("/cousin test map - " .. L["made-up cousins on your map, to try"])
     Utils.Print("/cousin theme - " .. L["the next look"])
     Utils.Print("/cousin status - " .. L["what the game tells the addon about you"])
-    Utils.Print("/cousin probe - " .. L["the launch-day name test (on or off)"])
     Utils.Print("/cousin debug - " .. L["the errors the addon caught, in chat (on or off)"])
 end
 

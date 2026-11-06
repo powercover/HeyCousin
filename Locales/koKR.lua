@@ -258,7 +258,9 @@ HC.Locale.Register("koKR", {
 
     -- The setup: alerts
     ["On screen"] = "화면 표시",
-    ["A pop-up when a cousin is near"] = "사촌이 근처에 오면 팝업 표시",
+    ["A pop-up when you first meet a cousin"] = "사촌을 처음 만나면 팝업",
+    ["Every time you meet"] = "만날 때마다",
+    ["Not only the first time."] = "처음 만날 때만이 아니라요.",
     ["With a sound. Click it to target them."] = "소리가 나요. 클릭하면 대상이 돼요.",
     ["Black sheep too"] = "이단아도 포함",
     ["Cousins from the other faction."] = "다른 진영의 사촌이에요.",
@@ -363,7 +365,6 @@ HC.Locale.Register("koKR", {
     ["Made-up cousins are on your map for two minutes. Open it to see them."] = "2분 동안 지도에 가상의 사촌이 표시돼요. 지도를 열어 확인하세요.",
     ["the next look"] = "다음 테마",
     ["what the game tells the addon about you"] = "게임이 애드온에 알려 주는 내 정보",
-    ["the launch-day name test (on or off)"] = "출시일 이름 테스트 (켜기/끄기)",
     ["the errors the addon caught, in chat (on or off)"] = "애드온이 잡은 오류를 채팅에 표시 (켜기/끄기)",
     ["Look: %s"] = "테마: %s",
     ["Debug on: errors the addon catches show in chat."] = "디버그 켬: 애드온이 잡은 오류가 채팅에 나와요.",

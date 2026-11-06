@@ -256,7 +256,9 @@ HC.Locale.Register("zhTW", {
 
     -- The setup: alerts
     ["On screen"] = "畫面顯示",
-    ["A pop-up when a cousin is near"] = "本家在附近時跳出提示",
+    ["A pop-up when you first meet a cousin"] = "首次遇到表親時跳出提示",
+    ["Every time you meet"] = "每次相遇都提示",
+    ["Not only the first time."] = "不只是第一次。",
     ["With a sound. Click it to target them."] = "會播放音效，點擊即可選取對方。",
     ["Black sheep too"] = "也包括害群之馬",
     ["Cousins from the other faction."] = "另一陣營的本家。",
@@ -361,7 +363,6 @@ HC.Locale.Register("zhTW", {
     ["Made-up cousins are on your map for two minutes. Open it to see them."] = "虛構的表親會在你的地圖上顯示兩分鐘。打開地圖查看。",
     ["the next look"] = "換成下一個外觀",
     ["what the game tells the addon about you"] = "遊戲告訴插件關於你的哪些資訊",
-    ["the launch-day name test (on or off)"] = "開服當天的名字測試（開啟或關閉）",
     ["the errors the addon caught, in chat (on or off)"] = "在聊天視窗顯示插件捕捉到的錯誤（開啟或關閉）",
     ["Look: %s"] = "外觀：%s",
     ["Debug on: errors the addon catches show in chat."] = "除錯已開啟：插件捕捉到的錯誤會顯示在聊天視窗中。",

@@ -2,7 +2,7 @@
 ## Title: Hey Cousin!
 ## Notes: Finds the players who share your surname, and makes your family visible.
 ## Author: powercover
-## Version: 0.1.0
+## Version: 1.0.0
 ## X-License: All Rights Reserved
 ## SavedVariables: HeyCousinDB
 ## AllowLoadGameType: camelot

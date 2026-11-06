@@ -112,19 +112,23 @@ NoErrors(HC, "crest page")
 
 -- alerts and look
 local rows = All(setup, function(f) return f.toggle ~= nil and f:IsVisible() end)
-check(#rows == 5, "five alert settings: " .. #rows)
+check(#rows == 6, "six alert settings: " .. #rows)
 rows[1]:Click()
 check(HeyCousinDB.popup == false, "the pop-up setting turns off")
 rows[1]:Click()
 check(HeyCousinDB.popup == true, "and on")
-rows[5]:Click()
+check(HeyCousinDB.popupEvery == false, "a pop-up only the first time you meet, unless you want more")
+rows[2]:Click()
+check(HeyCousinDB.popupEvery == true, "every time you meet turns on")
+rows[2]:Click()
+rows[6]:Click()
 check(HeyCousinDB.showMinimap == false and not minimap:IsShown(), "the minimap crest hides at once")
-rows[5]:Click()
+rows[6]:Click()
 check(minimap:IsShown(), "and comes back")
 local bell = ButtonWith(setup, "Bell")
 bell:Click()
 check(HeyCousinDB.sound == "bell" and #Mock.sounds > 0, "a sound chip picks and plays it")
-rows[2]:Click()
+rows[3]:Click()
 check(HeyCousinDB.enemyAlerts == false and ButtonWith(setup, "Reset"):IsEnabled(), "changed alerts can be reset")
 ButtonWith(setup, "Reset"):Click()
 check(HeyCousinDB.enemyAlerts == true and HeyCousinDB.sound == "auto" and not ButtonWith(setup, "Reset"):IsEnabled(),
@@ -960,6 +964,21 @@ check(treeTab.title.text == "" and All(treeTab, function(f) return f.title and f
     "no guild: the tree says how it grows")
 _G.HeyCousinWindow:Hide()
 NoErrors(HC, "guild")
+
+-- === Quieter pop-ups ==========================================================================
+
+HC = Mock.Boot("forever", { setupDone = true })
+local realShow, popped = HC.Alert.Show, 0
+HC.Alert.Show = function() popped = popped + 1 end
+HC.Alert.Cousin("Zed", { met = 1 }, true, nil)
+check(popped == 1, "the first time you meet: a pop-up")
+HC.Alert.Cousin("Zed", { met = 2 }, false, nil)
+check(popped == 1, "the next times: none")
+HeyCousinDB.popupEvery = true
+HC.Alert.Cousin("Zed", { met = 2 }, false, nil)
+check(popped == 2, "unless you want one every time")
+HC.Alert.Show = realShow
+NoErrors(HC, "quieter pop-ups")
 
 -- === Find my family ===========================================================================
 

@@ -256,7 +256,9 @@ HC.Locale.Register("zhCN", {
 
     -- The setup: alerts
     ["On screen"] = "屏幕显示",
-    ["A pop-up when a cousin is near"] = "本家在附近时弹出提示",
+    ["A pop-up when you first meet a cousin"] = "首次遇到表亲时弹出提示",
+    ["Every time you meet"] = "每次相遇都提示",
+    ["Not only the first time."] = "不只是第一次。",
     ["With a sound. Click it to target them."] = "带提示音，点击即可选中对方。",
     ["Black sheep too"] = "也包括害群之马",
     ["Cousins from the other faction."] = "另一阵营的本家。",
@@ -361,7 +363,6 @@ HC.Locale.Register("zhCN", {
     ["Made-up cousins are on your map for two minutes. Open it to see them."] = "虚构的表亲会在你的地图上显示两分钟。打开地图查看。",
     ["the next look"] = "换成下一个外观",
     ["what the game tells the addon about you"] = "游戏告诉插件关于你的哪些信息",
-    ["the launch-day name test (on or off)"] = "开服当天的名字测试（开启或关闭）",
     ["the errors the addon caught, in chat (on or off)"] = "在聊天框显示插件捕获的错误（开启或关闭）",
     ["Look: %s"] = "外观：%s",
     ["Debug on: errors the addon catches show in chat."] = "调试已开启：插件捕获的错误会显示在聊天框中。",

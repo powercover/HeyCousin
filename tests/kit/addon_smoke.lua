@@ -832,6 +832,7 @@ Mock.ShowMap(1429)
 check(#MapPins() == 1, "they stopped sharing: gone at once")
 -- wanting nothing of it: out of the channel
 HeyCousinDB.mapShow, HeyCousinDB.presence, HeyCousinDB.familyNews, HeyCousinDB.familyChat = false, false, false, false
+HeyCousinDB.familyGroups = false
 HC.Map.Apply()
 check(Mock.channels.HCashbrookA == nil, "the family map, hello, news and chat all off: out of the channel")
 HeyCousinDB.mapShow, HeyCousinDB.presence = true, true
@@ -1151,6 +1152,96 @@ check(Mock.Said("Family chat is off"), "and /fam says why")
 HeyCousinDB.familyChat = true
 NoErrors(HC, "family news and chat")
 
+-- === Family groups ============================================================================
+
+HC = Mock.Boot("forever", { setupDone = true })
+house = HC.Kin.House()
+Mock.Fire("PLAYER_ENTERING_WORLD")
+Mock.Advance(40)
+HC.Window.Show("groups")
+local groupsWindow = _G.HeyCousinWindow
+check(ButtonWith(groupsWindow, "Groups").kind == "primary" and ButtonWith(groupsWindow, "Post") ~= nil, "the Groups tab, with its box")
+check(not ButtonWith(groupsWindow, "Post"):IsEnabled(), "nothing to post yet")
+local groupBox = All(groupsWindow, function(f) return f.kind == "EditBox" and f:IsVisible() end)[1]
+-- your post goes to the family
+groupBox:SetText("Deadmines, |cffff0000need a healer")
+ButtonWith(groupsWindow, "Post"):Click()
+check(ChannelSent("^5:G:") and ChannelSent("^5:G:").text == "5:G:Deadmines, cffff0000need a healer", "your post goes out, with no codes")
+check(ButtonWith(groupsWindow, "Take it down") ~= nil, "then it can come down")
+-- a cousin logging in gets it too
+sentBefore = #Mock.addonSent
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:H:ROGUE:30:", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+Mock.Advance(7)
+local toKit
+for i = sentBefore + 1, #Mock.addonSent do
+    if Mock.addonSent[i].text:find("^5:G:") and Mock.addonSent[i].target == "Kit Ashbrook" then toKit = true end
+end
+check(toKit, "a cousin who logs in gets your post")
+-- someone asks to join: one button, the invite is your click
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:J", "WHISPER", "Kit Ashbrook")
+local askWindow = _G.HeyCousinAsk
+check(askWindow and askWindow:IsShown() and askWindow.text.text:find("join your group", 1, true), "their Join: an ask, about your group")
+check(#Mock.invites == 0 or Mock.invites[#Mock.invites] ~= "Kit Ashbrook", "no invite by itself")
+ButtonWith(askWindow, "Invite"):Click()
+check(Mock.invites[#Mock.invites] == "Kit Ashbrook", "one click invites them")
+-- down again: no more asks
+ButtonWith(groupsWindow, "Take it down"):Click()
+check(ChannelSent("^5:X") ~= nil and HC.Groups.Mine() == nil and groupBox:GetText() == "", "your post comes down")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:J", "WHISPER", "Kit Ashbrook")
+check(not askWindow:IsShown(), "no post, no ask")
+-- a cousin's post: a line in chat, and a row with Join
+chatBefore = #Mock.chat
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:G:Stockades |TInterface:900|t tonight", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+check(#Mock.chat == chatBefore + 1 and Mock.chat[#Mock.chat]:find("looks for a group: Stockades", 1, true) and not Mock.chat[#Mock.chat]:find("|T", 1, true),
+    "a cousin's post: a line in chat, with no codes")
+Settle()
+local groupRows = All(groupsWindow, function(f) return f.item and f.item.words and f.join and f:IsVisible() end)
+check(#groupRows == 1 and groupRows[1].item.first == "Kit" and groupRows[1].words.text:find("Stockades", 1, true), "and a row")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:G:Stockades TInterface:900t tonight", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+check(#Mock.chat == chatBefore + 1, "the same post again: no new line")
+sentBefore = #Mock.addonSent
+groupRows[1].join:Click()
+check(Mock.addonSent[#Mock.addonSent].text == "5:J" and Mock.addonSent[#Mock.addonSent].target == "Kit Ashbrook", "Join asks them")
+check(not groupRows[1].join:IsEnabled() and groupRows[1].join.label.text == "Asked", "once")
+-- who it isn't from
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:G:spam", "CHANNEL", "Sly Stranger", "", 0, 7, "HCashbrookA")
+Mock.ignored = { ["Oren Ashbrook"] = true }
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:G:spam", "CHANNEL", "Oren Ashbrook", "", 0, 7, "HCashbrookA")
+Mock.ignored = nil
+check(#HC.Groups.List() == 1, "another surname and your ignore list are left out")
+-- the line can be turned off; the post still shows
+HeyCousinDB.familyGroups = false
+chatBefore = #Mock.chat
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:G:Scarlet Monastery", "CHANNEL", "Lia Ashbrook", "", 0, 7, "HCashbrookA")
+check(#Mock.chat == chatBefore and #HC.Groups.List() == 2, "no line, the post still shows")
+HeyCousinDB.familyGroups = true
+-- they take it down, or half an hour goes by
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:X", "CHANNEL", "Lia Ashbrook", "", 0, 7, "HCashbrookA")
+check(#HC.Groups.List() == 1, "they take it down")
+Mock.Advance(31 * 60)
+check(#HC.Groups.List() == 0, "it's gone after half an hour")
+Settle()
+_G.HeyCousinWindow:Hide()
+NoErrors(HC, "family groups")
+
+-- test mode: made-up posts, and nothing goes out
+HC = Mock.Boot("retail", { setupDone = true })
+sentBefore = #Mock.addonSent
+SlashCmdList.HEYCOUSIN("groups")
+Settle()
+check(_G.HeyCousinWindow:IsShown() and #HC.Groups.List() == 2, "test mode: made-up posts")
+HC.Groups.Post("Test")
+check(HC.Groups.Mine().words == "Test" and #Mock.addonSent == sentBefore, "and your post goes nowhere")
+HC.Groups.Join(HC.Groups.List()[1])
+check(Mock.Said("made-up cousins can't hear you"), "and neither does a Join")
+-- a new look with the tab open
+HC.Theme.SetSkin("smooth")
+Settle()
+check(ButtonWith(_G.HeyCousinWindow, "Groups") ~= nil, "a new look builds the tab again")
+HC.Theme.SetSkin("pixel")
+_G.HeyCousinWindow:Hide()
+NoErrors(HC, "family groups in test mode")
+
 -- === Recruit ==================================================================================
 
 HC = Mock.Boot("forever", { setupDone = true })
@@ -1448,7 +1539,10 @@ check(HeyCousinDB.presence == false, "the hello can be turned off here")
 Row(options, "Cousins coming online"):Click()
 Row(options, "Family news"):Click()
 Row(options, "Family chat"):Click()
-check(HeyCousinDB.familyNews == false and HeyCousinDB.familyChat == false, "news and chat can be turned off here")
+Row(options, "Family groups"):Click()
+check(HeyCousinDB.familyNews == false and HeyCousinDB.familyChat == false and HeyCousinDB.familyGroups == false,
+    "news, chat and groups can be turned off here")
+Row(options, "Family groups"):Click()
 Row(options, "Family news"):Click()
 Row(options, "Family chat"):Click()
 ButtonWith(options, "The family map"):Click()

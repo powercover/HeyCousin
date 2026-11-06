@@ -45,6 +45,7 @@ Radar.lua
 Layer.lua
 Tree.lua
 Recruit.lua
+Groups.lua
 Window.lua
 Tooltip.lua
 Chat.lua

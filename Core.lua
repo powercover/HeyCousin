@@ -35,6 +35,8 @@ local DEFAULTS = {
     -- a cousin's round levels, and family chat (/fam)
     familyNews = true,
     familyChat = true,
+    -- a line in chat when a cousin looks for a group
+    familyGroups = true,
 }
 
 local function SavedDefaults()
@@ -84,6 +86,7 @@ function HC.Commands()
         "/cousin - " .. L["your family"],
         "/cousin tree - " .. L["your guild as a family tree"],
         "/cousin recruit - " .. L["invite the cousins who have no guild"],
+        "/cousin groups - " .. L["cousins looking for a group"],
         "/cousin settings - " .. L["every choice, by what it's for"],
         "/cousin setup - " .. L["your crest, alerts and look"],
         "/cousin test - " .. L["a pop-up to try"],
@@ -118,6 +121,8 @@ local function HandleSlash(message)
         HC.Window.Show("family")
         HC.Window.Open(nil)
         HC.Window.Recruit(true)
+    elseif command == "groups" then
+        HC.Window.Show("groups")
     elseif command == "settings" or command == "options" then
         HC.Options.Show()
     elseif command == "setup" then

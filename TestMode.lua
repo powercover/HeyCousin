@@ -238,6 +238,17 @@ function TestMode.Who()
     return rows
 end
 
+-- Made-up cousins looking for a group (the Groups tab).
+function TestMode.Groups()
+    local now = GetTime()
+    return {
+        { first = "Mira", full = HC.Names.Full("Mira", TestMode.SURNAME), words = "Deadmines, need a healer!", at = now - 120,
+            test = true },
+        { first = "Thane", full = HC.Names.Full("Thane", TestMode.SURNAME), words = "Anyone for the Stockades? I can tank.",
+            at = now - 600, test = true },
+    }
+end
+
 -- The made-up guild's family, as you (its guild master) gave it: its Initiates are Little cousins.
 function TestMode.GuildFamily()
     return { stamp = 1, surname = TestMode.SURNAME, words = { "", "", "", L["Little cousin"] },

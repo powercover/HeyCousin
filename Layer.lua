@@ -34,7 +34,7 @@ local quiet = {}    -- [full name] = GetTime(): an automatic question, its "not 
 local accept        -- { name, first, at }: the invite we asked for
 local lastSwitch = 0
 local before        -- the layer we were on when we asked
-local ask, askStale, askFrom, askWaiting
+local ask, askStale, askFrom, askWaiting, askWaitingText
 
 -- --- reading layers ----------------------------------------------------------------------------
 
@@ -234,10 +234,11 @@ local function BuildAsk()
     askStale = false
 end
 
--- Shows "X wants to join your layer" (after a fight, if one is on). `test` shows it in test mode.
-function Layer.ShowAsk(full, test)
+-- Shows "X wants to join your layer" (after a fight, if one is on), or `words` when it's about
+-- something else (a family group). `test` shows it in test mode.
+function Layer.ShowAsk(full, test, words)
     if InCombatLockdown() then
-        askWaiting = full
+        askWaiting, askWaitingText = full, words
         return
     end
     if not ask or askStale then
@@ -246,7 +247,7 @@ function Layer.ShowAsk(full, test)
     askFrom = not test and full or nil
     local house, surname = Kin.House()
     ask.crest:SetCrest(house and house.crest, surname)
-    ask.text:SetText(string.format(L["%s wants to join your layer."], full)
+    ask.text:SetText((words or string.format(L["%s wants to join your layer."], full))
         .. (test and ("\n" .. L["(Test mode: the button does nothing.)"]) or ""))
     ask:Show()
     Theme.Ease(ask, 1, function(value)
@@ -326,9 +327,9 @@ frame:SetScript("OnEvent", Utils.Protect("layer", function(_, event, ...)
         end
     elseif event == "PLAYER_REGEN_ENABLED" then
         if askWaiting then
-            local full = askWaiting
-            askWaiting = nil
-            Layer.ShowAsk(full)
+            local full, words = askWaiting, askWaitingText
+            askWaiting, askWaitingText = nil, nil
+            Layer.ShowAsk(full, false, words)
         end
     elseif event == "NAME_PLATE_UNIT_ADDED" then
         Read((...))

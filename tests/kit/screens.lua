@@ -97,6 +97,15 @@ function Screens.recruit(skin)
     return { frames = { HeyCousinWindow } }
 end
 
+-- Groups: made-up cousins looking for a group, and your own post
+function Screens.groups(skin)
+    local HC = Boot(skin)
+    HC.Window.Show("groups")
+    HC.Groups.Post("Need one more for Wailing Caverns")
+    HeyCousinWindow.badge:Hide()
+    return { frames = { HeyCousinWindow } }
+end
+
 -- Mira's page: every meeting, the one before the last in full
 function Screens.cousin(skin)
     local HC = Boot(skin)

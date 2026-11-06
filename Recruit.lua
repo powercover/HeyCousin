@@ -80,6 +80,7 @@ local function OpenChat(text)
         open(text, DEFAULT_CHAT_FRAME)
     end
 end
+Recruit.OpenChat = OpenChat
 
 local function FullName(first)
     return Names.Full(first, (select(2, Names.Me())))

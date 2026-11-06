@@ -84,8 +84,8 @@ function Family.Keep()
     if not name then
         return
     end
-    local wanted = Family.On() or Family.NewsOn() or Family.ChatOn() or HeyCousinDB.mapShow ~= false
-        or HeyCousinDB.mapShare == true
+    local wanted = Family.On() or Family.NewsOn() or Family.ChatOn() or HeyCousinDB.familyGroups ~= false
+        or HeyCousinDB.mapShow ~= false or HeyCousinDB.mapShare == true
     if wanted and not id then
         Utils.Call(JoinTemporaryChannel, name)
     elseif id and not wanted then
@@ -230,6 +230,7 @@ local function Heard(text, sender)
         answered[member.full] = now
         Utils.After(math.random(1, ANSWER_WITHIN), "family answer", function()
             HC.Guild.Send(Line("A"), "WHISPER", member.full)
+            HC.Groups.Greet(member.full)
         end)
     end
 end
@@ -259,14 +260,20 @@ function Family.Say(text)
     end
 end
 
--- A cousin's words: no codes get through (a link, a picture), and no flood.
+-- A cousin's words: no codes get through (a link, a picture), and no flood. Lines about groups go to
+-- Groups.lua.
 local function HeardWords(text, sender)
-    local words = text:match("^5:C:(.*)$")
-    local member = words and Family.Cousin(sender)
-    if not member or not Family.ChatOn() then
+    local member = Family.Cousin(sender)
+    local kind, rest = text:match("^5:(%u):?(.*)$")
+    if not member or not kind then
+        return
+    elseif kind ~= "C" then
+        HC.Groups.Heard(kind, rest, member)
+        return
+    elseif not Family.ChatOn() then
         return
     end
-    words = HC.Guild.Plain(words, WORDS_MAX)
+    local words = HC.Guild.Plain(rest, WORDS_MAX)
     local now = GetTime()
     if words == "" or (spoke[member.first] and now - spoke[member.first] < WORDS_GAP) then
         return

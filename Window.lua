@@ -34,6 +34,7 @@ local query = ""
 local eldest
 -- the Recruit page, over the family's list
 local recruitPanel
+local groupsPanel
 local recruiting = false
 local ticker
 
@@ -829,12 +830,12 @@ local function Build()
     end)
 
     tabs = Theme.Tabs(window, { { key = "family", label = L["Family"] }, { key = "tree", label = L["Tree"] },
-        { key = "stats", label = L["Stats"] } }, function()
+        { key = "groups", label = L["Groups"] }, { key = "stats", label = L["Stats"] } }, function()
             recruiting = false
             Window.Refresh()
-        end, 282, 30)
+        end, 340, 30)
     tabs:SetPoint("TOPLEFT", PAD, -96)
-    search = Theme.EditBox(window, 168, L["Search"], "Search", 24)
+    search = Theme.EditBox(window, 118, L["Search"], "Search", 24)
     search:SetPoint("TOPRIGHT", -PAD, -96)
     search.onChange = function(text)
         query = Utils.Trim(text)
@@ -879,6 +880,7 @@ local function Build()
     BuildStats()
     tree = HC.Tree.Build(window, PAD, LIST_TOP - 28, 42)
     recruitPanel = HC.Recruit.Build(window, PAD, LIST_TOP - 28, 42)
+    groupsPanel = HC.Groups.Build(window, PAD, LIST_TOP - 28, 42)
 
     -- the line along the bottom
     window.footer = Theme.Text(window, "Small", C.text3)
@@ -913,6 +915,7 @@ local function Build()
             ticker = nil
         end
         search.edit:ClearFocus()
+        HC.Groups.Blur()
         -- a model drops while hidden: load it again next time
         page.modelFor = nil
         window:SetFrameStrata("HIGH")
@@ -1010,6 +1013,11 @@ function Window.Refresh(keep)
     if onTree then
         HC.Tree.Paint(keep)
     end
+    local onGroups = tabs.selected == "groups"
+    groupsPanel:SetShown(onGroups)
+    if onGroups then
+        HC.Groups.Paint(keep)
+    end
     if not onList then
         list:Hide()
         empty:Hide()
@@ -1105,6 +1113,7 @@ Theme.OnSkin(function()
     local shown = window:IsShown()
     window:Hide()
     window, list, page, stats, empty, tree, tabs, search, header, recruitPanel = nil, nil, nil, nil, nil, nil, nil, nil, nil, nil
+    groupsPanel = nil
     if shown then
         Window.Show()
     end

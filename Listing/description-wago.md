@@ -17,17 +17,19 @@ It's useful from your first minute, even if nobody else in your family has it ye
 
 ## One click finds your family
 
-![One click finds your family](https://cdn.wago.io/gallery/HO2UjIkBq20Z4TB2bGA95Z8NBsl0raaFjRWZiMqi.png)
+![One click finds your family](https://cdn.wago.io/gallery/eQoZCxlAlIIByXkjVRSDpsgvlYD3f4jazsoHPffH.png)
 
 One click searches the game's `/who` for your surname and lists everyone online with **exactly** that surname, on your faction, with their level, zone and guild. Open a cousin's page to **whisper** them, **invite** them to your group, or **join their layer**.
 
 Your family grows by itself too: the addon also spots cousins around you, in chat and in your guild, and remembers every time you met: where, when, what they said and their gear.
 
-![A page for every cousin: Whisper, Invite and Join their layer](https://cdn.wago.io/gallery/LzjDreoTZii1dGhgdgtKZbmq9k0HoJQG9wHSsna7.png)
+![A page for every cousin: Whisper, Invite and Join their layer](https://cdn.wago.io/gallery/9E5Hof3CyirmOzjjQrTSC0cVDOcGFU4po9d1PfTD.png)
 
 Want to see another family? **Look up any surname** with `/cousin find Surname`.
 
 ## "A cousin is near!"
+
+![Hey cousin!](https://cdn.wago.io/gallery/0s1CFNrh209gmZWHPjQuzpN7Y9cvI9FLop0MJncF.png)
 
 A pop-up with their face and a sound the first time you meet, or every time if you want. Click it to target them. Click **Hey cousin!** and you wave and say "Hey cousin Mira!" out loud, so everyone around sees it.
 
@@ -35,15 +37,21 @@ A cousin on the other side of the war is the family's **black sheep**, with a po
 
 ## Spot a cousin in a crowd
 
+![Spot a cousin in a crowd](https://cdn.wago.io/gallery/CyJEzayw9lByi8uQVbm4E8xBmYK1DqQpdqL8PT4E.png)
+
 Your family's crests on nameplates, and a red one on a black sheep's enemy nameplate, so you know who you're fighting. Drag and resize the crest in the settings: while that page is open, the real nameplates around you show it too, so you see exactly where it goes. Tried on EllesmereUI's nameplates, and made to work with any other, such as Plater, ElvUI or Kui.
 
 ## The family map
+
+![Your family on the map](https://cdn.wago.io/gallery/EDmIIrZ3e5B34cS87PcidfQVOR7GhcEeYOeCQHWN.png)
 
 Cousins who share where they are show as crests on the world map and the minimap, with their names. Click one to open their page. It works beside map addons like Questie, TomTom and HandyNotes, and on **OpenMap**'s stitched map.
 
 **Sharing is off until you turn it on.** Then your guild and anyone with your surname who runs Hey Cousin! can see where you are, on your faction only. Never in a fight or a dungeon. Turn it off, and your crest leaves their maps at once.
 
 ## Play together
+
+![Find a group in the family](https://cdn.wago.io/gallery/aWdWNPweWkd7zpyacu1XbYZlhf8zV0RSBxmIXqyf.png)
 
 When your cousins have the addon too, they're marked **(uses addon)**, you see their own crests, and you can:
 
@@ -53,13 +61,17 @@ When your cousins have the addon too, they're marked **(uses addon)**, you see t
 
 ## The family race and portrait
 
+![The family race](https://cdn.wago.io/gallery/1kEGVIcyhDKD59vy2zFtMzDxERhHP1zyq7FkFgBX.png)
+
 Who's the highest level in your family? **The family race** ranks you and your cousins with the addon, and tells you when one passes you.
+
+![A family portrait](https://cdn.wago.io/gallery/u9wPrkYpquori9Bd2Vn3JI7sw8k28dFbJtVffIVM.png)
 
 **The family portrait** puts your house on one card: crest, motto, numbers and the cousins you meet most. Made for a screenshot to share with your family or Discord.
 
 ## Build your house
 
-![Make your own crest](https://cdn.wago.io/gallery/HHHBUQ9XK1szpaVraUmtZo1jrvJGgFBfRJCSXArS.png)
+![Make your own crest](https://cdn.wago.io/gallery/RB40UV4THOeEYToh4u3ZMkQ7wS3J7StLqs9esgvQ.png)
 
 - **Your crest:** shape, pattern, colors, a symbol and a motto, or roll the dice. It shows at the start of cousins' chat lines, in tooltips and on the minimap.
 - **Your other characters** show in your family, and a crown marks the eldest cousin we know, by a good guess.
@@ -69,14 +81,14 @@ Great for roleplay families, too.
 
 ## For guilds: recruit and make it a family
 
-![Your guild as a family tree](https://cdn.wago.io/gallery/KmflmYpZWqHuVA7N3IkpoGIsCYfdcFMcWPVmNRcv.png)
+![Your guild as a family tree](https://cdn.wago.io/gallery/5jwYdqlMJXqWFcM5nZuXcyz2C2oJ7ktGgFB057CJ.png)
 
 - **Recruit:** the cousins with no guild, each with an Invite button and a welcome you write.
 - **The family tree:** your guild as a family, each rank a generation. A guild master can give each rank a family word and write a welcome line, and every member with the addon gets them.
 
 ## Three looks
 
-![Pixel, Forever and Smooth](https://cdn.wago.io/gallery/1wiWqHacqtD5SbhnZ36LuSg5db75LpdidglQ1f4G.png)
+![Pixel, Forever and Smooth](https://cdn.wago.io/gallery/7S7SNjmad6kuRNd6qTpKN119w0V2ouqQegdkkPnL.png)
 
 Pixel, Forever (the classic game's parchment) and Smooth. Switch any time.
 

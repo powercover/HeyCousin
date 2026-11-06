@@ -384,7 +384,14 @@ local function Globals()
             return Mock.plates[unit]
         end,
     }
-    function ListChannelByName(name) Mock.listed = name end
+    -- who's in a channel comes as a chat line; a listener is there unless a test says who is
+    Mock.channelMembers = { "*Rowan Ashbrook", "Anyone Ashbrook" }
+    function ListChannelByName(name)
+        Mock.listed = name
+        if not Mock.rosterSilent then
+            Mock.Fire("CHAT_MSG_CHANNEL_LIST", table.concat(Mock.channelMembers, ", "), "", "", "7. " .. name, "", "", 0, 7, name)
+        end
+    end
     -- saying and emoting (Mock.said, Mock.emotes)
     Mock.said, Mock.emotes = {}, {}
     function SendChatMessage(text, kind) table.insert(Mock.said, { text = text, kind = kind }) end

@@ -293,6 +293,11 @@ end
 
 -- --- events ------------------------------------------------------------------------------------
 
+-- An automatic message to `full` is on its way: the game's "no player named" for it stays quiet.
+function Layer.Quiet(full)
+    quiet[full] = GetTime()
+end
+
 -- the game's "no player named X" for an automatic question: not news to you
 local function HideNotFound(_, _, message, ...)
     if type(message) ~= "string" or Utils.IsSecret(message) or not ERR_CHAT_PLAYER_NOT_FOUND_S then

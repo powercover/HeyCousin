@@ -1,7 +1,9 @@
 local _, HC = ...
 
 -- The family's channel: a hidden chat channel for one surname and one faction, so cousins in any
--- guild can reach each other's addons (the other side's addon never joins it). Over it each addon
+-- guild can find each other's addons (the other side's addon never joins it). It's how you know who's
+-- there: on Forever the game takes addon messages for a channel but doesn't deliver them (tested with
+-- two players), so the messages go to each cousin on its list as an addon whisper. Each addon
 -- says hello when you log in, with your class, level and crest, and a word now and then while you
 -- play: nothing the game's /who doesn't already show, but that you run Hey Cousin!. So your cousins'
 -- addons know who uses it, who's online without a click, and what their crests look like. The family's
@@ -29,6 +31,13 @@ local QUIET = 30
 local CREST_FIELDS = { "shape", "division", "field", "second", "metal", "symbol", "charge" }
 -- a cousin's level is news on every fifth one
 local NEWS_EVERY = 5
+-- who's in the channel: asked this often, and the game's answer comes within this long
+local ROSTER_GAP, ROSTER_WAIT = 60, 2
+local MEMBERS_MAX = 200
+-- the game sends 10 of a prefix in a row, then one a second: a message for everyone goes out a few at a
+-- time, and where you are (often, and soon old) to the next few in turn
+local PUMP_BURST, PUMP_GAP, PUMP_TRIES, QUEUE_MAX = 3, 1, 10, 300
+local SPREAD = 4
 -- lines about cousins (online, a new level, a group): this many a minute at most, so a big family
 -- doesn't fill your chat
 local LINES_MAX, LINES_SPAN = 3, 60
@@ -46,10 +55,18 @@ local quietUntil = 0
 local answered = {}  -- [full name] = GetTime() of the last answer to their hello
 local levelled = false  -- you've levelled up: it goes with the next tick
 local linesFrom, linesCount = 0, 0
+local members = {}      -- the cousins in the channel: a list of whole names
+local rosterKnown = false
+local rosterAsking      -- while the game answers: { [whole name] = true }
+local rosterShown = false  -- /cousin check shows the game's answer in chat
+local rosterAskedAt = -ROSTER_GAP
+local outbox = {}       -- { text, target } waiting to go
+local pumping = false
+local spreadAt = 0      -- where in the list the next position goes
 local heyAt  -- GetTime() of your last "Hey cousin!"
 local heard = {}  -- the last lines heard, as the game gave them (/cousin check)
 local heardCount = 0
-local echoes = {}  -- your own lines coming back, by how they came: the proof the game delivers them
+local echoes = {}  -- your own lines coming back, by how they came
 local HEARD_KEEP = 8
 local spoke = {}  -- [first name] = GetTime() of their last line in family chat
 
@@ -110,15 +127,117 @@ function Family.Keep()
         or HeyCousinDB.mapShow ~= false or HeyCousinDB.mapShare == true
     if wanted and not id then
         Utils.Call(JoinTemporaryChannel, name)
+        Family.AskRoster()
     elseif id and not wanted then
         Utils.Call(LeaveChannelByName, name)
+        members, rosterKnown = {}, false
     end
 end
 
--- A message to every cousin in the channel; whether it went.
+-- Asks the game who's in the channel; its answer comes as chat lines, kept out of your chat.
+function Family.AskRoster(shown)
+    local id, name = Family.Channel()
+    if not id or rosterAsking then
+        return
+    end
+    rosterAskedAt = GetTime()
+    rosterAsking, rosterShown = {}, shown == true
+    Utils.Call(ListChannelByName, name)
+    Utils.After(ROSTER_WAIT, "family roster", function()
+        local gathered = rosterAsking
+        rosterAsking, rosterShown = nil, false
+        -- (no answer at all: what's known stays)
+        if gathered and gathered.answered then
+            gathered.answered = nil
+            members = {}
+            for full in pairs(gathered) do
+                members[#members + 1] = full
+            end
+            rosterKnown = true
+        end
+    end)
+end
+
+-- Someone you heard from is there, whatever the list says.
+local function AddMember(full)
+    for _, known in ipairs(members) do
+        if known == full then
+            return
+        end
+    end
+    if #members < MEMBERS_MAX then
+        members[#members + 1] = full
+    end
+end
+
+-- One whisper to a cousin's addon; whether the game took it. The game's "no player named" for someone
+-- just gone isn't news to you.
+function Family.Whisper(text, full)
+    HC.Layer.Quiet(full)
+    return HC.Guild.Send(text, "WHISPER", full)
+end
+
+-- The waiting messages, a few at a time; one the game holds back goes again a moment later.
+local function Pump()
+    for _ = 1, PUMP_BURST do
+        local item = outbox[1]
+        if not item then
+            break
+        end
+        if Family.Whisper(item.text, item.target) then
+            table.remove(outbox, 1)
+        else
+            -- (held back, it goes again; refused every time, it doesn't hold up the rest)
+            item.tries = (item.tries or 0) + 1
+            if item.tries >= PUMP_TRIES then
+                table.remove(outbox, 1)
+            end
+            break
+        end
+    end
+    if outbox[1] then
+        pumping = true
+        Utils.After(PUMP_GAP, "family send", Pump)
+    else
+        pumping = false
+    end
+end
+
+-- A message to every cousin in the channel; false when it can't go yet (the list isn't known yet: try
+-- again in a moment).
 function Family.Send(text)
-    local id = Family.Channel()
-    return id ~= nil and HC.Guild.Send(text, "CHANNEL", id)
+    if not Family.Channel() then
+        return false
+    end
+    if not rosterKnown then
+        Family.AskRoster()
+        return false
+    end
+    for _, full in ipairs(members) do
+        if #outbox < QUEUE_MAX then
+            outbox[#outbox + 1] = { text = text, target = full }
+        end
+    end
+    if not pumping then
+        Pump()
+    end
+    return true
+end
+
+-- A message to the next few cousins in turn: where you are, often and soon old.
+function Family.Spread(text)
+    if not Family.Channel() then
+        return false
+    end
+    if not rosterKnown then
+        Family.AskRoster()
+        return false
+    end
+    for _ = 1, math.min(SPREAD, #members) do
+        spreadAt = spreadAt % #members + 1
+        Family.Whisper(text, members[spreadAt])
+    end
+    return true
 end
 
 -- Who a line on the channel is from: a cousin with your surname, not you, nobody else, and nobody
@@ -162,6 +281,36 @@ function Family.Hey(first, unit)
     heyAt = now
     Utils.Call(DoEmote, "WAVE", unit or "none")
     Utils.Call((C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage, string.format(L["Hey cousin %s!"], first), "SAY")
+end
+
+-- The game's answer to who's in the channel: "[7. Name] First Surname, *First Surname" in chat. Stays
+-- out of your chat unless you asked. A long list comes in several lines.
+local function IsRoster(label, base)
+    local name = select(2, Family.Channel())
+    if not rosterAsking or not name then
+        return false
+    end
+    for _, text in ipairs({ label or "", base or "" }) do
+        if type(text) == "string" and not Utils.IsSecret(text) and text:lower():find(name:lower(), 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
+local function HideRoster(_, _, _, _, _, label, _, _, _, _, base)
+    return IsRoster(label, base) and not rosterShown
+end
+
+local function ReadRoster(text)
+    rosterAsking.answered = true
+    for chunk in text:gmatch("[^,]+") do
+        -- (* the channel's owner, @ a moderator)
+        local member = Family.Cousin((Utils.Trim(chunk):gsub("^[%*@%+#]+", "")))
+        if member then
+            rosterAsking[member.full] = true
+        end
+    end
 end
 
 -- The channel's "joined" and "left" lines stay out of your chat.
@@ -212,6 +361,9 @@ local function Line(kind)
 end
 
 local function Tick()
+    if GetTime() - rosterAskedAt >= ROSTER_GAP then
+        Family.AskRoster()
+    end
     if not Family.On() or not Family.Channel() or Utils.Call(InCombatLockdown) == true then
         return
     end
@@ -284,7 +436,7 @@ local function Heard(text, sender)
     if kind == "H" and (not answered[member.full] or now - answered[member.full] >= ANSWER_GAP) then
         answered[member.full] = now
         Utils.After(math.random(1, ANSWER_WITHIN), "family answer", function()
-            HC.Guild.Send(Line("A"), "WHISPER", member.full)
+            Family.Whisper(Line("A"), member.full)
             HC.Groups.Greet(member.full)
         end)
     end
@@ -343,6 +495,10 @@ frame:SetScript("OnEvent", Utils.Protect("family", function(_, event, ...)
     if event == "CHAT_MSG_ADDON" then
         local prefix, text, channel, sender, _, _, localID, channelName = ...
         if prefix == PREFIX and Utils.IsUsableString(text) then
+            local talker = channel == "WHISPER" and text:find("^[345]:") and Family.Cousin(sender)
+            if talker then
+                AddMember(talker.full)
+            end
             if Names.Same((Names.Split(sender)), (Names.Me())) then
                 echoes[channel] = (echoes[channel] or 0) + 1
             else
@@ -365,6 +521,11 @@ frame:SetScript("OnEvent", Utils.Protect("family", function(_, event, ...)
             Heard(text, sender)
         elseif mine then
             HeardWords(text, sender)
+        end
+    elseif event == "CHAT_MSG_CHANNEL_LIST" then
+        local text, _, _, label, _, _, _, _, base = ...
+        if Utils.IsUsableString(text) and IsRoster(label, base) then
+            ReadRoster(text)
         end
     elseif event == "PLAYER_LEVEL_UP" then
         levelled = true
@@ -399,8 +560,8 @@ function Family.Check()
     Utils.Print("Check: sent " .. log.count .. " in all. Last: " .. tostring(log.text and log.text:sub(1, 12)) .. " on "
         .. tostring(log.channel) .. " " .. tostring(log.target) .. ", call ok " .. tostring(log.ok) .. ", game's answer "
         .. tostring(log.result))
-    Utils.Print("Check: your own coming back on the channel: " .. (echoes.CHANNEL or 0) .. ", time since login: "
-        .. math.floor(GetTime() - (Family.startedAt or GetTime())) .. "s")
+    Utils.Print("Check: cousins it sends to: " .. #members .. (rosterKnown and "" or " (list not known yet)") .. ": "
+        .. table.concat(members, ", ") .. ". Time since login: " .. math.floor(GetTime() - (Family.startedAt or GetTime())) .. "s")
     Utils.Print("Check: heard " .. heardCount .. " from others." .. (heardCount > 0 and " Newest first:" or ""))
     local now = GetTime()
     for _, line in ipairs(heard) do
@@ -409,9 +570,11 @@ function Family.Check()
             tostring(line.channel), tostring(line.sender), tostring(line.localID), tostring(line.channelName),
             cousin and "yes" or "no"))
     end
-    if id and type(ListChannelByName) == "function" then
+    if id then
         Utils.Print("Check: who's in the channel, from the game:")
-        Utils.Call(ListChannelByName, name)
+        Family.AskRoster(true)
+        -- (already asking: it shows what comes)
+        rosterShown = rosterAsking ~= nil
     end
 end
 
@@ -422,7 +585,7 @@ function Family.Start()
     end
     Family.started = true
     Family.startedAt = GetTime()
-    for _, event in ipairs({ "CHAT_MSG_ADDON", "PLAYER_ENTERING_WORLD", "PLAYER_LEVEL_UP" }) do
+    for _, event in ipairs({ "CHAT_MSG_ADDON", "CHAT_MSG_CHANNEL_LIST", "PLAYER_ENTERING_WORLD", "PLAYER_LEVEL_UP" }) do
         frame:RegisterEvent(event)
     end
     if C_ChatInfo and type(C_ChatInfo.RegisterAddonMessagePrefix) == "function" then
@@ -431,12 +594,14 @@ function Family.Start()
     local add = (ChatFrameUtil and ChatFrameUtil.AddMessageEventFilter) or ChatFrame_AddMessageEventFilter
     if type(add) == "function" then
         local filter = Utils.Protect("family channel", HideNotice)
-        for _, event in ipairs({ "CHAT_MSG_CHANNEL_NOTICE", "CHAT_MSG_CHANNEL_NOTICE_USER" }) do
+        local rosterFilter = Utils.Protect("family roster", HideRoster)
+        for event, fn in pairs({ CHAT_MSG_CHANNEL_NOTICE = filter, CHAT_MSG_CHANNEL_NOTICE_USER = filter,
+            CHAT_MSG_CHANNEL_LIST = rosterFilter }) do
             -- through securecall, as the chat crests are
             if type(securecall) == "function" then
-                securecall(add, event, filter)
+                securecall(add, event, fn)
             else
-                add(event, filter)
+                add(event, fn)
             end
         end
     end

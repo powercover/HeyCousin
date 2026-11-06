@@ -2,9 +2,9 @@ local _, HC = ...
 
 -- The family map: the cousins who share where they are show as crests on the game's own world
 -- map, beside its quest marks. Sharing is yours to turn on (the settings, or the setup's Family step): your addon tells
--- your guild's addons and your family's channel where you are every few seconds while you move,
--- never in a fight or a dungeon. The family channel is a hidden chat channel for one surname and one
--- faction, so the other side's addon never joins it. The crests change only while the map is open,
+-- your guild's addons and the cousins in your family's channel (Family.lua) where you are every few
+-- seconds while you move, never in a fight or a dungeon. The family channel is a hidden chat channel
+-- for one surname and one faction, so the other side's addon never joins it. The crests change only while the map is open,
 -- and nothing runs every frame.
 HC.Map = {}
 
@@ -46,13 +46,20 @@ local function Sharing()
     return HeyCousinDB.mapShare == true and Names.HaveSurnames()
 end
 
--- Tells your guild and your family's channel; whether either took it.
-local function Tell(text)
+-- Tells your guild and your family, the next few in turn; with `all`, every cousin (a change that
+-- mustn't be missed). Whether any of it went.
+local function Tell(text, all)
     local told = false
     if HC.Guild.Mine() ~= nil then
         told = HC.Guild.Send(text)
     end
-    return HC.Family.Send(text) or told
+    local family
+    if all then
+        family = HC.Family.Send(text)
+    else
+        family = HC.Family.Spread(text)
+    end
+    return family or told
 end
 
 -- Your map and your place on it (0 to 1 across and down); `away` in a dungeon, where the game
@@ -84,7 +91,7 @@ local function Look()
     local map, away, x, y = Where()
     local now = GetTime()
     if away then
-        if not sent.away and Tell("3:D") then
+        if not sent.away and Tell("3:D", true) then
             sent = { away = true, at = now }
         end
         return
@@ -113,7 +120,7 @@ function Map.Apply()
         ticker:Cancel()
         ticker = nil
         if sent.at then
-            Tell("3:X")
+            Tell("3:X", true)
         end
         sent = {}
     end
@@ -468,6 +475,8 @@ frame:SetScript("OnEvent", Utils.Protect("map", function(_, event, ...)
         local prefix, text, channel, sender, _, _, localID, channelName = ...
         if prefix == PREFIX and channel == "GUILD" then
             Heard(text, sender, false)
+        elseif prefix == PREFIX and channel == "WHISPER" then
+            Heard(text, sender, true)
         elseif prefix == PREFIX and channel == "CHANNEL" then
             -- only your family's channel
             local id, name = HC.Family.Channel()

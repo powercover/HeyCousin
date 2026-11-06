@@ -101,7 +101,7 @@ end
 -- A cousin just logged in: they get your post too.
 function Groups.Greet(full)
     if Groups.Mine() then
-        HC.Guild.Send("5:G:" .. mine.words, "WHISPER", full)
+        HC.Family.Whisper("5:G:" .. mine.words, full)
     end
 end
 
@@ -111,7 +111,7 @@ function Groups.Join(post)
     if post.test then
         Utils.Print(L["Test mode: made-up cousins can't hear you."])
     else
-        HC.Guild.Send("5:J", "WHISPER", post.full)
+        HC.Family.Whisper("5:J", post.full)
         Utils.Print(string.format(L["Asking %s for an invite..."], post.full))
     end
     Changed()

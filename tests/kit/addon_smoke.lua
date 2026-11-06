@@ -755,13 +755,13 @@ HeyCousinDB.mapShare = true
 HC.Map.Apply()
 local onChannel
 for _, sentLine in ipairs(Mock.addonSent) do
-    if sentLine.channel == "CHANNEL" then onChannel = sentLine end
+    if sentLine.channel == "WHISPER" then onChannel = sentLine end
 end
-check(onChannel and onChannel.target == 7 and onChannel.text:find("^3:P:1429:%d+:%d+:%u+:%d+$"),
-    "sharing tells your family's channel, with your class and level: " .. tostring(onChannel and onChannel.text))
+check(onChannel and onChannel.target == "Anyone Ashbrook" and onChannel.text:find("^3:P:1429:%d+:%d+:%u+:%d+$"),
+    "sharing tells the cousins in your family's channel, with your class and level: " .. tostring(onChannel and onChannel.text))
 HeyCousinDB.mapShare = false
 HC.Map.Apply()
-check(Mock.addonSent[#Mock.addonSent].channel == "CHANNEL" and Mock.addonSent[#Mock.addonSent].text == "3:X", "a stop reaches the channel too")
+check(Mock.addonSent[#Mock.addonSent].channel == "WHISPER" and Mock.addonSent[#Mock.addonSent].text == "3:X", "a stop reaches the family too")
 -- a cousin outside your guild, who shares
 Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:P:1429:3000:3000:ROGUE:17", "CHANNEL", "Faraway Ashbrook", "", 0, 7, "HCashbrookA")
 check(house.relatives.Faraway and house.relatives.Faraway.class == "ROGUE" and house.relatives.Faraway.level == 17
@@ -980,7 +980,7 @@ house = HC.Kin.House()
 local function ChannelSent(pattern)
     local found
     for _, line in ipairs(Mock.addonSent) do
-        if line.channel == "CHANNEL" and line.text:find(pattern) then found = line end
+        if line.channel == "WHISPER" and line.target == "Anyone Ashbrook" and line.text:find(pattern) then found = line end
     end
     return found
 end
@@ -1109,6 +1109,7 @@ check(Mock.Said("Family chat is off"), "and /fam says why")
 HeyCousinDB.familyChat = true
 NoErrors(HC, "family news and chat")
 
+do
 -- "Hey cousin!": only from a click, and it says their name
 HC = Mock.Boot("forever", { setupDone = true })
 house = HC.Kin.House()
@@ -1151,6 +1152,7 @@ check(not heyAlert.hey:IsVisible(), "not on a preview of yourself")
 HC.Alert.Dismiss()
 Settle()
 NoErrors(HC, "hey cousin")
+end
 
 -- the family race: you and those with the addon, by level
 HC = Mock.Boot("forever", { setupDone = true, houses = { Ashbrook = { relatives = {
@@ -1212,6 +1214,89 @@ check(_G.HeyCousinPortrait:IsShown(), "with nobody yet, it still opens")
 _G.HeyCousinPortrait:Hide()
 NoErrors(HC, "an empty family portrait")
 
+do
+-- the channel finds cousins; whispers reach them (Forever takes channel messages but doesn't deliver them)
+HC = Mock.Boot("forever", { setupDone = true })
+Mock.channelMembers = { "*Rowan Ashbrook", "Kit Ashbrook", "@Lia Ashbrook", "Sly Stranger" }
+Mock.Fire("PLAYER_ENTERING_WORLD")
+Mock.Advance(25)
+local function SentTo(target, pattern)
+    for _, line in ipairs(Mock.addonSent) do
+        if line.channel == "WHISPER" and line.target == target and line.text:find(pattern) then return line end
+    end
+end
+for _, line in ipairs(Mock.addonSent) do
+    check(line.channel ~= "CHANNEL", "nothing goes on the channel itself: " .. line.text)
+end
+check(SentTo("Kit Ashbrook", "^4:H:") and SentTo("Lia Ashbrook", "^4:H:"), "the hello goes to each cousin on the list")
+check(not SentTo("Sly Stranger", "") and not SentTo("Rowan Ashbrook", ""), "not to you, nor a stranger who joined")
+-- the game's answer stays out of your chat, unless you asked
+local rosterFilter = Mock.filters.CHAT_MSG_CHANNEL_LIST[1]
+HC.Family.AskRoster()
+check(rosterFilter(nil, "CHAT_MSG_CHANNEL_LIST", "*Rowan Ashbrook", "", "", "7. HCashbrookA", "", "", 0, 7, "HCashbrookA") == true, "the list stays out of your chat")
+check(not rosterFilter(nil, "CHAT_MSG_CHANNEL_LIST", "Bo Other", "", "", "8. SomeChannel", "", "", 0, 8, "SomeChannel"), "another channel's stays")
+Mock.Advance(3)
+check(not rosterFilter(nil, "CHAT_MSG_CHANNEL_LIST", "*Rowan Ashbrook", "", "", "7. HCashbrookA", "", "", 0, 7, "HCashbrookA"), "and your own /chatlist shows")
+-- /fam, a post and the map all reach them, and they're heard by whisper
+SlashCmdList.HEYCOUSINFAM("hello")
+check(SentTo("Kit Ashbrook", "^5:C:hello") and SentTo("Lia Ashbrook", "^5:C:hello"), "/fam goes to each")
+HC.Groups.Post("Deadmines")
+check(SentTo("Kit Ashbrook", "^5:G:Deadmines") ~= nil, "a post too")
+chatBefore = #Mock.chat
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:hi there", "WHISPER", "Kit Ashbrook")
+check(Mock.chat[#Mock.chat]:find("hi there", 1, true) and #Mock.chat == chatBefore + 1, "their words come by whisper")
+HeyCousinDB.mapShare = true
+HC.Map.Apply()
+Mock.Advance(6)
+check(SentTo("Kit Ashbrook", "^3:P:") ~= nil, "where you are goes to them")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:P:1429:5000:2500:MAGE:30", "WHISPER", "Kit Ashbrook")
+Mock.ShowMap(1429)
+local whisperedPins = All(WorldMapFrame, function(f) return f.spot ~= nil and f:IsShown() end)
+check(#whisperedPins == 1 and whisperedPins[1].spot.member.first == "Kit", "and theirs shows on your map")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:P:1429:7000:2500:MAGE:30", "WHISPER", "Sly Stranger")
+Mock.ShowMap(1429)
+check(#All(WorldMapFrame, function(f) return f.spot ~= nil and f:IsShown() end) == 1, "a stranger's whisper doesn't")
+-- many cousins: where you are goes to a few at a time, in turn; a message for all waits its turn
+Mock.channelMembers = {}
+for i = 1, 20 do Mock.channelMembers[i] = "Many" .. i .. " Ashbrook" end
+HC.Family.AskRoster()
+Mock.Advance(3)
+local sentBeforeMany = #Mock.addonSent
+HC.Family.Spread("3:P:1:1:1::0")
+check(#Mock.addonSent == sentBeforeMany + 4, "a position goes to four at a time")
+HC.Family.Spread("3:P:1:1:1::0")
+check(Mock.addonSent[#Mock.addonSent].target ~= Mock.addonSent[sentBeforeMany + 4].target, "the next four next")
+sentBeforeMany = #Mock.addonSent
+SlashCmdList.HEYCOUSINFAM("all of you")
+check(#Mock.addonSent == sentBeforeMany + 3, "a message for all: a few now")
+Mock.Advance(10)
+local reached = 0
+for i = sentBeforeMany + 1, #Mock.addonSent do
+    if Mock.addonSent[i].text == "5:C:all of you" then reached = reached + 1 end
+end
+check(reached == 20, "and the rest in turn: " .. reached)
+-- the game holds one back: it goes again
+Mock.throttle = 1
+sentBeforeMany = #Mock.addonSent
+SlashCmdList.HEYCOUSINFAM("held back")
+Mock.Advance(40)
+reached = 0
+for _, line in ipairs(Mock.addonSent) do
+    if line.text == "5:C:held back" then reached = reached + 1 end
+end
+Mock.throttle = 0
+check(reached >= 20, "held back by the game, every one still goes: " .. reached)
+-- no answer to who's there: nothing breaks, and someone heard from still counts
+HC = Mock.Boot("forever", { setupDone = true })
+Mock.rosterSilent = true
+Mock.Fire("PLAYER_ENTERING_WORLD")
+Mock.Advance(25)
+SlashCmdList.HEYCOUSINFAM("anyone?")
+check(Mock.Said("isn't ready yet"), "no list yet: it says so")
+Mock.rosterSilent = nil
+NoErrors(HC, "whispers between cousins")
+end
+
 -- /cousin check: what goes out and comes in, to find why two cousins don't see each other
 HC = Mock.Boot("forever", { setupDone = true })
 Mock.Fire("PLAYER_ENTERING_WORLD")
@@ -1223,7 +1308,7 @@ chatBefore = #Mock.chat
 SlashCmdList.HEYCOUSIN("check")
 local checkText = table.concat(Mock.chat, "\n", chatBefore + 1)
 check(checkText:find("family channel HCashbrookA: in it, number 7", 1, true), "it says the channel")
-check(checkText:find("your own coming back on the channel: 1", 1, true), "and counts your own lines coming back")
+check(checkText:find("cousins it sends to: 1", 1, true) and checkText:find("Anyone Ashbrook", 1, true), "and who it sends to")
 check(checkText:find("heard 2 from others", 1, true) and checkText:find("[Kit Ashbrook]", 1, true) and checkText:find("cousin: yes", 1, true)
     and checkText:find("cousin: no", 1, true), "what it heard, as the game gave it, and whether that's a cousin")
 check(checkText:find("a word sent just now: true", 1, true) and Mock.listed == "HCashbrookA", "it sends a word and asks who's in the channel")
@@ -1232,13 +1317,18 @@ Mock.throttle = 0
 local realSend = C_ChatInfo.SendAddonMessage
 C_ChatInfo.SendAddonMessage = function() return Enum.SendAddonMessageResult.GeneralError or 9 end
 Enum.SendAddonMessageResult.Success, Enum.SendAddonMessageResult.GeneralError = 0, 9
-check(HC.Family.Send("4:S:::") == false, "the game refuses a message: it didn't go")
+check(HC.Guild.Send("4:S:::", "WHISPER", "Anyone Ashbrook") == false, "the game refuses a message: it didn't go")
 C_ChatInfo.SendAddonMessage = function() error("nope") end
-check(HC.Family.Send("4:S:::") == false, "the call fails: it didn't go")
+check(HC.Guild.Send("4:S:::", "WHISPER", "Anyone Ashbrook") == false, "the call fails: it didn't go")
+SlashCmdList.HEYCOUSINFAM("refused every time")
+Mock.Advance(15)
 C_ChatInfo.SendAddonMessage = realSend
-check(HC.Family.Send("4:S:::") == true, "and goes again when the game takes it")
+check(HC.Guild.Send("4:S:::", "WHISPER", "Anyone Ashbrook") == true, "and goes again when the game takes it")
+SlashCmdList.HEYCOUSINFAM("next one")
+check(Mock.addonSent[#Mock.addonSent].text == "5:C:next one", "one refused every time doesn't hold up the rest")
 NoErrors(HC, "/cousin check")
 
+do
 -- crests on nameplates: on the game's own plate frame, so any nameplate addon keeps them
 HC = Mock.Boot("forever", { setupDone = true })
 house = HC.Kin.House()
@@ -1342,6 +1432,7 @@ ButtonWith(_G.HeyCousinOptions, "+"):Click()
 check(HeyCousinDB.plateScale == 1.1, "and its buttons")
 _G.HeyCousinOptions:Hide()
 NoErrors(HC, "the nameplate page in test mode")
+end
 
 -- one switch for all the family's messages, both ways
 HC = Mock.Boot("forever", { setupDone = true })

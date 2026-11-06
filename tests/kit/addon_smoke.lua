@@ -831,9 +831,9 @@ Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:X", "CHANNEL", "Faraway Ashbrook", "
 Mock.ShowMap(1429)
 check(#MapPins() == 1, "they stopped sharing: gone at once")
 -- wanting nothing of it: out of the channel
-HeyCousinDB.mapShow, HeyCousinDB.presence = false, false
+HeyCousinDB.mapShow, HeyCousinDB.presence, HeyCousinDB.familyNews, HeyCousinDB.familyChat = false, false, false, false
 HC.Map.Apply()
-check(Mock.channels.HCashbrookA == nil, "the family map and hello off: out of the channel")
+check(Mock.channels.HCashbrookA == nil, "the family map, hello, news and chat all off: out of the channel")
 HeyCousinDB.mapShow, HeyCousinDB.presence = true, true
 HC.Map.Apply()
 check(Mock.channels.HCashbrookA == 7, "back on: in it again")
@@ -1090,6 +1090,66 @@ for i = sentBefore + 1, #Mock.addonSent do
 end
 check(not anyFamily and #Mock.chat == chatBefore and house.relatives.Una.usesAddon, "turned off: nothing goes out and no line, their mark stays")
 NoErrors(HC, "the family's hello")
+
+-- === Family news and chat =====================================================================
+
+HC = Mock.Boot("forever", { setupDone = true })
+house = HC.Kin.House()
+Mock.Fire("PLAYER_ENTERING_WORLD")
+Mock.Advance(22)
+-- your own level goes out with the next tick; the hello came first
+Mock.units.player.level = 21
+Mock.Fire("PLAYER_LEVEL_UP", 21)
+Mock.Advance(6)
+local levelLine = ChannelSent("^4:L:")
+check(levelLine and levelLine.text:find("^4:L:WARRIOR:21:"), "your new level goes to the family")
+Mock.Advance(31)
+-- a cousin's: news on a round one, and their level is kept on any
+chatBefore = #Mock.chat
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:L:MAGE:29:", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+check(#Mock.chat == chatBefore and house.relatives.Kit.level == 29, "level 29: no line, the level kept")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:L:MAGE:30:", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+check(Mock.chat[#Mock.chat]:find("Kit Ashbrook", 1, true) and Mock.chat[#Mock.chat]:find("reached level 30!", 1, true), "level 30: news")
+HeyCousinDB.familyNews = false
+chatBefore = #Mock.chat
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:L:MAGE:35:", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+check(#Mock.chat == chatBefore and house.relatives.Kit.level == 35, "news off: no line")
+HeyCousinDB.familyNews = true
+-- family chat: yours goes out and shows, no codes in it
+SlashCmdList.HEYCOUSINFAM("Who's up for |cffff0000Deadmines?")
+local said = ChannelSent("^5:C:")
+check(said and said.text == "5:C:Who's up for cffff0000Deadmines?", "/fam goes to the family, with no codes: " .. tostring(said and said.text))
+check(Mock.chat[#Mock.chat]:find("[Family]", 1, true) and Mock.chat[#Mock.chat]:find("Rowan", 1, true), "and shows in your chat")
+chatBefore = #Mock.chat
+SlashCmdList.HEYCOUSINFAM("   ")
+check(#Mock.chat == chatBefore + 1 and Mock.chat[#Mock.chat]:find("/fam", 1, true), "/fam alone says how")
+SlashCmdList.HEYCOUSINFAM(string.rep("long ", 100))
+said = ChannelSent("^5:C:long")
+check(said and #said.text <= 255, "a long line still fits a message")
+-- a cousin's: their first name in your chat, no codes, no flood
+Mock.Advance(2)
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:Hi |TInterface\\Icons\\Big:900|t all", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+local heardLine = Mock.chat[#Mock.chat]
+check(heardLine:find("Kit", 1, true) and heardLine:find("Hi TInterface", 1, true) and not heardLine:find("|T", 1, true), "a cousin's words, without their codes: " .. heardLine)
+chatBefore = #Mock.chat
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:again", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+check(#Mock.chat == chatBefore, "not many lines at once")
+Mock.Advance(2)
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:hello", "CHANNEL", "Sly Stranger", "", 0, 7, "HCashbrookA")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:hello", "CHANNEL", "Oren Ashbrook", "", 0, 3, "SomeOtherChannel")
+check(#Mock.chat == chatBefore, "another surname and another channel are left out")
+Mock.ignored = { ["Kit Ashbrook"] = true }
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:hello", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+check(#Mock.chat == chatBefore, "nor anyone on your ignore list")
+Mock.ignored = nil
+-- turned off: nothing shows, and /fam says why
+HeyCousinDB.familyChat = false
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:hello", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+check(#Mock.chat == chatBefore, "chat off: their words don't show")
+SlashCmdList.HEYCOUSINFAM("hello?")
+check(Mock.Said("Family chat is off"), "and /fam says why")
+HeyCousinDB.familyChat = true
+NoErrors(HC, "family news and chat")
 
 -- === Recruit ==================================================================================
 
@@ -1386,6 +1446,11 @@ check(ButtonWith(options, "Your guild") == nil, "no guild to lead, no guild butt
 Row(options, "Cousins coming online"):Click()
 check(HeyCousinDB.presence == false, "the hello can be turned off here")
 Row(options, "Cousins coming online"):Click()
+Row(options, "Family news"):Click()
+Row(options, "Family chat"):Click()
+check(HeyCousinDB.familyNews == false and HeyCousinDB.familyChat == false, "news and chat can be turned off here")
+Row(options, "Family news"):Click()
+Row(options, "Family chat"):Click()
 ButtonWith(options, "The family map"):Click()
 Row(options, "Share it with your family"):Click()
 check(HeyCousinDB.mapShare == true, "sharing where you are")

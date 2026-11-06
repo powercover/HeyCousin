@@ -32,6 +32,9 @@ local DEFAULTS = {
     mapShare = false,
     -- your cousins' addons know you're online, and yours tells you when they are
     presence = true,
+    -- a cousin's round levels, and family chat (/fam)
+    familyNews = true,
+    familyChat = true,
 }
 
 local function SavedDefaults()
@@ -89,6 +92,7 @@ function HC.Commands()
         "/cousin theme - " .. L["the next look"],
         "/cousin status - " .. L["what the game tells the addon about you"],
         "/cousin debug - " .. L["the errors the addon caught, in chat (on or off)"],
+        "/fam ... - " .. L["talk to every cousin online who has the addon"],
     }
 end
 
@@ -201,3 +205,7 @@ frame:RegisterEvent("PLAYER_LOGOUT")
 SLASH_HEYCOUSIN1 = "/heycousin"
 SLASH_HEYCOUSIN2 = "/cousin"
 SlashCmdList.HEYCOUSIN = Utils.Protect("chat command", HandleSlash)
+SLASH_HEYCOUSINFAM1 = "/fam"
+SlashCmdList.HEYCOUSINFAM = Utils.Protect("family chat", function(message)
+    HC.Family.Say(message)
+end)

@@ -30,6 +30,8 @@ local bridge
 local function News()
     return {
         L["Settings: every choice in one place, by what it's for."],
+        L["Family chat: /fam talks to every cousin online who has the addon."],
+        L["Family news: a line in chat when a cousin reaches a round level."],
         L["\"(uses addon)\" marks the cousins who run Hey Cousin!, and a line tells you when they come online."],
         L["Recruit: invite the cousins who have no guild."],
         L["Your other characters show in your family, and a crown marks the eldest."],
@@ -178,6 +180,8 @@ local function BuildFamily()
     }
     Heading(p, L["Your cousins"])
     Toggle(p, L["Cousins coming online"], L["A line in chat. They see when you're online too."], "presence", true)
+    Toggle(p, L["Family news"], L["A line in chat when a cousin reaches a round level."], "familyNews", true)
+    Toggle(p, L["Family chat"], L["/fam talks to every cousin online who has the addon."], "familyChat", true)
     return p
 end
 

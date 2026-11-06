@@ -4,7 +4,8 @@ local _, HC = ...
 -- guild can reach each other's addons (the other side's addon never joins it). Over it each addon
 -- says hello when you log in, with your class, level and crest, and a word now and then while you
 -- play: nothing the game's /who doesn't already show, but that you run Hey Cousin!. So your cousins'
--- addons know who uses it, who's online without a click, and what their crests look like.
+-- addons know who uses it, who's online without a click, and what their crests look like. The family's
+-- news (a cousin's round levels) and chat (/fam) go the same way.
 HC.Family = {}
 
 local Family = HC.Family
@@ -26,6 +27,11 @@ local ANSWER_WITHIN, ANSWER_GAP = 6, 60
 -- the answers right after your own hello are one line in chat, not one each
 local QUIET = 30
 local CREST_FIELDS = { "shape", "division", "field", "second", "metal", "symbol", "charge" }
+-- a cousin's level is news on every fifth one
+local NEWS_EVERY = 5
+-- family chat: this many letters at most (it has to fit an addon message), and one line a moment
+local WORDS_MAX = 50
+local WORDS_GAP = 0.5
 
 local frame = CreateFrame("Frame")
 local ready = false  -- the wait after you log in is over
@@ -33,12 +39,24 @@ local greeted = false
 local lastTold = 0
 local quietUntil = 0
 local answered = {}  -- [full name] = GetTime() of the last answer to their hello
+local levelled = false  -- you've levelled up: it goes with the next tick
+local spoke = {}  -- [first name] = GetTime() of their last line in family chat
 
 -- --- the channel -------------------------------------------------------------------------------
 
 -- Whether you tell cousins you're online, and hear when they are (a setting, on unless you say).
 function Family.On()
     return HeyCousinDB.presence ~= false
+end
+
+-- Whether you see a cousin's round levels (a setting, on unless you say).
+function Family.NewsOn()
+    return HeyCousinDB.familyNews ~= false
+end
+
+-- Whether you're in family chat (a setting, on unless you say).
+function Family.ChatOn()
+    return HeyCousinDB.familyChat ~= false
 end
 
 local function ChannelName()
@@ -66,7 +84,8 @@ function Family.Keep()
     if not name then
         return
     end
-    local wanted = Family.On() or HeyCousinDB.mapShow ~= false or HeyCousinDB.mapShare == true
+    local wanted = Family.On() or Family.NewsOn() or Family.ChatOn() or HeyCousinDB.mapShow ~= false
+        or HeyCousinDB.mapShare == true
     if wanted and not id then
         Utils.Call(JoinTemporaryChannel, name)
     elseif id and not wanted then
@@ -80,14 +99,19 @@ function Family.Send(text)
     return id ~= nil and HC.Guild.Send(text, "CHANNEL", id)
 end
 
--- Who a line on the channel is from: a cousin with your surname, not you, nobody else.
+-- Who a line on the channel is from: a cousin with your surname, not you, nobody else, and nobody
+-- you've put on the game's ignore list.
 function Family.Cousin(sender)
     local first, surname = Names.Split(sender)
     local me, mine = Names.Me()
     if not first or not Names.Same(surname, mine) or Names.Same(first, me) then
         return nil
     end
-    return { first = first, surname = surname, full = Names.Full(first, surname) }
+    local full = Names.Full(first, surname)
+    if Utils.Call(C_FriendList and C_FriendList.IsIgnored, full) == true then
+        return nil
+    end
+    return { first = first, surname = surname, full = full }
 end
 
 -- The channel's "joined" and "left" lines stay out of your chat.
@@ -129,7 +153,8 @@ local function CrestFrom(code)
     return crest.shape and Crest.Normalize(crest) or nil
 end
 
--- About you: H (hello), S (still here) or A (an answer to a hello), your class, level and crest.
+-- About you: H (hello), S (still here), A (an answer to a hello) or L (a new level), your class,
+-- level and crest.
 local function Line(kind)
     local _, class = Utils.Call(UnitClass, "player")
     return string.format("4:%s:%s:%d:%s", kind, Utils.IsUsableString(class) and class or "",
@@ -143,13 +168,17 @@ local function Tick()
     local now = GetTime()
     if not greeted then
         if Family.Send(Line("H")) then
-            greeted, lastTold, quietUntil = true, now, now + QUIET
+            greeted, lastTold, quietUntil, levelled = true, now, now + QUIET, false
             Family.quietCount = 0
             Utils.After(QUIET, "family hello", function()
                 if (Family.quietCount or 0) > 0 and Family.On() then
                     Utils.Print(string.format(L["Family online now: %d"], Family.quietCount))
                 end
             end)
+        end
+    elseif levelled then
+        if Family.Send(Line("L")) then
+            levelled, lastTold = false, now
         end
     elseif now - lastTold >= STILL_GAP and Family.Send(Line("S")) then
         lastTold = now
@@ -160,7 +189,7 @@ end
 
 local function Heard(text, sender)
     local kind, class, level, code = text:match("^4:(%u):(%u*):(%d*):?(.*)$")
-    if kind ~= "H" and kind ~= "S" and kind ~= "A" then
+    if kind ~= "H" and kind ~= "S" and kind ~= "A" and kind ~= "L" then
         return
     end
     local member = Family.Cousin(sender)
@@ -174,7 +203,17 @@ local function Heard(text, sender)
         quiet = true, online = true, usesAddon = true, crest = CrestFrom(code),
     })
     -- (one of your own characters on another account's login, say: nothing to tell)
-    if not relative or not Family.On() then
+    if not relative then
+        return
+    end
+    if kind == "L" then
+        local color = Utils.ClassColor(relative.class, true)
+        if Family.NewsOn() and relative.level and relative.level % NEWS_EVERY == 0 then
+            Utils.Print(string.format(L["%s reached level %d!"], Theme.Paint(member.full, color), relative.level))
+        end
+        return
+    end
+    if not Family.On() then
         return
     end
     local now = GetTime()
@@ -195,24 +234,68 @@ local function Heard(text, sender)
     end
 end
 
+-- --- family chat -------------------------------------------------------------------------------
+
+-- A line in family chat. The name is theirs alone: everyone here shares the surname.
+local function ChatLine(first, class, words)
+    local name = Theme.Paint(first, Utils.ClassColor(class, true))
+    DEFAULT_CHAT_FRAME:AddMessage(string.format("[%s] %s: %s", L["Family"], name, words), 0.55, 0.9, 0.6)
+end
+
+-- Your words to every cousin online who has the addon (/fam).
+function Family.Say(text)
+    local words = HC.Guild.Plain(text, WORDS_MAX)
+    if words == "" then
+        Utils.Print("/fam ... - " .. L["talk to every cousin online who has the addon"])
+    elseif not Family.ChatOn() then
+        Utils.Print(L["Family chat is off. It's in the settings, under Family."])
+    elseif HC.TestMode.active then
+        Utils.Print(L["Test mode: made-up cousins can't hear you."])
+    elseif Family.Send("5:C:" .. words) then
+        local _, class = Utils.Call(UnitClass, "player")
+        ChatLine(Names.Me(), class, words)
+    else
+        Utils.Print(L["The family's channel isn't ready yet. Try again in a moment."])
+    end
+end
+
+-- A cousin's words: no codes get through (a link, a picture), and no flood.
+local function HeardWords(text, sender)
+    local words = text:match("^5:C:(.*)$")
+    local member = words and Family.Cousin(sender)
+    if not member or not Family.ChatOn() then
+        return
+    end
+    words = HC.Guild.Plain(words, WORDS_MAX)
+    local now = GetTime()
+    if words == "" or (spoke[member.first] and now - spoke[member.first] < WORDS_GAP) then
+        return
+    end
+    spoke[member.first] = now
+    local relative = Kin.Seen({ first = member.first, faction = Utils.Call(UnitFactionGroup, "player"), quiet = true,
+        online = true, usesAddon = true })
+    ChatLine(member.first, relative and relative.class, words)
+end
+
 frame:SetScript("OnEvent", Utils.Protect("family", function(_, event, ...)
     if event == "CHAT_MSG_ADDON" then
         local prefix, text, channel, sender, _, _, localID, channelName = ...
-        if prefix ~= PREFIX or not Utils.IsUsableString(text) or not text:find("^4:") then
+        if prefix ~= PREFIX or not Utils.IsUsableString(text) or not text:find("^[45]:") then
             return
         end
+        local mine = channel == "WHISPER"
         if channel == "CHANNEL" then
             -- only your family's channel
             local id, name = Family.Channel()
-            if name and ((id and localID == id) or channelName == name) then
-                Heard(text, sender)
-            end
-        elseif channel == "WHISPER" then
+            mine = name and ((id and localID == id) or channelName == name)
+        end
+        if mine and text:find("^4:") then
             Heard(text, sender)
+        elseif mine then
+            HeardWords(text, sender)
         end
     elseif event == "PLAYER_LEVEL_UP" then
-        -- your new level goes with the next tick
-        lastTold = lastTold - STILL_GAP
+        levelled = true
     elseif not ready and not frame.joining then
         -- the first time in the world
         frame.joining = true

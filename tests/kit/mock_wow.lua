@@ -413,6 +413,7 @@ local function Globals()
         end,
         GetNumWhoResults = function() local n = Mock.who and #Mock.who or 0; return n, n end,
         GetWhoInfo = function(i) return Mock.who and Mock.who[i] end,
+        IsIgnored = function(name) return Mock.ignored ~= nil and Mock.ignored[name] == true end,
     }
     function AcceptGroup() Mock.accepted = Mock.accepted + 1 end
     function StaticPopup_Hide(name) Mock.popupHidden = name end

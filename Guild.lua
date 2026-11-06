@@ -481,7 +481,7 @@ local function Sender(sender)
 end
 
 -- (the family map's messages go the same way, from the same members)
-Guild.Send, Guild.Sender = Send, Sender
+Guild.Send, Guild.Sender, Guild.Plain = Send, Sender, Plain
 
 -- A member's first settings from their guild master: the family greets them.
 local function Welcome(family)

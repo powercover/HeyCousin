@@ -364,7 +364,7 @@ local function Setting(key, default)
         Settings()[key] = value
         if key == "showMinimap" and HC.Minimap then
             HC.Minimap.Apply()
-        elseif key == "mapShow" or key == "mapShare" or key == "presence" then
+        elseif key == "mapShow" or key == "mapShare" or key == "presence" or key == "familyNews" or key == "familyChat" then
             HC.Map.Apply()
         end
         UpdateReset()

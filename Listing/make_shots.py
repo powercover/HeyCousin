@@ -287,7 +287,7 @@ def main():
     window_card("portrait.png", "2bc-portrait.png", "A FAMILY PORTRAIT",
                 "Your house on one card: crest, motto, numbers and the cousins you meet most. Made for a screenshot.")
     window_card("nameplates.png", "5f-settings-plates.png", "SPOT A COUSIN IN A CROWD",
-                "A red crest for a black sheep. The settings copy your own nameplates, from any addon, so you place the crest on what you really see.")
+                "A red crest for a black sheep. Drag it in the settings: while that page is open, the real plates around you show it too.")
     map_card()
     hey_card()
 

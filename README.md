@@ -44,7 +44,8 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
   you run the addon. Each can be turned off, or all with one switch, and the game's ignore list counts.
 - **"Hey cousin!"**: a button on the pop-up and on a near cousin's page: you wave and say "Hey cousin
   Mira!" out loud. Only ever from a click.
-- **Crests on nameplates**: on the game's own plate frame, so they follow the plate under any nameplate
+- **Crests on nameplates**: while the settings' Nameplates page is open, the real plates around you show
+  the crest too, so you see where it goes. On the game's own plate frame, so they follow the plate under any nameplate
   addon. The settings draw a sample plate: drag the crest, scroll to resize it, and real plates follow.
 - **The family race**: you and the cousins who have the addon, by level, with a line when one passes you.
 - **The family portrait**: your house on one card, made for a screenshot.

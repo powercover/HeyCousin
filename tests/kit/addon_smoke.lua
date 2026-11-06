@@ -1345,11 +1345,18 @@ check(not rosterFilter(nil, "CHAT_MSG_CHANNEL_LIST", "*Rowan Ashbrook", "", "", 
 -- /fam, a post and the map all reach them, and they're heard by whisper
 SlashCmdList.HEYCOUSINFAM("hello")
 check(SentTo("Kit Ashbrook", "^5:C:hello") and SentTo("Lia Ashbrook", "^5:C:hello"), "/fam goes to each")
+check(not SentTo("Sly Stranger", "^5:C:"), "and not to a stranger in the channel")
+for _, line in ipairs(Mock.addonSent) do
+    check(not line.text:find("^5:C:") or line.channel == "WHISPER", "/fam goes to no guild or group: only whispers to cousins")
+end
 HC.Groups.Post("Deadmines")
 check(SentTo("Kit Ashbrook", "^5:G:Deadmines") ~= nil, "a post too")
 chatBefore = #Mock.chat
 Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:hi there", "WHISPER", "Kit Ashbrook")
 check(Mock.chat[#Mock.chat]:find("hi there", 1, true) and #Mock.chat == chatBefore + 1, "their words come by whisper")
+chatBefore = #Mock.chat
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:buy my gold", "WHISPER", "Sly Stranger")
+check(#Mock.chat == chatBefore, "a stranger's words don't show, even if their addon whispers you")
 HeyCousinDB.mapShare = true
 HC.Map.Apply()
 Mock.Advance(6)
@@ -1475,22 +1482,44 @@ local forbidden = C_NamePlate.GetNamePlateForUnit("nameplate6")
 function forbidden:IsForbidden() return true end
 Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate6")
 check(HC.Plates.CrestOn("nameplate6") == nil, "a forbidden plate: left alone")
+-- a cousin on the other side: the same crest, the black sheep's red
+PlateUnit("nameplate7", "Grom", "Ashbrook", "Horde", "Player-2-GROM")
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate7")
+local sheepCrest = HC.Plates.CrestOn("nameplate7")
+check(sheepCrest and sheepCrest:IsShown() and sheepCrest.parent == C_NamePlate.GetNamePlateForUnit("nameplate7"), "an enemy plate of a black sheep: a crest too")
+check(sheepCrest.fill.color[1] == HC.Theme.C.enemy[1] and sheepCrest.fill.color[2] == HC.Theme.C.enemy[2], "in the black sheep's red")
+check(sheepCrest.anchors.CENTER.y == 34, "in the same place")
+PlateUnit("nameplate2", "Sly", "Stranger", "Horde", "Player-2-SLY")
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate2")
+check(HC.Plates.CrestOn("nameplate2") == nil, "an enemy who isn't family: no crest")
+Mock.Fire("NAME_PLATE_UNIT_REMOVED", "nameplate7")
+Mock.units.nameplate7 = nil
 -- the settings' page: a sample, a drag, the wheel, buttons, real plates following
 HC.Options.Show("plates")
 local platesPage = _G.HeyCousinOptions
-check(ButtonWith(platesPage, "Nameplates").kind == "primary" and Crest(platesPage, 44):IsVisible(), "a page, with a sample and a crest on it")
-local sample = Crest(platesPage, 44)
+check(ButtonWith(platesPage, "Nameplates").kind == "primary" and Crest(platesPage, 33):IsVisible(), "a page, with a sample and a crest on it")
+local sample = Crest(platesPage, 33)
+local plateSamples = All(platesPage, function(f) return f.size == 33 and f:IsVisible() end)
+check(#plateSamples == 2, "two samples: your side and a black sheep's: " .. #plateSamples)
+check(plateSamples[1].fill.color[1] ~= HC.Theme.C.enemy[1] and plateSamples[2].fill.color[1] == HC.Theme.C.enemy[1], "the second in the black sheep's red")
 check(sample.mouseEnabled ~= false and not ButtonWith(platesPage, "Reset"):IsEnabled(), "at its starting place: nothing to reset")
 local cursorX, cursorY = 100, 100
 local realCursor = GetCursorPosition
 function GetCursorPosition() return cursorX, cursorY end
 sample:GetScript("OnMouseDown")(sample)
-cursorX, cursorY = 140, 80
+cursorX, cursorY = 130, 85
 sample:GetScript("OnUpdate")(sample, 0.01)
 sample:GetScript("OnMouseUp")(sample)
 check(HeyCousinDB.plateX == 20 and HeyCousinDB.plateY == 24, "a drag moves it, at the sample's size: " .. HeyCousinDB.plateX .. ", " .. HeyCousinDB.plateY)
+check(plateSamples[2].anchors.CENTER.x == 30 and plateSamples[2].anchors.CENTER.y == 36, "both samples show it")
 check(fernCrest.anchors.CENTER.x == 20 and fernCrest.anchors.CENTER.y == 24, "and real plates follow at once")
 check(sample:GetScript("OnUpdate") == nil, "the drag ends with the mouse")
+cursorX, cursorY = 100, 100
+plateSamples[2]:GetScript("OnMouseDown")(plateSamples[2])
+cursorX = 115
+plateSamples[2]:GetScript("OnUpdate")(plateSamples[2], 0.01)
+plateSamples[2]:GetScript("OnMouseUp")(plateSamples[2])
+check(HeyCousinDB.plateX == 30 and sample.anchors.CENTER.x == 45 and fernCrest.anchors.CENTER.x == 30, "the black sheep's crest drags the same one")
 cursorX, cursorY = 900, -900
 sample:GetScript("OnMouseDown")(sample)
 cursorX, cursorY = 9000, 9000
@@ -1532,7 +1561,7 @@ NoErrors(HC, "crests on nameplates")
 -- test mode: no surnames on Retail, the page still works
 HC = Mock.Boot("retail", { setupDone = true })
 HC.Options.Show("plates")
-check(Crest(_G.HeyCousinOptions, 44):IsVisible(), "test mode: the page and its sample")
+check(Crest(_G.HeyCousinOptions, 33):IsVisible(), "test mode: the page and its sample")
 ButtonWith(_G.HeyCousinOptions, "+"):Click()
 check(HeyCousinDB.plateScale == 1.1, "and its buttons")
 _G.HeyCousinOptions:Hide()

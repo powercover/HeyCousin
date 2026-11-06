@@ -38,7 +38,7 @@ They aren't game screenshots.
 | `IMAGE_MAP` | [map.png](map.png): the family map (a made-up map, drawn from the addon's own crests) |
 | `IMAGE_GROUPS` | [groups.png](groups.png): the Groups tab |
 | `IMAGE_HEY` | [hey.png](hey.png): the pop-up, with its "Hey cousin!" button |
-| `IMAGE_PLATES` | [nameplates.png](nameplates.png): the settings' sample nameplate |
+| `IMAGE_PLATES` | [nameplates.png](nameplates.png): the settings' sample nameplates, friend and black sheep |
 | `IMAGE_RACE` | [race.png](race.png): the family race |
 | `IMAGE_PORTRAIT` | [portrait.png](portrait.png): the family portrait |
 

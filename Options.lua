@@ -22,8 +22,12 @@ local PAGE_X = PAD + NAV_W + 22
 local PAGE_W = WIDTH - PAGE_X - PAD
 local TOP = 62
 local ORDER = { "alerts", "family", "map", "plates", "game", "look", "about" }
--- the sample nameplate is drawn this many times bigger, to place the crest with care
-local PLATE_ZOOM = 2
+-- the sample nameplates are drawn this many times bigger, to place the crest with care, and each has
+-- this much room: as far as a crest can go from the plate, up and down
+local PLATE_ZOOM = 1.5
+local PLATE_STAGE_H = 150
+-- the black sheep on the sample: made up
+local SHEEP_FIRST = "Grom"
 
 local window, main, pages, nav
 local current = "alerts"
@@ -271,8 +275,8 @@ local function BuildMap()
     return p
 end
 
--- A sample nameplate with your name on it, and the crest where it goes: drag it, scroll to resize.
--- Real plates on screen follow as you do, whichever addon draws them.
+-- Two sample nameplates, yours and a black sheep's on the other side, with the crest where it goes:
+-- drag either, scroll to resize. Real plates on screen follow as you do, whichever addon draws them.
 local function BuildPlates()
     local p = NewPage()
     local Plates = HC.Plates
@@ -280,36 +284,18 @@ local function BuildPlates()
     Toggle(p, L["Crests on your cousins' nameplates"], L["Works with any nameplate addon."], "plateCrest", true)
     Note(p, L["Drag the crest to place it, and scroll on it to resize it. Cousins on your side need the game's friendly nameplates on. In dungeons the game keeps those to itself."])
     p.y = p.y - 2
-    local stage = CreateFrame("Frame", nil, p)
-    stage:SetSize(PAGE_W, 214)
-    stage:SetPoint("TOPLEFT", 0, p.y)
-    stage:SetClipsChildren(true)
-    Theme.Panel(stage, "well")
-    p.y = p.y - 214 - 8
-    -- the sample: a bar and your name, as the game draws a plate by default
-    local _, class = Utils.Call(UnitClass, "player")
-    local color = Utils.ClassColor(class)
-    local back = Theme.Texture(stage, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 0, C.ink)
-    back:SetSize(204, 18)
-    back:SetPoint("CENTER")
-    local bar = Theme.Texture(stage, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 1, color)
-    bar:SetSize(200, 14)
-    bar:SetPoint("CENTER")
-    local name = Theme.Text(stage, "Body", Theme.Readable(color))
-    name:SetPoint("BOTTOM", bar, "TOP", 0, 6)
-    local first, surname = HC.Names.Me()
-    name:SetText(HC.Names.Full(first or "", surname))
-    local crest = Crest.Create(stage, Plates.SIZE * PLATE_ZOOM)
-    crest:EnableMouse(true)
     local size = Theme.Text(p, "Body", C.text2)
     local reset
-    -- shows the crest where it's saved
+    local samples = {}
+    -- shows the crests where it's saved
     local function Show()
         local x, y, scale = Plates.Position()
         local default = Plates.DEFAULT
-        crest:SetScale(scale)
-        crest:ClearAllPoints()
-        crest:SetPoint("CENTER", stage, "CENTER", x * PLATE_ZOOM / scale, y * PLATE_ZOOM / scale)
+        for _, sample in ipairs(samples) do
+            sample.crest:SetScale(scale)
+            sample.crest:ClearAllPoints()
+            sample.crest:SetPoint("CENTER", sample.stage, "CENTER", x * PLATE_ZOOM / scale, y * PLATE_ZOOM / scale)
+        end
         size:SetText(string.format("%d%%", math.floor(scale * 100 + 0.5)))
         reset:SetEnabled(x ~= default.x or y ~= default.y or scale ~= default.scale)
     end
@@ -318,28 +304,57 @@ local function BuildPlates()
         Plates.Move(nil, nil, scale + delta * Plates.SCALE_STEP)
         Show()
     end
-    -- the drag: from where the mouse went down, in the stage's own points
-    local function Stop()
-        crest:SetScript("OnUpdate", nil)
+    -- a sample: a bar and a name, as the game draws a plate by default, and a crest to drag
+    local function Sample(word, wordColor, name, color, enemy)
+        local stage = CreateFrame("Frame", nil, p)
+        stage:SetSize(PAGE_W, PLATE_STAGE_H)
+        stage:SetPoint("TOPLEFT", 0, p.y)
+        stage:SetClipsChildren(true)
+        Theme.Panel(stage, "well")
+        p.y = p.y - PLATE_STAGE_H - 6
+        local label = Theme.Text(stage, "Tiny", wordColor)
+        label:SetPoint("TOPLEFT", 8, -6)
+        label:SetText(word)
+        local back = Theme.Texture(stage, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 0, C.ink)
+        back:SetSize(154, 14)
+        back:SetPoint("CENTER")
+        local bar = Theme.Texture(stage, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 1, color)
+        bar:SetSize(150, 10)
+        bar:SetPoint("CENTER")
+        local shown = Theme.Text(stage, "Body", Theme.Readable(color))
+        shown:SetPoint("BOTTOM", bar, "TOP", 0, 4)
+        shown:SetText(name)
+        local crest = Crest.Create(stage, Plates.SIZE * PLATE_ZOOM)
+        crest:EnableMouse(true)
+        -- the drag: from where the mouse went down, in the stage's own points
+        local function Stop()
+            crest:SetScript("OnUpdate", nil)
+        end
+        crest:SetScript("OnMouseDown", function()
+            local mouseX, mouseY = GetCursorPosition()
+            local fromX, fromY = Plates.Position()
+            local ratio = stage:GetEffectiveScale() * PLATE_ZOOM
+            crest:SetScript("OnUpdate", Utils.Protect("nameplate drag", function()
+                local nowX, nowY = GetCursorPosition()
+                Plates.Move(fromX + (nowX - mouseX) / ratio, fromY + (nowY - mouseY) / ratio)
+                Show()
+            end))
+        end)
+        crest:SetScript("OnMouseUp", Stop)
+        crest:SetScript("OnHide", Stop)
+        for _, target in ipairs({ stage, crest }) do
+            target:EnableMouseWheel(true)
+            target:SetScript("OnMouseWheel", Utils.Protect("nameplate size", function(_, delta)
+                Resize(delta)
+            end))
+        end
+        samples[#samples + 1] = { crest = crest, stage = stage, enemy = enemy }
     end
-    crest:SetScript("OnMouseDown", function()
-        local mouseX, mouseY = GetCursorPosition()
-        local fromX, fromY = Plates.Position()
-        local ratio = stage:GetEffectiveScale() * PLATE_ZOOM
-        crest:SetScript("OnUpdate", Utils.Protect("nameplate drag", function()
-            local nowX, nowY = GetCursorPosition()
-            Plates.Move(fromX + (nowX - mouseX) / ratio, fromY + (nowY - mouseY) / ratio)
-            Show()
-        end))
-    end)
-    crest:SetScript("OnMouseUp", Stop)
-    crest:SetScript("OnHide", Stop)
-    for _, target in ipairs({ stage, crest }) do
-        target:EnableMouseWheel(true)
-        target:SetScript("OnMouseWheel", Utils.Protect("nameplate size", function(_, delta)
-            Resize(delta)
-        end))
-    end
+    local _, class = Utils.Call(UnitClass, "player")
+    local first, surname = HC.Names.Me()
+    Sample(L["Cousin"], C.text2, HC.Names.Full(first or "", surname), Utils.ClassColor(class), false)
+    Sample(L["Black sheep"], C.enemy, HC.Names.Full(SHEEP_FIRST, surname), C.enemy, true)
+    p.y = p.y - 2
     -- the same by button
     local smaller = Theme.Button(p, "-", "secondary", 32, 28)
     smaller:SetPoint("TOPLEFT", 0, p.y)
@@ -366,7 +381,9 @@ local function BuildPlates()
     p.parts[#p.parts + 1] = {
         Refresh = function()
             local _, last = HC.Names.Me()
-            crest:SetCrest(Kin.Crest(), last)
+            for _, sample in ipairs(samples) do
+                sample.crest:SetCrest(Kin.Crest(), last, sample.enemy)
+            end
             Show()
         end,
     }

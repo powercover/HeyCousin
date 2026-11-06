@@ -35,7 +35,7 @@ A cousin on the other side of the war is the family's **black sheep**, with a po
 
 ## Spot a cousin in a crowd
 
-Your family's crests on nameplates. They're made to work with any nameplate addon, such as Plater, ElvUI or Kui. Drag and resize the crest on a sample nameplate in the settings, and real nameplates follow as you do it.
+Your family's crests on nameplates, and a red one on a black sheep's enemy nameplate, so you know who you're fighting. They're made to work with any nameplate addon, such as Plater, ElvUI or Kui. Drag and resize the crest on the sample nameplates in the settings, and real nameplates follow as you do it.
 
 ## The family map
 
@@ -47,7 +47,7 @@ Cousins who share where they are show as crests on the world map and the minimap
 
 When your cousins have the addon too, they're marked **(uses addon)**, you see their own crests, and you can:
 
-- **Talk:** `/fam` reaches every cousin online who has it, in any guild. Like a guild chat for your surname.
+- **Talk:** `/fam` reaches every cousin online who has it, on your faction, in any guild. Only people with your surname see it: like a guild chat for your family.
 - **Find a group:** say what you're looking for on the **Groups** tab. Cousins click **Join**, you get one Invite button.
 - **Hear the news:** a line in chat when a cousin comes online or reaches a round level.
 

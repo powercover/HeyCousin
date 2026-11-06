@@ -8,13 +8,13 @@ What to fill in when creating the project on each site. Nothing in this folder s
 | --- | --- |
 | Name | Hey Cousin! |
 | URL slug (CurseForge) | `hey-cousin` |
-| Summary | One click finds everyone online with your surname in WoW Forever. Family chat, groups, a family map and crests on nameplates. |
+| Summary | Family finder for WoW Forever: one click finds everyone online with your surname. Family chat, group finder, map and nameplate crests, guild recruiting. |
 | Description | [description.md](description.md), as Markdown, with the image addresses filled in (see below) |
 | Logo | On CurseForge: [emblem-small.gif](emblem-small.gif), animated, and it works there. Its thumbnails give every frame the first frame's delay, so a logo needs the same delay on all frames. [logo.png](logo.png) and [logo-transparent.png](logo-transparent.png) are the still ones (1024 x 1024) |
 | License | All Rights Reserved |
 | Game | World of Warcraft, WoW Forever only |
 | Main category (CurseForge) | Chat & Communication, or the closest there is |
-| More categories (CurseForge) | Guild, Map & Minimap |
+| More categories (CurseForge) | Guild, Map & Minimap, and Roleplay if it's offered |
 | Categories (Wago) | The same ones, or the closest Wago offers |
 | Source code link | `https://github.com/powercover/HeyCousin` |
 | Issues link | `https://github.com/powercover/HeyCousin/issues` |

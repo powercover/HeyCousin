@@ -1,6 +1,6 @@
 ## Interface: 16001
 ## Title: Hey Cousin!
-## Notes: Finds the players who share your surname, and makes your family visible.
+## Notes: Family finder for WoW Forever: finds everyone with your surname. Family chat, group finder, map and nameplate crests, guild recruiting.
 ## Author: powercover
 ## Version: 1.1.0
 ## X-License: All Rights Reserved

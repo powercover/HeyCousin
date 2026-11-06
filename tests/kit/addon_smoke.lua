@@ -981,6 +981,39 @@ check(popped == 2, "unless you want one every time")
 HC.Alert.Show = realShow
 NoErrors(HC, "quieter pop-ups")
 
+-- === The eldest cousin ========================================================================
+
+HC = Mock.Boot("forever", { setupDone = true })
+house = HC.Kin.House()
+check(HC.Kin.Eldest() == nil, "no cousins with an ID: no eldest")
+house.relatives.Alba = { guid = "Player-1-00E3D28D", class = "MAGE", met = 1, lastSeen = 1 }
+check(HC.Kin.Eldest() == nil, "one to look at isn't enough to compare")
+house.relatives.Bryn = { guid = "Player-2-00090F33", class = "MAGE", met = 1, lastSeen = 1 }
+house.relatives.Cato = { class = "MAGE", met = 0, lastSeen = 1 }
+check(HC.Kin.Eldest() == "Bryn", "the lowest character number is the eldest; no ID, no place: " .. tostring(HC.Kin.Eldest()))
+Mock.units.player.guid = "Player-1-00000F33"
+check(HC.Kin.Eldest() == "Rowan", "it may be you")
+Mock.units.player.guid = "Player-1-ME"
+HC.Window.Show("family")
+Settle()
+local function EldestOn(root)
+    return All(root, function(f) return f.crown ~= nil and f.crown:IsShown() and f.item and f:IsVisible() end)
+end
+local crowned = EldestOn(_G.HeyCousinWindow)
+check(#crowned == 1 and crowned[1].item.first == "Bryn", "a crown on the eldest's row, and only theirs: " .. #crowned)
+check(_G.HeyCousinWindow.footer.text:find("Eldest we know: Bryn", 1, true), "the window's last line names them")
+check(_G.HeyCousinWindow.footer:GetStringWidth() <= 500 - 36, "and the line stays inside the window")
+HC.Window.Open("Bryn")
+Settle()
+check(All(_G.HeyCousinWindow, function(f) return f.line and f.whisper and f.line.text:find("Eldest cousin", 1, true) and f:IsVisible() end)[1],
+    "their page says so")
+HC.Window.Open("Alba")
+Settle()
+check(All(_G.HeyCousinWindow, function(f) return f.line and f.whisper and f.line.text:find("Cousin", 1, true) == 1 and f:IsVisible() end)[1],
+    "another's page doesn't")
+_G.HeyCousinWindow:Hide()
+NoErrors(HC, "the eldest")
+
 -- === Find my family ===========================================================================
 
 HC = Mock.Boot("forever", { setupDone = true })

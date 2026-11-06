@@ -181,6 +181,8 @@ HC.Locale.Register("frFR", {
     ["Nobody else with your surname is online right now."] = "Personne d'autre avec ton nom de famille n'est en ligne pour l'instant.",
     ["Many names match yours and the game lists 50 at a time. Click again to look further."] = "Beaucoup de noms ressemblent au tien et le jeu en montre 50 à la fois. Clique encore pour chercher plus loin.",
     ["The game didn't answer. Try again in a moment."] = "Le jeu n'a pas répondu. Réessaie dans un instant.",
+    ["Eldest cousin"] = "Cousin aîné",
+    ["Eldest we know: %s"] = "L'aîné que l'on connaît : %s",
     ["Not met yet: found by searching"] = "Pas encore rencontré : trouvé par la recherche",
     ["Met once"] = "Une rencontre",
     ["first seen: %s"] = "vu la 1re fois : %s",

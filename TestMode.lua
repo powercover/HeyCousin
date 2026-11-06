@@ -130,6 +130,8 @@ local function Build()
             class = class, level = level, sex = sex, faction = faction, zone = zone,
             race = races[(index - 1) % #races + 1],
             firstSeen = now - ago - met * 3 * DAY, lastSeen = now - ago, met = met,
+            -- (Lia, the made-up family's eldest, has the lowest character number)
+            guid = string.format("Player-1-%06X", first == "Lia" and 1000 or 200000 + index * 7000),
         }
         relatives[first].meetings = History(first, relatives[first], ago)
         if ago < 120 then

@@ -179,6 +179,8 @@ HC.Locale.Register("zhTW", {
     ["Nobody else with your surname is online right now."] = "現在沒有其他同姓的人線上。",
     ["Many names match yours and the game lists 50 at a time. Click again to look further."] = "很多名字和你的相似，遊戲一次只顯示 50 人。再次點擊繼續尋找。",
     ["The game didn't answer. Try again in a moment."] = "遊戲沒有回應。請稍後再試。",
+    ["Eldest cousin"] = "最年長的表親",
+    ["Eldest we know: %s"] = "已知最年長：%s",
     ["Not met yet: found by searching"] = "尚未見過：透過搜尋找到",
     ["Met once"] = "見過1次",
     ["first seen: %s"] = "初次見到：%s",

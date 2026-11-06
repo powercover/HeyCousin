@@ -30,6 +30,8 @@ local sort = { key = "seen", reversed = false }
 local opened, shownMeeting
 local selected
 local query = ""
+-- who looks like the eldest, as of the last repaint
+local eldest
 local ticker
 
 -- --- the list ----------------------------------------------------------------------------------
@@ -147,6 +149,9 @@ local function NewRow(parent)
     sheepText:SetPoint("LEFT", sheepIcon, "RIGHT", 2, 0)
     sheepText:SetText(L["Black sheep"])
     row.sheep:SetWidth(math.ceil(sheepText:GetStringWidth()) + 28)
+    -- the crown of who looks like the eldest
+    row.crown = Theme.Texture(row, Theme.Icon("Crown"), "ARTWORK", 1, C.gold)
+    row.crown:SetSize(14, 14)
     row.level = Theme.Text(row, "Body", C.text2)
     row.level:SetJustifyH("RIGHT")
     row.level:SetWidth(30)
@@ -198,6 +203,13 @@ local function PaintRow(row, item)
     row.tag:SetText(item.me and L["(you)"] or "")
     -- the name and its tag stay left of the level column; a long name ends in "..."
     local tag = sheep and row.sheep:GetWidth() + 8 or item.me and math.ceil(row.tag:GetStringWidth()) + 6 or 0
+    local crowned = eldest ~= nil and item.first == eldest
+    row.crown:SetShown(crowned)
+    if crowned then
+        tag = tag + 18
+        row.crown:ClearAllPoints()
+        row.crown:SetPoint("LEFT", sheep and row.sheep or item.me and row.tag or row.name, "RIGHT", 4, 0)
+    end
     row.name:SetText(item.first)
     row.name:SetTextColor(color[1], color[2], color[3])
     row.name:SetWidth(math.min(LEVEL_X - 54 - tag, math.ceil(row.name:GetStringWidth()) + 2))
@@ -548,7 +560,8 @@ local function PaintPage(keep)
     page.name:SetText(Names.Full(opened, surname))
     page.name:SetTextColor(color[1], color[2], color[3])
     local sheep = Kin.IsBlackSheep(relative)
-    local parts = { sheep and Theme.Paint(L["Black sheep"], C.enemy) or L["Cousin"] }
+    local parts = { sheep and Theme.Paint(L["Black sheep"], C.enemy) or opened == eldest and Theme.Paint(L["Eldest cousin"], C.gold)
+        or L["Cousin"] }
     local className = Utils.ClassName(relative.class, relative.sex)
     if relative.level and className then
         parts[#parts + 1] = string.format(L["Level %d %s"], relative.level, className)
@@ -919,11 +932,22 @@ local function PaintHeader()
     if online > 0 then
         parts[#parts + 1] = Theme.Paint(string.format(L["%d online"], online), C.near)
     end
+    if eldest then
+        parts[#parts + 1] = Theme.Paint(string.format(L["Eldest we know: %s"], eldest), C.gold)
+    end
     if sheep > 0 then
         parts[#parts + 1] = sheep == 1 and L["1 black sheep"] or string.format(L["%d black sheep"], sheep)
     end
-    window.footer:SetText(table.concat(parts, Theme.Paint("  ·  ", C.text3)))
     window.badge:SetShown(HC.TestMode.active)
+    -- as many as fit, in that order: long words in some languages, and the badge takes room
+    local room = WIDTH - PAD * 2 - (HC.TestMode.active and window.badge:GetWidth() + 10 or 0)
+    repeat
+        window.footer:SetText(table.concat(parts, Theme.Paint("  ·  ", C.text3)))
+        local fits = #parts <= 1 or window.footer:GetStringWidth() <= room
+        if not fits then
+            parts[#parts] = nil
+        end
+    until fits
 end
 
 -- Repaints what shows; `keep` keeps the list's scroll where it is.
@@ -931,6 +955,7 @@ function Window.Refresh(keep)
     if not window or not window:IsShown() then
         return
     end
+    eldest = Kin.Eldest()
     PaintHeader()
     local onStats, onTree = tabs.selected == "stats", tabs.selected == "tree"
     local onPage = tabs.selected == "family" and opened ~= nil and PaintPage(keep)

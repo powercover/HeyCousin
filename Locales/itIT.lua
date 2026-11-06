@@ -181,6 +181,8 @@ HC.Locale.Register("itIT", {
     ["Nobody else with your surname is online right now."] = "Nessun altro col tuo cognome è online ora.",
     ["Many names match yours and the game lists 50 at a time. Click again to look further."] = "Molti nomi somigliano al tuo e il gioco ne mostra 50 alla volta. Clicca ancora per cercare oltre.",
     ["The game didn't answer. Try again in a moment."] = "Il gioco non ha risposto. Riprova tra un attimo.",
+    ["Eldest cousin"] = "Cugino maggiore",
+    ["Eldest we know: %s"] = "Il maggiore che conosciamo: %s",
     ["Not met yet: found by searching"] = "Non ancora incontrato: trovato con la ricerca",
     ["Met once"] = "Un incontro",
     ["first seen: %s"] = "prima volta: %s",

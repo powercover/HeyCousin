@@ -390,6 +390,41 @@ function Kin.Counts()
     return total, nearby, sheep, found
 end
 
+-- A character's number, from the last part of their GUID: it grows as characters are made (seen on
+-- two characters in one server group, 2026-11-06). The groups' counters are only roughly alike, so
+-- this is a good guess, never a fact.
+local function CharacterNumber(guid)
+    local number = Utils.IsUsableString(guid) and guid:match("^Player%-%d+%-(%x+)$")
+    return number and tonumber(number, 16) or nil
+end
+
+-- The first name of who looks like the eldest of the cousins you know a GUID for, you among them;
+-- nothing until there are two to compare.
+function Kin.Eldest()
+    local house = Kin.House()
+    if not house then
+        return nil
+    end
+    local eldest, lowest, known = nil, nil, 0
+    local function Compare(first, guid)
+        local number = CharacterNumber(guid)
+        if number then
+            known = known + 1
+            if not lowest or number < lowest then
+                eldest, lowest = first, number
+            end
+        end
+    end
+    local test = HC.TestMode
+    if not (test and test.active) then
+        Compare((Names.Me()), Utils.Call(UnitGUID, "player"))
+    end
+    for first, relative in pairs(house.relatives) do
+        Compare(first, relative.guid)
+    end
+    return known >= 2 and eldest or nil
+end
+
 -- The family stats: meetings, the relatives met most, the surnames met most (top `limit`).
 function Kin.Stats(limit)
     limit = limit or 5

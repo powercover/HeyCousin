@@ -42,11 +42,8 @@ end
 
 local function Mute()
     muted, closed = {}, {}
-    local names = {}
     for _, listener in ipairs({ Utils.Call(GetFramesRegisteredForEvent, "WHO_LIST_UPDATE") }) do
         if listener ~= frame and Utils.Call(listener.IsVisible, listener) ~= true then
-            -- which frames these are: to read in the saved file if a window ever opens anyway
-            names[#names + 1] = tostring(Utils.Call(listener.GetName, listener))
             local top = Top(listener)
             -- only what's closed now: a window open on another of its pages stays open
             if Utils.Call(top.IsShown, top) ~= true then
@@ -57,7 +54,6 @@ local function Mute()
             end
         end
     end
-    HeyCousinDB.whoFrames = names
 end
 
 local function Unmute()

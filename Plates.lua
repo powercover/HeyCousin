@@ -158,7 +158,6 @@ end
 
 frame:SetScript("OnEvent", Utils.Protect("nameplate crests", function(_, event, unit)
     if event == "NAME_PLATE_UNIT_ADDED" then
-        HC.PlateLook.Seen(unit)
         Added(unit)
     elseif event == "NAME_PLATE_UNIT_REMOVED" then
         Release(unit)

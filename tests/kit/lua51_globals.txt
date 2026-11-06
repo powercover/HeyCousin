@@ -140,7 +140,4 @@ tonumber
 tostring
 type
 unpack
-UnitCastingInfo
-UnitChannelInfo
 UnitIsFriend
-C_AddOns

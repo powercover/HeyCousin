@@ -16,8 +16,8 @@
   the game doesn't deliver addon messages on a channel. Now they go straight to each cousin, and
   cousins who share show on your minimap too.
 - **Crests on nameplates.** Made to work with any nameplate addon, with a red crest for a black sheep.
-  The settings copy your own plates, a friendly player's and an enemy player's, so you drag and resize
-  the crest on what you really see.
+  Drag and resize the crest in the settings: while that page is open, the real plates around you show it,
+  so you see exactly where it goes.
 - **The family race.** You and your cousins with the addon, by level, on the Stats tab.
 - **The family portrait.** Your house on one card, made for a screenshot.
 - **Recruit.** The cousins with no guild, each with an Invite button and a welcome you write.

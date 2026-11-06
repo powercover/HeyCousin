@@ -21,7 +21,6 @@ local Frame = Class(Region)
 local Button = Class(Frame)
 local EditBox = Class(Frame)
 local Model = Class(Frame)
-local StatusBar = Class(Frame)
 local Texture = Class(Region)
 local FontString = Class(Region)
 local Mask = Class(Region)
@@ -49,14 +48,8 @@ end
 function Region:SetSize(w, h) self.w, self.h = w, h end
 function Region:SetWidth(w) self.w = w end
 function Region:SetHeight(h) self.h = h end
-function Region:GetWidth()
-    if self.restricted and not self.sizeAllowed then error("GetWidth(): Can't measure restricted regions", 0) end
-    return self.w or (self.points >= 2 and 300) or 0
-end
-function Region:GetHeight()
-    if self.restricted and not self.sizeAllowed then error("GetHeight(): Can't measure restricted regions", 0) end
-    return self.h or (self.points >= 2 and 300) or 0
-end
+function Region:GetWidth() return self.w or (self.points >= 2 and 300) or 0 end
+function Region:GetHeight() return self.h or (self.points >= 2 and 300) or 0 end
 -- (point [, relativeTo [, relativePoint]] [, x, y]), as the game takes them; a point set again
 -- replaces the old one.
 function Region:SetPoint(point, ...)
@@ -69,20 +62,8 @@ function Region:SetPoint(point, ...)
         at, x, y = nil, at, x
     end
     self.anchors[point:upper()] = { to = to, at = (at or point):upper(), x = x or 0, y = y or 0 }
-    self.firstPoint = self.firstPoint or point:upper()
 end
-function Region:GetPoint()
-    local anchor = self.firstPoint and self.anchors[self.firstPoint]
-    if anchor then return self.firstPoint, anchor.to, anchor.at, anchor.x, anchor.y end
-end
--- (a test makes a part of a plate restricted with .restricted, as the game does: no measuring it)
-function Region:IsAnchoringRestricted() return self.restricted == true end
-local function Measuring(region, what)
-    if region.restricted then
-        error(what .. "(): Action[FrameMeasurement] failed because[Can't measure restricted regions]", 0)
-    end
-end
-function Region:ClearAllPoints() self.points = 0; self.anchors = {}; self.firstPoint = nil end
+function Region:ClearAllPoints() self.points = 0; self.anchors = {} end
 function Region:SetAllPoints(to)
     self.points = 2
     self.anchors = { TOPLEFT = { to = to, at = "TOPLEFT", x = 0, y = 0 },
@@ -103,19 +84,7 @@ function Region:GetAlpha() return self.alpha end
 function Region:GetParent() return self.parent end
 function Region:Show() self.shown = true end
 function Region:Hide() self.shown = false end
--- (a test says where a region is with .cx and .cy)
-function Region:GetCenter()
-    Measuring(self, "GetCenter")
-    return self.cx or 400, self.cy or 300
-end
--- (frames only: the game's text and textures don't have it)
-function Frame:GetEffectiveAlpha()
-    local alpha, region = 1, self
-    while region do
-        alpha, region = alpha * (region.alpha or 1), region.parent
-    end
-    return alpha
-end
+function Region:GetCenter() return 400, 300 end
 function Region:GetEffectiveScale() return 1 end
 function Region:SetScale(s) self.scale = s end
 function Region:CreateAnimationGroup() return New(Group, self) end
@@ -184,24 +153,6 @@ function Frame:SetAttribute(key, value)
 end
 function Frame:GetAttribute(key) return self.attributes and self.attributes[key] end
 function Frame:SetParent(parent) self.parent = parent end
-function Frame:GetObjectType() return self.kind or "Frame" end
-function Frame:GetRegions() return (unpack or table.unpack)(self.regions or {}) end
-function Frame:GetChildren() return (unpack or table.unpack)(self.children or {}) end
-
-function StatusBar:SetStatusBarTexture(file)
-    self.fillTexture = self.fillTexture or self:CreateTexture(nil, "ARTWORK")
-    self.fillTexture:SetTexture(file)
-end
-function StatusBar:GetStatusBarTexture() return self.fillTexture end
-function StatusBar:SetStatusBarColor(r, g, b, a) self.barColor = { r, g, b, a or 1 } end
-function StatusBar:GetStatusBarColor()
-    local color = self.barColor or { 1, 1, 1, 1 }
-    return color[1], color[2], color[3], color[4]
-end
-function StatusBar:SetMinMaxValues(least, most) self.least, self.most = least, most end
-function StatusBar:GetMinMaxValues() return self.least or 0, self.most or 1 end
-function StatusBar:SetValue(value) self.value = value end
-function StatusBar:GetValue() return self.value or 0 end
 
 -- a protected frame (or one holding a secure button) can't be shown or hidden in combat
 local function Guard(frame, what)
@@ -274,22 +225,6 @@ function Texture:SetTexture(file, wrapH, wrapV, filter)
     if type(file) == "string" then Mock.textures[file] = true end
     return true
 end
-function Texture:SetColorTexture(r, g, b, a) self.file, self.color = nil, { r, g, b, a } end
-function Texture:GetObjectType() return "Texture" end
-function Texture:GetTexture() return self.file end
-function Texture:GetAtlas() return self.atlas end
-function Texture:GetVertexColor()
-    if self.file == nil and self.atlas == nil then return 1, 1, 1, 1 end
-    local color = self.color or { 1, 1, 1, 1 }
-    return color[1], color[2], color[3], color[4] or 1
-end
-function Texture:GetTexCoord()
-    local c = self.coords
-    if c and #c == 8 then return c[1], c[2], c[3], c[4], c[5], c[6], c[7], c[8] end
-    return 0, 0, 0, 1, 1, 0, 1, 1
-end
-function Texture:GetDrawLayer() return self.layer or "ARTWORK", self.sublevel or 0 end
-function Texture:GetBlendMode() return self.blend or "BLEND" end
 function Texture:SetTexCoord(...) self.coords = { ... } end
 function Texture:SetVertexColor(r, g, b, a)
     assert(type(r) == "number" and type(g) == "number" and type(b) == "number", "SetVertexColor needs numbers")
@@ -309,25 +244,6 @@ function FontString:SetFontObject(font)
     self.font = font
 end
 function FontString:GetFontObject() return self.font end
-function FontString:GetObjectType() return "FontString" end
-function FontString:GetDrawLayer() return self.layer or "ARTWORK", 0 end
-function FontString:GetJustifyH() return self.justifyH or "CENTER" end
-function FontString:GetFont()
-    local font = self.font
-    if font then return font.file, font.height, font.flags end
-end
-function FontString:GetTextColor()
-    local color = self.textColor or { 1, 1, 1, 1 }
-    return color[1], color[2], color[3], color[4] or 1
-end
-function FontString:GetShadowOffset()
-    local offset = self.shadowOffset or { 0, 0 }
-    return offset[1], offset[2]
-end
-function FontString:GetShadowColor()
-    local color = self.shadowColor or { 0, 0, 0, 0 }
-    return color[1], color[2], color[3], color[4] or 1
-end
 function FontString:SetText(text)
     assert(text == nil or type(text) == "string" or type(text) == "number", "SetText needs text, got " .. type(text))
     self.text = text and tostring(text) or ""
@@ -379,19 +295,8 @@ local function FontObject(file, height)
     return setmetatable({ file = file, height = height, flags = "" }, Font)
 end
 
--- (the game's own way to give one font string its own font)
-function FontString:SetFont(file, height, flags)
-    assert(type(file) == "string" and type(height) == "number", "SetFont needs a file and a height")
-    if self.text and self.text ~= "" then
-        Mock.fontAfterText = (Mock.fontAfterText or 0) + 1
-    end
-    self.font = FontObject(file, height)
-    self.font.flags = flags or ""
-    return true
-end
-
 -- the classes, for screens.py: it measures and lays out the frames as the game would
-Mock.classes = { Region = Region, Frame = Frame, Button = Button, EditBox = EditBox, Model = Model, StatusBar = StatusBar, Texture = Texture,
+Mock.classes = { Region = Region, Frame = Frame, Button = Button, EditBox = EditBox, Model = Model, Texture = Texture,
     FontString = FontString, Mask = Mask }
 
 -- --- the world ---------------------------------------------------------------------------------
@@ -409,7 +314,7 @@ local function Globals()
     Mock.units, Mock.players, Mock.roster, Mock.guild, Mock.throttle, Mock.instance = {}, {}, {}, nil, 0, nil
 
     function CreateFrame(kind, name, parent, template)
-        local class = kind == "Button" and Button or kind == "EditBox" and EditBox or kind == "PlayerModel" and Model or kind == "StatusBar" and StatusBar or Frame
+        local class = kind == "Button" and Button or kind == "EditBox" and EditBox or kind == "PlayerModel" and Model or Frame
         local frame = New(class, parent)
         frame.frameName, frame.kind = name, kind
         frame.secure = template ~= nil and template:find("Secure") ~= nil
@@ -428,12 +333,6 @@ local function Globals()
     function IsIndoors() return Mock.indoors == true end
     function GetPlayerFacing() return Mock.facing or 0 end
     function GetCVar(name) return Mock.cvars and Mock.cvars[name] end
-    -- the addons you run: a test says with Mock.addons
-    C_AddOns = {
-        GetNumAddOns = function() return #(Mock.addons or { "HeyCousin" }) end,
-        GetAddOnInfo = function(index) return (Mock.addons or { "HeyCousin" })[index] end,
-        IsAddOnLoaded = function() return true, true end,
-    }
     DEFAULT_CHAT_FRAME = { AddMessage = function(_, text) table.insert(Mock.chat, text) end }
     SlashCmdList, UISpecialFrames = {}, {}
     GameFontHighlight = FontObject("Fonts\\FRIZQT__.TTF", 12)
@@ -662,8 +561,6 @@ local function Globals()
         if y.npc then return y.friendly == true end
         return x.faction == y.faction
     end
-    function UnitCastingInfo(unit) local u = U(unit); return u and u.casting or nil end
-    function UnitChannelInfo() return nil end
     function UnitClass(unit) local u = U(unit); if u and u.class then return LOCALIZED_CLASS_NAMES_MALE[u.class], u.class end end
     function UnitRace(unit) local u = U(unit); if u then return u.race, u.race end end
     function UnitLevel(unit) local u = U(unit); return u and u.level or 0 end

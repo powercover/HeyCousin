@@ -244,28 +244,6 @@ for _, page in ipairs({ "alerts", "family", "map", "plates", "game", "look", "ab
     end
 end
 
--- the nameplate page as a player sees it once their plates are copied: a made-up addon's look
-local function MadeUpLook(setup, r, g, b)
-    local white = "Interface\\Buttons\\WHITE8X8"
-    local coords = { 0, 0, 0, 1, 1, 0, 1, 1 }
-    local font = "Fonts\\FRIZQT__.TTF"
-    return { player = true, setup = setup, pieces = {
-        { x = 0, y = -4, w = 134, h = 12, file = white, coords = coords, r = 0, g = 0, b = 0, a = 1, layer = "BACKGROUND", sublevel = 0, level = 1 },
-        { x = 0, y = -4, w = 132, h = 10, file = white, coords = coords, r = r, g = g, b = b, a = 1, layer = "ARTWORK", sublevel = 0, level = 2, bar = true },
-        { x = 0, y = 9, w = 120, h = 12, text = true, name = true, font = font, size = 11, flags = "OUTLINE", r = 1, g = 1, b = 1, a = 1, layer = "OVERLAY", level = 3, justify = "CENTER" },
-        { x = -54, y = -4, w = 20, h = 10, text = true, words = "23", font = font, size = 8, flags = "OUTLINE", r = 1, g = 1, b = 1, a = 1, layer = "OVERLAY", level = 3, justify = "CENTER" },
-        { x = 50, y = -4, w = 30, h = 10, text = true, words = "100%", font = font, size = 8, flags = "OUTLINE", r = 1, g = 1, b = 1, a = 1, layer = "OVERLAY", level = 3, justify = "CENTER" },
-    } }
-end
-
-function Screens.settingsplates(skin)
-    local HC = Boot(skin)
-    local setup = HC.PlateLook.Setup()
-    HeyCousinDB.plateLook = { friend = MadeUpLook(setup, 0.2, 0.55, 0.85), enemy = MadeUpLook(setup, 0.62, 0.1, 0.1) }
-    HC.Options.Show("plates")
-    return { frames = { HeyCousinOptions } }
-end
-
 -- the settings' own pages: your crest with a picker open, and a guild master's words
 function Screens.settingscrest(skin)
     local HC = Boot(skin)

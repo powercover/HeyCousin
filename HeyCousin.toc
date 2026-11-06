@@ -52,7 +52,6 @@ Portrait.lua
 Lookup.lua
 Window.lua
 Tooltip.lua
-PlateLook.lua
 Plates.lua
 Chat.lua
 Minimap.lua

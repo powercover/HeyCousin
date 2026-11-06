@@ -32,6 +32,9 @@ local selected
 local query = ""
 -- who looks like the eldest, as of the last repaint
 local eldest
+-- the Recruit page, over the family's list
+local recruitPanel
+local recruiting = false
 local ticker
 
 -- --- the list ----------------------------------------------------------------------------------
@@ -803,8 +806,11 @@ local function Build()
     Theme.Tip(header.find, L["Find my family"],
         L["One click searches the game's /who for your surname and lists everyone online with it."])
     Theme.OnClick(header.find, "find my family", function()
+        -- (on the Recruit page, you stay there and see who it finds)
+        local stay = recruiting
         Window.Show("family")
         Window.Open(nil)
+        Window.Recruit(stay)
         HC.Find.Start()
     end)
     window.find = header.find
@@ -824,6 +830,7 @@ local function Build()
 
     tabs = Theme.Tabs(window, { { key = "family", label = L["Family"] }, { key = "tree", label = L["Tree"] },
         { key = "stats", label = L["Stats"] } }, function()
+            recruiting = false
             Window.Refresh()
         end, 282, 30)
     tabs:SetPoint("TOPLEFT", PAD, -96)
@@ -871,6 +878,7 @@ local function Build()
     BuildPage()
     BuildStats()
     tree = HC.Tree.Build(window, PAD, LIST_TOP - 28, 42)
+    recruitPanel = HC.Recruit.Build(window, PAD, LIST_TOP - 28, 42)
 
     -- the line along the bottom
     window.footer = Theme.Text(window, "Small", C.text3)
@@ -878,6 +886,10 @@ local function Build()
     window.badge = CreateFrame("Frame", nil, window)
     window.badge:SetSize(84, 22)
     window.badge:SetPoint("BOTTOMRIGHT", -PAD, 12)
+    window.recruit = Theme.Button(window, L["Recruit"], "secondary", 100, 26)
+    Theme.OnClick(window.recruit, "recruit", function()
+        Window.Recruit(true)
+    end)
     Theme.Panel(window.badge, "well")
     local badgeText = Theme.Text(window.badge, "Tiny", C.gold)
     badgeText:SetPoint("CENTER")
@@ -944,8 +956,22 @@ local function PaintHeader()
         parts[#parts + 1] = sheep == 1 and L["1 black sheep"] or string.format(L["%d black sheep"], sheep)
     end
     window.badge:SetShown(HC.TestMode.active)
-    -- as many as fit, in that order: long words in some languages, and the badge takes room
+    -- the way to the Recruit page, under the family's list
+    local showRecruit = tabs.selected == "family" and opened == nil and not recruiting
+    window.recruit:SetShown(showRecruit)
+    if showRecruit then
+        window.recruit:SetText(string.format(L["Recruit (%d)"], #HC.Recruit.List()))
+        Theme.Fit(window.recruit, 10, 90)
+        window.recruit:ClearAllPoints()
+        if HC.TestMode.active then
+            window.recruit:SetPoint("RIGHT", window.badge, "LEFT", -6, 0)
+        else
+            window.recruit:SetPoint("BOTTOMRIGHT", -PAD, 10)
+        end
+    end
+    -- as many as fit, in that order: long words in some languages, and the badge and button take room
     local room = WIDTH - PAD * 2 - (HC.TestMode.active and window.badge:GetWidth() + 10 or 0)
+        - (showRecruit and window.recruit:GetWidth() + 10 or 0)
     repeat
         window.footer:SetText(table.concat(parts, Theme.Paint("  ·  ", C.text3)))
         local fits = #parts <= 1 or window.footer:GetStringWidth() <= room
@@ -967,7 +993,12 @@ function Window.Refresh(keep)
     if not onPage then
         page:Hide()
     end
-    local onList = tabs.selected == "family" and not onPage
+    local onRecruit = tabs.selected == "family" and not onPage and recruiting
+    recruitPanel:SetShown(onRecruit)
+    if onRecruit then
+        HC.Recruit.Paint(keep)
+    end
+    local onList = tabs.selected == "family" and not onPage and not recruiting
     search:SetShown(onList)
     for _, column in ipairs(window.columns) do
         column:SetShown(onList)
@@ -1006,6 +1037,10 @@ function Window.Open(first)
     if first ~= opened then
         shownMeeting = nil
     end
+    -- (a cousin's page leaves the Recruit page; its back arrow goes to the family)
+    if first then
+        recruiting = false
+    end
     opened = first
     selected = first or selected
     Window.Refresh(true)
@@ -1029,6 +1064,12 @@ function Window.Toggle()
     else
         Window.Show()
     end
+end
+
+-- The Recruit page on, or back to the family.
+function Window.Recruit(on)
+    recruiting = on == true
+    Window.Refresh(true)
 end
 
 -- Over the world map, which may fill the screen, until the window closes (a crest's click).
@@ -1063,7 +1104,7 @@ Theme.OnSkin(function()
     end
     local shown = window:IsShown()
     window:Hide()
-    window, list, page, stats, empty, tree, tabs, search, header = nil, nil, nil, nil, nil, nil, nil, nil, nil
+    window, list, page, stats, empty, tree, tabs, search, header, recruitPanel = nil, nil, nil, nil, nil, nil, nil, nil, nil, nil
     if shown then
         Window.Show()
     end

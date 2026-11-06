@@ -11,6 +11,8 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
   online with exactly that surname (of your faction), with their level, zone and guild, then
   Whisper, Invite and Join their layer. Each search is one click; when the game's list of 50 is
   full, the next clicks look through the levels.
+- **Recruit**: the cousins known to have no guild, each with one Invite button and a ready welcome
+  you can change. A whisper is never sent by itself: it opens in your chat box for you to send.
 - **Finds your cousins by itself**: players with your surname near you (your target, the mouse,
   nameplates, your group), in chat, and in your guild.
 - **"A cousin is near!"**: the first time you meet, a pop-up with their face, a sound, and a click to
@@ -46,6 +48,7 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 
 - `/cousin` (or `/heycousin`): your family
 - `/cousin tree`: your guild as a family tree
+- `/cousin recruit`: invite the cousins who have no guild
 - `/cousin setup`: your crest, alerts and look
 - `/cousin test`: a pop-up to try
 - `/cousin test map`: made-up cousins on your map for two minutes, to try

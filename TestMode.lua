@@ -223,6 +223,8 @@ function TestMode.Who()
     end
     rows[#rows + 1] = { fullName = HC.Names.Full("Perrin", TestMode.SURNAME), filename = "ROGUE", level = 16,
         area = Utils.Zone() or "Westfall", fullGuildName = "" }
+    rows[#rows + 1] = { fullName = HC.Names.Full("Rosalind", TestMode.SURNAME), filename = "DRUID", level = 11,
+        area = "Darkshore", fullGuildName = "" }
     rows[#rows + 1] = { fullName = "Nell Washbrook", filename = "PRIEST", level = 22, area = "Duskwood", fullGuildName = "" }
     rows[#rows + 1] = { fullName = "Gus Ashbrooke", filename = "MAGE", level = 31, area = "Wetlands", fullGuildName = "" }
     return rows

@@ -262,6 +262,8 @@ function Kin.Seen(info)
     end
     if info.guild ~= nil then
         relative.guild = Utils.IsUsableString(info.guild) and info.guild or nil
+        -- (known to have none, for Recruit: nil means we never learned)
+        relative.noGuild = relative.guild == nil or nil
     end
     if info.near then
         near[info.first] = GetTime()

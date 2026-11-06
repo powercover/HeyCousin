@@ -1015,6 +1015,97 @@ check(All(_G.HeyCousinWindow, function(f) return f.line and f.whisper and f.line
 _G.HeyCousinWindow:Hide()
 NoErrors(HC, "the eldest")
 
+-- === Recruit ==================================================================================
+
+HC = Mock.Boot("forever", { setupDone = true })
+house = HC.Kin.House()
+Mock.whoSent, Mock.who = {}, {
+    { fullName = "Perrin Ashbrook", filename = "ROGUE", level = 16, area = "Westfall", fullGuildName = "" },
+    { fullName = "Kit Ashbrook", filename = "MAGE", level = 30, area = "Duskwood", fullGuildName = "" },
+    { fullName = "Bram Ashbrook", filename = "WARRIOR", level = 40, area = "Wetlands", fullGuildName = "Vale Kin" },
+}
+house.relatives.Cato = { class = "PRIEST", level = 50, met = 0, lastSeen = 1 } -- never learned: unknown, not listed
+house.relatives.Bru = { class = "DRUID", level = 20, met = 1, lastSeen = 1, noGuild = true, faction = "Horde" } -- the other side
+HC.Window.Show("family")
+_G.HeyCousinWindow.find:Click()
+Mock.Fire("WHO_LIST_UPDATE")
+Mock.Advance(7)
+check(house.relatives.Perrin.noGuild and not house.relatives.Bram.noGuild, "a search learns who has no guild")
+HC.Kin.Seen({ first = "Bram", guild = false })
+check(house.relatives.Bram.noGuild, "leaving a guild is noted")
+HC.Kin.Seen({ first = "Bram", guild = "Vale Kin" })
+check(not house.relatives.Bram.noGuild and house.relatives.Bram.guild == "Vale Kin", "and so is joining one")
+local recruits = HC.Recruit.List()
+check(#recruits == 2 and recruits[1].first == "Kit" and recruits[2].first == "Perrin",
+    "the cousins known to have no guild, on your side, the highest first: " .. #recruits)
+local function RecruitRows()
+    return All(_G.HeyCousinWindow, function(f) return f.invite ~= nil and f.item ~= nil and f:IsVisible() end)
+end
+local recruitButton = _G.HeyCousinWindow.recruit
+Settle()
+check(recruitButton:IsShown() and recruitButton:GetText() == "Recruit (2)", "the button says how many: " .. tostring(recruitButton:GetText()))
+check(_G.HeyCousinWindow.footer:GetStringWidth() + recruitButton:GetWidth() <= 500 - 36, "the last line leaves it room")
+recruitButton:Click()
+Settle()
+check(#RecruitRows() == 2 and not recruitButton:IsShown(), "it opens the Recruit page: " .. #RecruitRows())
+-- no guild: you can still whisper, and it says so
+local recruitRow = RecruitRows()[1]
+check(recruitRow.item.first == "Kit" and not recruitRow.invite:IsEnabled() and recruitRow.invite.barred == "You have no guild.", "no guild: no invite, and why")
+Mock.opened = {}
+recruitRow.whisper:Click()
+check(Mock.opened[1] == "/w Kit Ashbrook Hey cousin! We share a surname. Want to join the family?", "the whisper opens with the welcome: " .. tostring(Mock.opened[1]))
+-- a guild, and a rank that can't invite
+Mock.guild = { name = "Ashbrook Kin", rank = 3, ranks = { "Master", "Officer", "Member", "Initiate" } }
+Mock.mayInvite = false
+HC.Window.Refresh()
+check(not RecruitRows()[1].invite:IsEnabled() and RecruitRows()[1].invite.barred == "Your rank can't invite.", "a rank that can't invite: no invite, and why")
+-- a rank that can
+Mock.mayInvite = true
+HC.Window.Refresh()
+recruitRow = RecruitRows()[1]
+check(recruitRow.invite:IsEnabled() and recruitRow.invite.barred == nil, "a rank that can invite")
+Mock.opened = {}
+recruitRow.invite:Click()
+check(Mock.guildInvited == "Kit Ashbrook", "one click invites them by their whole name: " .. tostring(Mock.guildInvited))
+check(Mock.opened[1] and Mock.opened[1]:find("^/w Kit Ashbrook "), "and opens the welcome for you to send")
+check(#Mock.chat >= 0 and house.relatives.Kit.invited ~= nil, "it's remembered")
+Settle()
+recruitRow = RecruitRows()[1]
+check(recruitRow.item.first == "Kit" and not recruitRow.invite:IsEnabled() and recruitRow.invite:GetText() == "Invited", "the button says so, and rests")
+-- your own welcome is kept
+local welcomeBox = All(_G.HeyCousinWindow, function(f) return f.edit ~= nil and f.onChange ~= nil and f:IsVisible() end)[1]
+welcomeBox.edit:SetFocus()
+welcomeBox.edit:SetText("  Come home, cousin!  ", true)
+Mock.Run(welcomeBox.edit, "OnTextChanged", true)
+check(house.welcome == "Come home, cousin!", "your own welcome is kept: " .. tostring(house.welcome))
+welcomeBox.edit:ClearFocus()
+HC.Window.Refresh()
+Mock.opened = {}
+RecruitRows()[2].whisper:Click()
+check(Mock.opened[1] == "/w Perrin Ashbrook Come home, cousin!", "and goes out: " .. tostring(Mock.opened[1]))
+-- the game refuses: /ginvite in your chat box, for Enter
+Mock.inviteRefused = true
+Mock.opened = {}
+RecruitRows()[2].invite:Click()
+check(Mock.opened[1] == "/ginvite Perrin Ashbrook" and Mock.Said("Press Enter to invite Perrin Ashbrook."), "the game refuses: /ginvite for you to send: " .. tostring(Mock.opened[1]))
+Mock.inviteRefused, Mock.guild, Mock.mayInvite = nil, nil, nil
+-- offline: invite rests
+Mock.Advance(5 * 60)
+HC.Window.Refresh()
+check(RecruitRows()[1].invite.barred ~= nil, "not seen online lately: invite rests")
+-- a row's click opens the page, and back to the family
+RecruitRows()[1]:Click()
+Settle()
+check(All(_G.HeyCousinWindow, function(f) return f.whisper ~= nil and f.met ~= nil and f:IsVisible() end)[1], "a row opens their page")
+HC.Window.Open(nil)
+Settle()
+check(recruitButton:IsShown() and #RecruitRows() == 0, "and back to the family")
+SlashCmdList.HEYCOUSIN("recruit")
+Settle()
+check(#RecruitRows() >= 1, "/cousin recruit opens it")
+_G.HeyCousinWindow:Hide()
+NoErrors(HC, "recruit")
+
 -- === Your other characters ====================================================================
 
 -- the saved file another character of yours left: its row, and a line it once saw you on

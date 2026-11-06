@@ -488,7 +488,12 @@ local function Globals()
     C_Texture = { GetAtlasInfo = function() return nil end }
     FACTION_HORDE, FACTION_ALLIANCE = "Horde", "Alliance"
     ERR_CHAT_PLAYER_NOT_FOUND_S = "No player named '%s' is currently playing."
-    C_GuildInfo = { GuildRoster = function() end }
+    -- (Mock.noInviteCall: this client has no invite call; Mock.mayInvite false: your rank can't)
+    C_GuildInfo = { GuildRoster = function() end, Invite = function(name)
+        assert(not Mock.inviteRefused, "the game refused")
+        Mock.guildInvited = name
+    end }
+    function CanGuildInvite() return Mock.mayInvite ~= false end
 
     -- units: Mock.units[token] = { name, surname, guid, class, race, level, sex, faction, guild, npc }
     local function U(unit) return Mock.units[unit] end

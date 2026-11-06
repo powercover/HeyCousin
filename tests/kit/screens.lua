@@ -86,6 +86,17 @@ function Screens.foundpage(skin)
     return { frames = { HeyCousinWindow } }
 end
 
+-- Recruit: the cousins Find my family found with no guild
+function Screens.recruit(skin)
+    local HC = Boot(skin)
+    HC.Window.Show("family")
+    HeyCousinWindow.find:Click()
+    Mock.Advance(2)
+    HC.Window.Recruit(true)
+    HeyCousinWindow.badge:Hide()
+    return { frames = { HeyCousinWindow } }
+end
+
 -- Mira's page: every meeting, the one before the last in full
 function Screens.cousin(skin)
     local HC = Boot(skin)

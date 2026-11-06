@@ -77,6 +77,7 @@ local function PrintHelp()
     Utils.Print(string.format(L["Version %s by %s"], HC.VERSION, HC.AUTHOR))
     Utils.Print("/cousin - " .. L["your family"])
     Utils.Print("/cousin tree - " .. L["your guild as a family tree"])
+    Utils.Print("/cousin recruit - " .. L["invite the cousins who have no guild"])
     Utils.Print("/cousin setup - " .. L["your crest, alerts and look"])
     Utils.Print("/cousin test - " .. L["a pop-up to try"])
     Utils.Print("/cousin test map - " .. L["made-up cousins on your map, to try"])
@@ -97,6 +98,10 @@ local function HandleSlash(message)
         HC.Window.Toggle()
     elseif command == "tree" then
         HC.Window.Show("tree")
+    elseif command == "recruit" then
+        HC.Window.Show("family")
+        HC.Window.Open(nil)
+        HC.Window.Recruit(true)
     elseif command == "setup" then
         HC.Setup.Show()
     elseif command == "test" then

@@ -43,6 +43,7 @@ Alert.lua
 Radar.lua
 Layer.lua
 Tree.lua
+Recruit.lua
 Window.lua
 Tooltip.lua
 Chat.lua

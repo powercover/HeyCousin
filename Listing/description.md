@@ -96,9 +96,9 @@ Pixel, Forever (the classic game's parchment) and Smooth. Switch any time.
 
 ## You stay in control
 
-- **Nothing happens without your click:** no whisper, invite or "Hey cousin!" goes out by itself.
+- **Your words are yours:** no chat line, whisper you can read, invite or "Hey cousin!" goes out without your click.
 - **Quiet:** every alert has a switch, and one switch turns off all family messages. The game's ignore list counts too.
-- **Open about what it shares:** your class, level and crest, and that you run the addon: nothing `/who` doesn't already show. Where you are stays private until you turn sharing on.
+- **Open about what it shares:** your addon quietly tells cousins' addons your class, level and crest, and that you run it: nothing `/who` doesn't already show, but that. Where you are stays private until you turn sharing on.
 - **Light:** windows are built only when you open them, and nothing runs in the background unless it has to.
 - **Easy to start:** a two-step setup, or skip it: everything has a good default, and everything is in the settings.
 

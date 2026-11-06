@@ -21,7 +21,9 @@ local NAV_W = 170
 local PAGE_X = PAD + NAV_W + 22
 local PAGE_W = WIDTH - PAGE_X - PAD
 local TOP = 62
-local ORDER = { "alerts", "family", "map", "game", "look", "about" }
+local ORDER = { "alerts", "family", "map", "plates", "game", "look", "about" }
+-- the sample nameplate is drawn this many times bigger, to place the crest with care
+local PLATE_ZOOM = 2
 
 local window, main, pages, nav
 local current = "alerts"
@@ -43,6 +45,7 @@ local function News()
         L["\"Hey cousin!\": wave and say hello to a cousin near you, with one click."],
         L["The family race: you and your cousins with the addon, by level."],
         L["Family portrait: your house on one card, made for a screenshot."],
+        L["Crests on your cousins' nameplates, with any nameplate addon: place and size them in the settings."],
         L["\"(uses addon)\" marks the cousins who run Hey Cousin!, and a line tells you when they come online."],
         L["Recruit: invite the cousins who have no guild."],
         L["Your other characters show in your family, and a crown marks the eldest."],
@@ -263,6 +266,108 @@ local function BuildMap()
         HC.Map.Preview()
     end)
     try:SetPoint("TOPLEFT", 0, p.y)
+    return p
+end
+
+-- A sample nameplate with your name on it, and the crest where it goes: drag it, scroll to resize.
+-- Real plates on screen follow as you do, whichever addon draws them.
+local function BuildPlates()
+    local p = NewPage()
+    local Plates = HC.Plates
+    Heading(p, L["Nameplates"])
+    Toggle(p, L["Crests on your cousins' nameplates"], L["Works with any nameplate addon."], "plateCrest", true)
+    Note(p, L["Drag the crest to place it, and scroll on it to resize it. Cousins on your side need the game's friendly nameplates on. In dungeons the game keeps those to itself."])
+    p.y = p.y - 2
+    local stage = CreateFrame("Frame", nil, p)
+    stage:SetSize(PAGE_W, 214)
+    stage:SetPoint("TOPLEFT", 0, p.y)
+    stage:SetClipsChildren(true)
+    Theme.Panel(stage, "well")
+    p.y = p.y - 214 - 8
+    -- the sample: a bar and your name, as the game draws a plate by default
+    local _, class = Utils.Call(UnitClass, "player")
+    local color = Utils.ClassColor(class)
+    local back = Theme.Texture(stage, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 0, C.ink)
+    back:SetSize(204, 18)
+    back:SetPoint("CENTER")
+    local bar = Theme.Texture(stage, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 1, color)
+    bar:SetSize(200, 14)
+    bar:SetPoint("CENTER")
+    local name = Theme.Text(stage, "Body", Theme.Readable(color))
+    name:SetPoint("BOTTOM", bar, "TOP", 0, 6)
+    local first, surname = HC.Names.Me()
+    name:SetText(HC.Names.Full(first or "", surname))
+    local crest = Crest.Create(stage, Plates.SIZE * PLATE_ZOOM)
+    crest:EnableMouse(true)
+    local size = Theme.Text(p, "Body", C.text2)
+    local reset
+    -- shows the crest where it's saved
+    local function Show()
+        local x, y, scale = Plates.Position()
+        local default = Plates.DEFAULT
+        crest:SetScale(scale)
+        crest:ClearAllPoints()
+        crest:SetPoint("CENTER", stage, "CENTER", x * PLATE_ZOOM / scale, y * PLATE_ZOOM / scale)
+        size:SetText(string.format("%d%%", math.floor(scale * 100 + 0.5)))
+        reset:SetEnabled(x ~= default.x or y ~= default.y or scale ~= default.scale)
+    end
+    local function Resize(delta)
+        local _, _, scale = Plates.Position()
+        Plates.Move(nil, nil, scale + delta * Plates.SCALE_STEP)
+        Show()
+    end
+    -- the drag: from where the mouse went down, in the stage's own points
+    local function Stop()
+        crest:SetScript("OnUpdate", nil)
+    end
+    crest:SetScript("OnMouseDown", function()
+        local mouseX, mouseY = GetCursorPosition()
+        local fromX, fromY = Plates.Position()
+        local ratio = stage:GetEffectiveScale() * PLATE_ZOOM
+        crest:SetScript("OnUpdate", Utils.Protect("nameplate drag", function()
+            local nowX, nowY = GetCursorPosition()
+            Plates.Move(fromX + (nowX - mouseX) / ratio, fromY + (nowY - mouseY) / ratio)
+            Show()
+        end))
+    end)
+    crest:SetScript("OnMouseUp", Stop)
+    crest:SetScript("OnHide", Stop)
+    for _, target in ipairs({ stage, crest }) do
+        target:EnableMouseWheel(true)
+        target:SetScript("OnMouseWheel", Utils.Protect("nameplate size", function(_, delta)
+            Resize(delta)
+        end))
+    end
+    -- the same by button
+    local smaller = Theme.Button(p, "-", "secondary", 32, 28)
+    smaller:SetPoint("TOPLEFT", 0, p.y)
+    Theme.OnClick(smaller, "nameplate size", function()
+        Resize(-1)
+    end)
+    size:SetPoint("LEFT", smaller, "RIGHT", 8, 0)
+    size:SetWidth(44)
+    size:SetJustifyH("CENTER")
+    local bigger = Theme.Button(p, "+", "secondary", 32, 28)
+    bigger:SetPoint("LEFT", size, "RIGHT", 8, 0)
+    Theme.OnClick(bigger, "nameplate size", function()
+        Resize(1)
+    end)
+    reset = Theme.Button(p, L["Reset"], "secondary", 90, 28)
+    reset:SetPoint("LEFT", bigger, "RIGHT", 12, 0)
+    Theme.Fit(reset, 12, 84)
+    Theme.Tip(reset, L["Reset"], L["Back to where it starts."])
+    Theme.OnClick(reset, "nameplate reset", function()
+        local default = Plates.DEFAULT
+        Plates.Move(default.x, default.y, default.scale)
+        Show()
+    end)
+    p.parts[#p.parts + 1] = {
+        Refresh = function()
+            local _, last = HC.Names.Me()
+            crest:SetCrest(Kin.Crest(), last)
+            Show()
+        end,
+    }
     return p
 end
 
@@ -597,7 +702,7 @@ local function Build()
     heading:SetText(L["Settings"])
     local title = Theme.Title()
     heading:SetTextColor(title[1], title[2], title[3])
-    local labels = { alerts = L["Alerts"], family = L["Family"], map = L["Map"], game = L["In the game"],
+    local labels = { alerts = L["Alerts"], family = L["Family"], map = L["Map"], plates = L["Nameplates"], game = L["In the game"],
         look = L["Look & language"], about = L["About"] }
     nav = {}
     for index, key in ipairs(ORDER) do
@@ -610,7 +715,7 @@ local function Build()
     end
     local link = VersionLink(main)
     link:SetPoint("BOTTOMLEFT", PAD, 18)
-    pages = { alerts = BuildAlerts(), family = BuildFamily(), map = BuildMap(), game = BuildGame(), look = BuildLook(),
+    pages = { alerts = BuildAlerts(), family = BuildFamily(), map = BuildMap(), plates = BuildPlates(), game = BuildGame(), look = BuildLook(),
         about = BuildAbout() }
     window:HookScript("OnHide", function()
         GameTooltip:Hide()
@@ -625,7 +730,7 @@ local function Build()
     end)
 end
 
--- Opens the settings on page `key` ("alerts", "family", "map", "game", "look", "about"), on your crest
+-- Opens the settings on page `key` ("alerts", "family", "map", "plates", "game", "look", "about"), on your crest
 -- ("crest") or on your guild's family ("guild", if you lead it), else on the one you left.
 function Options.Show(key)
     -- (both show the same settings: one at a time)

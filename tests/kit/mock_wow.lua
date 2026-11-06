@@ -374,6 +374,16 @@ local function Globals()
         RegisterAddOnCategory = function(category) Mock.optionsPage = category end,
     }
     function ReloadUI() Mock.reloads = (Mock.reloads or 0) + 1 end
+    -- the game's own nameplate frames, a frame for each unit that has a plate. Mock.noPlate: the game gives
+    -- none (a dungeon's friendly plates)
+    Mock.plates = {}
+    C_NamePlate = {
+        GetNamePlateForUnit = function(unit)
+            if Mock.noPlate or not Mock.units[unit] then return nil end
+            Mock.plates[unit] = Mock.plates[unit] or CreateFrame("Frame", nil, UIParent)
+            return Mock.plates[unit]
+        end,
+    }
     -- saying and emoting (Mock.said, Mock.emotes)
     Mock.said, Mock.emotes = {}, {}
     function SendChatMessage(text, kind) table.insert(Mock.said, { text = text, kind = kind }) end

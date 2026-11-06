@@ -226,7 +226,7 @@ local function SettingsPage(skin, page)
     HC.Options.Show(page)
     return { frames = { HeyCousinOptions } }
 end
-for _, page in ipairs({ "alerts", "family", "map", "game", "look", "about" }) do
+for _, page in ipairs({ "alerts", "family", "map", "plates", "game", "look", "about" }) do
     Screens["settings" .. page] = function(skin)
         return SettingsPage(skin, page)
     end

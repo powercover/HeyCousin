@@ -37,6 +37,11 @@ local DEFAULTS = {
     familyChat = true,
     -- a line in chat when a cousin looks for a group
     familyGroups = true,
+    -- your family's crests on nameplates, and where on them: from the plate's center
+    plateCrest = true,
+    plateX = 0,
+    plateY = 34,
+    plateScale = 1,
     -- all of the family's messages, both ways: off beats the three above and presence
     familyMessages = true,
 }
@@ -200,6 +205,7 @@ frame:SetScript("OnEvent", Utils.Protect("event", function(_, event, arg1)
         HC.Family.Start()
         HC.Map.Start()
         HC.Options.Start()
+        HC.Plates.Start()
     elseif event == "PLAYER_LOGOUT" then
         HC.Kin.NoteMe()
     elseif event == "PLAYER_ENTERING_WORLD" then

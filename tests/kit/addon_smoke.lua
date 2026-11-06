@@ -1212,6 +1212,110 @@ check(_G.HeyCousinPortrait:IsShown(), "with nobody yet, it still opens")
 _G.HeyCousinPortrait:Hide()
 NoErrors(HC, "an empty family portrait")
 
+-- crests on nameplates: on the game's own plate frame, so any nameplate addon keeps them
+HC = Mock.Boot("forever", { setupDone = true })
+house = HC.Kin.House()
+local function PlateUnit(token, name, surname, faction, guid)
+    Mock.units[token] = { name = name, surname = surname, guid = guid, class = "DRUID", race = "NightElf", level = 22, sex = 3,
+        faction = faction, isPlayer = true }
+end
+PlateUnit("nameplate1", "Fern", "Ashbrook", "Alliance", "Player-1-FERN")
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
+local fernCrest = HC.Plates.CrestOn("nameplate1")
+local fernPlate = C_NamePlate.GetNamePlateForUnit("nameplate1")
+check(fernCrest and fernCrest:IsShown() and fernCrest.parent == fernPlate, "a cousin's plate: a crest, on the game's own plate frame")
+check(fernCrest.anchors.CENTER.to == fernPlate and fernCrest.anchors.CENTER.x == 0 and fernCrest.anchors.CENTER.y == 34, "in its place")
+check(not fernCrest.mouse, "it takes no clicks")
+check(fernCrest:GetFrameLevel() > fernPlate:GetFrameLevel() + 10, "above what an addon draws")
+-- not on anyone else
+PlateUnit("nameplate2", "Sly", "Stranger", "Alliance", "Player-1-SLY")
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate2")
+check(HC.Plates.CrestOn("nameplate2") == nil, "a stranger: no crest")
+Mock.units.nameplate3 = { name = "Hogger", guid = "Creature-1-HOG", npc = true }
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate3")
+check(HC.Plates.CrestOn("nameplate3") == nil, "a creature: no crest")
+Mock.units.nameplate4 = Mock.units.player
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate4")
+check(HC.Plates.CrestOn("nameplate4") == nil, "you: no crest")
+-- the plate goes, the crest waits for the next
+Mock.Fire("NAME_PLATE_UNIT_REMOVED", "nameplate1")
+check(HC.Plates.CrestOn("nameplate1") == nil and not fernCrest:IsShown(), "the plate goes, the crest goes")
+PlateUnit("nameplate5", "Kit", "Ashbrook", "Alliance", "Player-1-KIT")
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate5")
+check(HC.Plates.CrestOn("nameplate5") == fernCrest and fernCrest.parent == C_NamePlate.GetNamePlateForUnit("nameplate5"), "and comes back on the next")
+-- a plate the game keeps to itself
+PlateUnit("nameplate6", "Wren", "Ashbrook", "Alliance", "Player-1-WREN")
+Mock.noPlate = true
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate6")
+Mock.noPlate = nil
+check(HC.Plates.CrestOn("nameplate6") == nil, "no plate frame: no crest, no error")
+local forbidden = C_NamePlate.GetNamePlateForUnit("nameplate6")
+function forbidden:IsForbidden() return true end
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate6")
+check(HC.Plates.CrestOn("nameplate6") == nil, "a forbidden plate: left alone")
+-- the settings' page: a sample, a drag, the wheel, buttons, real plates following
+HC.Options.Show("plates")
+local platesPage = _G.HeyCousinOptions
+check(ButtonWith(platesPage, "Nameplates").kind == "primary" and Crest(platesPage, 44):IsVisible(), "a page, with a sample and a crest on it")
+local sample = Crest(platesPage, 44)
+check(sample.mouseEnabled ~= false and not ButtonWith(platesPage, "Reset"):IsEnabled(), "at its starting place: nothing to reset")
+local cursorX, cursorY = 100, 100
+local realCursor = GetCursorPosition
+function GetCursorPosition() return cursorX, cursorY end
+sample:GetScript("OnMouseDown")(sample)
+cursorX, cursorY = 140, 80
+sample:GetScript("OnUpdate")(sample, 0.01)
+sample:GetScript("OnMouseUp")(sample)
+check(HeyCousinDB.plateX == 20 and HeyCousinDB.plateY == 24, "a drag moves it, at the sample's size: " .. HeyCousinDB.plateX .. ", " .. HeyCousinDB.plateY)
+check(fernCrest.anchors.CENTER.x == 20 and fernCrest.anchors.CENTER.y == 24, "and real plates follow at once")
+check(sample:GetScript("OnUpdate") == nil, "the drag ends with the mouse")
+cursorX, cursorY = 900, -900
+sample:GetScript("OnMouseDown")(sample)
+cursorX, cursorY = 9000, 9000
+sample:GetScript("OnUpdate")(sample, 0.01)
+sample:GetScript("OnMouseUp")(sample)
+check(HeyCousinDB.plateX == 100 and HeyCousinDB.plateY == 50, "it stays near the plate")
+GetCursorPosition = realCursor
+local plateStage = sample.parent
+plateStage:GetScript("OnMouseWheel")(plateStage, 1)
+check(HeyCousinDB.plateScale == 1.1 and fernCrest.scale == 1.1, "the wheel resizes it, real plates too")
+check(fernCrest.anchors.CENTER.x == 100 / 1.1, "and the same place at any size")
+ButtonWith(platesPage, "+"):Click()
+check(HeyCousinDB.plateScale == 1.2, "so does a button")
+ButtonWith(platesPage, "-"):Click()
+for _ = 1, 40 do ButtonWith(platesPage, "-"):Click() end
+check(HeyCousinDB.plateScale == 0.5, "not too small")
+for _ = 1, 40 do ButtonWith(platesPage, "+"):Click() end
+check(HeyCousinDB.plateScale == 3, "not too big")
+ButtonWith(platesPage, "Reset"):Click()
+check(HeyCousinDB.plateX == 0 and HeyCousinDB.plateY == 34 and HeyCousinDB.plateScale == 1 and not ButtonWith(platesPage, "Reset"):IsEnabled(), "reset: back to where it starts")
+-- off: gone from every plate, on: back
+All(platesPage, function(f) return f.toggle ~= nil and f:IsVisible() end)[1]:Click()
+check(HeyCousinDB.plateCrest == false and HC.Plates.CrestOn("nameplate5") == nil, "off: gone")
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate5")
+check(HC.Plates.CrestOn("nameplate5") == nil, "and none on new plates")
+All(platesPage, function(f) return f.toggle ~= nil and f:IsVisible() end)[1]:Click()
+check(HC.Plates.CrestOn("nameplate5") ~= nil, "on: back on the plates there are")
+-- a new look: new crests
+SlashCmdList.HEYCOUSIN("theme")
+check(HC.Plates.CrestOn("nameplate5") ~= nil and HC.Plates.CrestOn("nameplate5") ~= fernCrest, "a new look: new crests")
+SlashCmdList.HEYCOUSIN("theme")
+SlashCmdList.HEYCOUSIN("theme")
+_G.HeyCousinOptions:Hide()
+-- broken saved numbers
+HeyCousinDB.plateX, HeyCousinDB.plateY, HeyCousinDB.plateScale = "x", 9999, 0
+local badX, badY, badScale = HC.Plates.Position()
+check(badX == 0 and badY == 50 and badScale == 0.5, "broken saved numbers are made safe")
+NoErrors(HC, "crests on nameplates")
+-- test mode: no surnames on Retail, the page still works
+HC = Mock.Boot("retail", { setupDone = true })
+HC.Options.Show("plates")
+check(Crest(_G.HeyCousinOptions, 44):IsVisible(), "test mode: the page and its sample")
+ButtonWith(_G.HeyCousinOptions, "+"):Click()
+check(HeyCousinDB.plateScale == 1.1, "and its buttons")
+_G.HeyCousinOptions:Hide()
+NoErrors(HC, "the nameplate page in test mode")
+
 -- one switch for all the family's messages, both ways
 HC = Mock.Boot("forever", { setupDone = true })
 house = HC.Kin.House()
@@ -1918,7 +2022,7 @@ end
 HC.Window.Recruit(true)
 Settle()
 HC.Window.Recruit(false)
-for _, page in ipairs({ "alerts", "family", "map", "game", "look", "about", "crest" }) do
+for _, page in ipairs({ "alerts", "family", "map", "plates", "game", "look", "about", "crest" }) do
     HC.Options.Show(page)
     Settle()
 end

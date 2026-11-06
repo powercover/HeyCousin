@@ -94,6 +94,8 @@ local function Setting(key, default)
         elseif key == "mapShow" or key == "mapShare" or key == "presence" or key == "familyNews" or key == "familyChat"
             or key == "familyGroups" or key == "familyMessages" then
             HC.Map.Apply()
+        elseif key == "plateCrest" then
+            HC.Plates.Apply()
         end
         UpdateReset()
     end

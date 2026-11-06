@@ -51,6 +51,7 @@ Portrait.lua
 Lookup.lua
 Window.lua
 Tooltip.lua
+Plates.lua
 Chat.lua
 Minimap.lua
 CrestEditor.lua

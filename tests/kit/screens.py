@@ -860,7 +860,7 @@ def main():
     pair("5c-settings-guild.png", "guild")
     rows = [[shot("settings" + page, skin)[0] for skin in SKINS] for page in ("alerts", "family", "map")]
     sheet(rows, SKINS).save(os.path.join(out, "5d-settings-1.png"))
-    rows = [[shot("settings" + page, skin)[0] for skin in SKINS] for page in ("game", "look", "about")]
+    rows = [[shot("settings" + page, skin)[0] for skin in SKINS] for page in ("plates", "game", "look", "about")]
     sheet(rows, SKINS).save(os.path.join(out, "5e-settings-2.png"))
     print("drew 5d-settings-1.png, 5e-settings-2.png")
     bits = []

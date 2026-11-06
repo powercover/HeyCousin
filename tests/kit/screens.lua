@@ -105,6 +105,7 @@ function Screens.cousin(skin)
     if rows[2] then
         rows[2]:Click()
     end
+    HeyCousinWindow.badge:Hide()
     return { frames = { HeyCousinWindow } }
 end
 

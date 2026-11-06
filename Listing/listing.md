@@ -10,7 +10,7 @@ What to fill in when creating the project on each site. Nothing in this folder s
 | URL slug (CurseForge) | `hey-cousin` |
 | Summary | One click finds everyone online with your surname in WoW Forever. Whisper, invite or join their layer, and see cousins who share on your map. |
 | Description | [description.md](description.md), as Markdown, with the image addresses filled in (see below) |
-| Logo | [logo.png](logo.png) (1024 x 1024; CurseForge scales it down to 400 x 400) |
+| Logo | [logo.png](logo.png) (1024 x 1024; CurseForge scales it down to 400 x 400). [logo-transparent.png](logo-transparent.png) has no background. Neither site's rules mention a GIF logo: submit the PNG, and the animation goes in the description |
 | License | All Rights Reserved |
 | Game | World of Warcraft, WoW Forever only |
 | Main category (CurseForge) | Chat & Communication, or the closest there is |
@@ -22,18 +22,21 @@ What to fill in when creating the project on each site. Nothing in this folder s
 ## Images
 
 Upload these to each project's gallery, then put each address in `description.md` in place of its
-placeholder. `python Listing/make_shots.py` draws them again from the addon's own frames (run
-`python tests/kit/screens.py` first). The family and places in them are made up.
+placeholder. `python Listing/make_shots.py` draws them all again (run `python tests/kit/screens.py`
+first). The cards are 2560 x 1440, made from the addon's own frames, with a made-up family and places.
+They aren't game screenshots.
 
 | Placeholder | Image |
 | --- | --- |
+| `IMAGE_EMBLEM` | [emblem.gif](emblem.gif): the animated crest, a 5.8-second loop on a clear background (480 x 480) |
 | `IMAGE_FOUND` | [found.png](found.png): Find my family, clicked |
-| `IMAGE_PAGE` | [page.png](page.png): a cousin's page with its buttons |
+| `IMAGE_PAGE` | [page.png](page.png): a cousin's page, with its buttons and meetings |
+| `IMAGE_CRESTS` | [crests.png](crests.png): some of the crests you can make |
 | `IMAGE_TREE` | [tree.png](tree.png): the Tree tab |
 | `IMAGE_LOOKS` | [looks.png](looks.png): the three looks side by side |
 
-More for the gallery only: [setup.png](setup.png) (making a crest). The pop-ups aren't here: drawn in test
-mode, they all say so.
+The gallery's own order, best first: found, page, crests, looks, tree. The pop-ups aren't here: drawn in
+test mode, they all say so.
 
 ### One picture to take in the game
 

@@ -1,4 +1,4 @@
-![Find my family](IMAGE_FOUND)
+![Hey Cousin!](IMAGE_EMBLEM)
 
 **WoW Forever gave everyone a surname. Find out who else has yours.**
 
@@ -6,9 +6,11 @@ World of Warcraft Forever has no realms: every character has a first name and a 
 
 ## Find my family
 
+![One click finds your family](IMAGE_FOUND)
+
 One click searches the game's `/who` for your surname and lists everyone online with **exactly** that surname, with their level, zone and guild. From a cousin's page you can **whisper** them, **invite** them or **join their layer**.
 
-![A cousin's page: Whisper, Invite and Join their layer](IMAGE_PAGE)
+![A page for every cousin: Whisper, Invite and Join their layer](IMAGE_PAGE)
 
 The game's `/who` shows your own faction and lists 50 people at most. If so many names look like yours that the list fills up, the next clicks look through the levels, so a cousin isn't hidden behind them.
 
@@ -25,6 +27,8 @@ Cousins who share where they are show as crests on the world map, with their nam
 - **The family window.** Everyone you met or found, who is near you or online now, and a page for each cousin: every time you met, where, when and how, what they said, their gear when you were close.
 - **The family tree.** Your guild as a family, each rank a generation. A guild where most share one surname is a family by itself, and its guild master can give each rank a family word and write a welcome line.
 - **Stats.** How many relatives you have, who you meet most, and the surnames you see most.
+
+![Make your own crest](IMAGE_CRESTS)
 
 ![Your guild as a family tree](IMAGE_TREE)
 

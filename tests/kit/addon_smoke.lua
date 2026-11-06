@@ -1214,6 +1214,111 @@ check(_G.HeyCousinPortrait:IsShown(), "with nobody yet, it still opens")
 _G.HeyCousinPortrait:Hide()
 NoErrors(HC, "an empty family portrait")
 
+-- cousins on the minimap: where they stand, by the same word the world map hears
+do
+HC = Mock.Boot("forever", { setupDone = true })
+Mock.Fire("PLAYER_ENTERING_WORLD")
+Mock.Advance(25)
+local function MiniCrests()
+    return All(Minimap, function(f) return f.size == 16 and f.SetCrest ~= nil and f:IsShown() end)
+end
+check(#MiniCrests() == 0, "nobody shares: nothing on the minimap")
+-- right where you are (the mock's player stands at a known place on map 1429)
+local px, py = C_Map.GetPlayerMapPosition(1429, "player"):GetXY()
+local function Say(name, x, y)
+    Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", string.format("3:P:1429:%d:%d:MAGE:30", math.floor(x * 10000 + 0.5), math.floor(y * 10000 + 0.5)), "WHISPER", name .. " Ashbrook")
+end
+-- a little to the north-east
+local world, a = C_Map.GetWorldPosFromMapPos(1429, CreateVector2D(0, 0))
+local _, b = C_Map.GetWorldPosFromMapPos(1429, CreateVector2D(1, 1))
+local widthYards, heightYards = math.abs(b.x - a.x), math.abs(b.y - a.y)
+Say("Kit", px + 100 / widthYards, py - 50 / heightYards)
+Mock.Advance(0.5)
+local crests = MiniCrests()
+check(#crests == 1 and crests[1].member and crests[1].member.first == "Kit", "a cousin who shares: a crest on the minimap")
+local spot = crests[1].anchors.CENTER
+check(spot.to == Minimap and spot.x > 0 and spot.y > 0, "to the north-east: right and up, got " .. spot.x .. ", " .. spot.y)
+-- the zoom: at the widest, 466.67 yards across on a minimap 198 wide
+local perYard = 99 / (466.67 / 2)
+check(math.abs(spot.x - 100 * perYard) < 1 and math.abs(spot.y - 50 * perYard) < 1, "at the right distance for the zoom: " .. spot.x)
+check(crests[1].alpha == nil or crests[1].alpha == 1, "in range: not faded")
+Mock.minimapZoom = 5
+Mock.Advance(0.5)
+local zoomed = MiniCrests()[1].anchors.CENTER
+check(math.sqrt(zoomed.x ^ 2 + zoomed.y ^ 2) > 0 and zoomed.x > spot.x, "zoomed in: further from the center")
+Mock.minimapZoom = nil
+-- a client that tells its radius
+C_Minimap = { GetViewRadius = function() return 100 end }
+Mock.Advance(0.5)
+local told = MiniCrests()[1].anchors.CENTER
+check(math.abs(told.x - 99) < 3 or told.x > 80, "the game's own radius counts: " .. told.x)
+C_Minimap = nil
+-- a turning minimap: facing east, what's to the east is up
+Mock.cvars, Mock.facing = { rotateMinimap = "1" }, -math.pi / 2
+Mock.Advance(0.5)
+local turned = MiniCrests()[1].anchors.CENTER
+check(turned.y > math.abs(turned.x), "a turning minimap: facing them, they're up: " .. turned.x .. ", " .. turned.y)
+Mock.cvars, Mock.facing = nil, nil
+-- far away: at the edge, faded, in their direction
+Say("Kit", math.min(0.99, px + 2000 / widthYards), py)
+Mock.Advance(0.5)
+local far = MiniCrests()[1]
+check(math.abs(math.sqrt(far.anchors.CENTER.x ^ 2 + far.anchors.CENTER.y ^ 2) - 97) < 1 and far.alpha == 0.6, "far away: at the edge, faded")
+-- a square minimap
+GetMinimapShape = function() return "SQUARE" end
+Mock.Advance(0.5)
+check(math.abs(MiniCrests()[1].anchors.CENTER.x - 97) < 1, "a square minimap's edge is its own")
+GetMinimapShape = function() return "ROUND" end
+-- its tooltip and click
+far:GetScript("OnEnter")(far)
+check(GameTooltip.lines[1] == "Kit Ashbrook", "pointing at it says who")
+far:GetScript("OnLeave")(far)
+far:GetScript("OnMouseUp")(far, "LeftButton")
+check(_G.HeyCousinWindow and _G.HeyCousinWindow:IsShown(), "a click opens their page")
+_G.HeyCousinWindow:Hide()
+-- in a dungeon: none
+Mock.instance = "party"
+Mock.Advance(0.5)
+check(#MiniCrests() == 0, "in a dungeon: none")
+Mock.instance = nil
+Mock.Advance(0.5)
+check(#MiniCrests() == 1, "back out: back")
+-- the setting
+HC.Options.Show("map")
+local miniRow = ButtonWith(_G.HeyCousinOptions, "Your family on the minimap")
+miniRow:Click()
+check(HeyCousinDB.minimapCousins == false and #MiniCrests() == 0, "turned off: gone")
+Say("Kit", px, py)
+Mock.Advance(0.5)
+check(#MiniCrests() == 0, "and stays gone as they move")
+miniRow:Click()
+Mock.Advance(0.5)
+check(#MiniCrests() == 1, "on again: back")
+_G.HeyCousinOptions:Hide()
+-- they stop sharing, or go quiet: gone, and nothing runs for nobody
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:X", "WHISPER", "Kit Ashbrook")
+Mock.Advance(0.5)
+check(#MiniCrests() == 0, "they stop sharing: gone")
+Say("Kit", px, py)
+Mock.Advance(0.5)
+Mock.Advance(121)
+check(#MiniCrests() == 0, "quiet for two minutes: gone")
+-- a new look with one showing
+Say("Kit", px, py)
+Mock.Advance(0.5)
+SlashCmdList.HEYCOUSIN("theme")
+Mock.Advance(0.5)
+check(#All(Minimap, function(f) return f.size == 16 and f.SetCrest ~= nil and f.member ~= nil and f:IsShown() end) >= 1, "a new look: still there")
+SlashCmdList.HEYCOUSIN("theme")
+SlashCmdList.HEYCOUSIN("theme")
+NoErrors(HC, "cousins on the minimap")
+-- test mode: the made-up family
+HC = Mock.Boot("retail", { setupDone = true })
+Mock.Advance(1)
+check(#All(Minimap, function(f) return f.size == 16 and f.member ~= nil and f:IsShown() end) > 0, "test mode: made-up cousins on the minimap")
+NoErrors(HC, "the minimap in test mode")
+end
+
 do
 -- the channel finds cousins; whispers reach them (Forever takes channel messages but doesn't deliver them)
 HC = Mock.Boot("forever", { setupDone = true })

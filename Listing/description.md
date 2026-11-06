@@ -16,7 +16,7 @@ The game's `/who` shows your own faction and lists 50 people at most. If so many
 
 ## The family map
 
-Cousins who share where they are show as crests on the world map, with their names. Click one to open their page. It works beside addons that keep the game's map, like Questie and TomTom, and on **OpenMap**'s stitched map.
+Cousins who share where they are show as crests on the world map, with their names, and on your minimap. Click one to open their page. It works beside addons that keep the game's map, like Questie and TomTom, and on **OpenMap**'s stitched map.
 
 **Sharing is off until you turn it on.** When it's on, your guild and anyone with your surname who runs Hey Cousin! can see where you are, every few seconds while you move. Never in a fight or a dungeon. The other faction's addon never joins your family's channel. Turn it off, and your crest leaves their maps at once.
 

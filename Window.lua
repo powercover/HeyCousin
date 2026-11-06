@@ -607,8 +607,9 @@ local function PaintPage(keep)
         HC.Layer.Query(opened, surname)
     end
     local layer = HC.Layer and HC.Layer.Status(opened)
-    page.met:SetText(metText .. "  ·  " .. string.format(L["first seen: %s"], Utils.When(relative.firstSeen))
-        .. (layer and ("  ·  " .. layer) or "") .. (relative.usesAddon and ("  ·  " .. L["(uses addon)"]) or ""))
+    -- (what matters first: on a narrow line, what can wait is what's cut)
+    page.met:SetText(metText .. (relative.usesAddon and ("  ·  " .. L["(uses addon)"]) or "")
+        .. (layer and ("  ·  " .. layer) or "") .. "  ·  " .. string.format(L["first seen: %s"], Utils.When(relative.firstSeen)))
     -- black sheep play on the other side: no layer of theirs to join
     page.layer:SetShown(not sheep)
     page.layer:SetEnabled(HC.Layer == nil or HC.Layer.CanAsk(opened))

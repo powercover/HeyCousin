@@ -46,6 +46,7 @@ local function News()
         L["The family race: you and your cousins with the addon, by level."],
         L["Family portrait: your house on one card, made for a screenshot."],
         L["Crests on your cousins' nameplates, with any nameplate addon: place and size them in the settings."],
+        L["Cousins who share where they are show on your minimap too."],
         L["\"(uses addon)\" marks the cousins who run Hey Cousin!, and a line tells you when they come online."],
         L["Recruit: invite the cousins who have no guild."],
         L["Your other characters show in your family, and a crown marks the eldest."],
@@ -258,6 +259,7 @@ local function BuildMap()
     local p = NewPage()
     Heading(p, L["On your map"])
     Toggle(p, L["Your family on the world map"], L["Cousins who share where they are."], "mapShow", true)
+    Toggle(p, L["Your family on the minimap"], L["At its edge, faded, when they're further away."], "minimapCousins", true)
     Heading(p, L["Where you are"])
     Toggle(p, L["Share it with your family"], L["Cousins and your guild see you move."], "mapShare", false)
     Note(p, L["Every few seconds while you move; never in a fight or a dungeon. Anyone with your surname who runs Hey Cousin! can see you. The other faction can't."])

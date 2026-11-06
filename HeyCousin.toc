@@ -39,6 +39,7 @@ Gear.lua
 Guild.lua
 Family.lua
 Map.lua
+MiniPins.lua
 TestMode.lua
 Alert.lua
 Radar.lua

@@ -329,6 +329,10 @@ local function Globals()
     UIParent = CreateFrame("Frame", "UIParent")
     Minimap = CreateFrame("Frame", "Minimap")
     Minimap:SetSize(198, 198)
+    function Minimap:GetZoom() return Mock.minimapZoom or 0 end
+    function IsIndoors() return Mock.indoors == true end
+    function GetPlayerFacing() return Mock.facing or 0 end
+    function GetCVar(name) return Mock.cvars and Mock.cvars[name] end
     DEFAULT_CHAT_FRAME = { AddMessage = function(_, text) table.insert(Mock.chat, text) end }
     SlashCmdList, UISpecialFrames = {}, {}
     GameFontHighlight = FontObject("Fonts\\FRIZQT__.TTF", 12)
@@ -460,7 +464,7 @@ local function Globals()
         end,
     }
     function GetTime() return Mock.clock end
-    function time() return Mock.now end
+    function time() return math.floor(Mock.now) end
     function GetLocale() return "enUS" end
     function InCombatLockdown() return Mock.combat end
     -- (Mock.instance: the kind of instance you're in, "party" or "raid"; nil out in the world)

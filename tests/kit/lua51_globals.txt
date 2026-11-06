@@ -7,6 +7,7 @@ C_FriendList
 C_GuildInfo
 C_Item
 C_Map
+C_Minimap
 C_NamePlate
 C_PaperDollInfo
 C_PartyInfo
@@ -36,6 +37,7 @@ GameFontHighlight
 GameTooltip
 GameTooltipTextLeft1
 GetBuildInfo
+GetCVar
 GetChannelList
 GetChannelName
 GetCursorPosition
@@ -52,6 +54,7 @@ GetNormalizedRealmName
 GetNumGroupMembers
 GetNumGuildMembers
 GetNumSubgroupMembers
+GetPlayerFacing
 GetPlayerInfoByGUID
 GetRealZoneText
 GetRealmName
@@ -74,6 +77,7 @@ IsInGroup
 IsInGuild
 IsInInstance
 IsInRaid
+IsIndoors
 IsResting
 IsShiftKeyDown
 JoinTemporaryChannel

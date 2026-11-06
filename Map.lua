@@ -181,6 +181,7 @@ local function Heard(text, sender, onChannel)
         return
     end
     refreshSoon()
+    HC.MiniPins.Wake()
 end
 
 -- Test mode: the made-up cousins online stand around you, from the first time the map shows.
@@ -244,6 +245,7 @@ function Map.Preview()
     end
     Utils.Print(L["Made-up cousins are on your map for two minutes. Open it to see them."])
     Map.Refresh()
+    HC.MiniPins.Wake()
 end
 
 -- OpenMap (an addon) shows one stitched world over the game's map, past the edges of the map
@@ -301,6 +303,47 @@ local function Family()
     return family
 end
 
+-- Everyone with a place to show: fn(full name, spot, { member, word, madeUp }). For the minimap, which
+-- asks often: the guild's family is looked up now and then, and only when someone shares.
+local familySoon, familyAt
+
+function Map.Each(fn)
+    if HC.TestMode.active then
+        MakeUp()
+    end
+    if next(spots) == nil then
+        return
+    end
+    local now = GetTime()
+    if not familySoon or now - familyAt > 5 then
+        familySoon, familyAt = Family(), now
+    end
+    for full, spot in pairs(spots) do
+        local kin = spot.kin or familySoon[full] or (spot.cousin and { member = spot.cousin, word = L["Cousin"] })
+        if now - spot.at > FORGET then
+            spots[full] = nil
+        elseif kin and not spot.away then
+            fn(full, spot, kin)
+        end
+    end
+end
+
+-- Whether anyone has told where they are lately (a dungeon counts: they'll be back).
+function Map.AnyoneShares()
+    if HC.TestMode.active then
+        return true
+    end
+    local now = GetTime()
+    for full, spot in pairs(spots) do
+        if now - spot.at > FORGET then
+            spots[full] = nil
+        else
+            return true
+        end
+    end
+    return false
+end
+
 -- --- the crests on the map ---------------------------------------------------------------------
 
 local function Tip(pin)
@@ -326,16 +369,11 @@ end
 
 -- A click on a crest: that cousin's page; someone only in your guild (another surname, or not known
 -- yet): the Tree tab, where they are.
-local function OpenPage(pin, button)
-    local spot = pin.spot
-    if not spot or button ~= "LeftButton" then
-        return
-    end
-    if spot.madeUp then
+function Map.OpenMember(member, madeUp)
+    if madeUp then
         Utils.Print(L["Test mode: made-up cousins can't hear you."])
         return
     end
-    local member = spot.member
     local house, surname = Kin.House()
     GameTooltip:Hide()
     if house and house.relatives[member.first] and (member.surname == nil or Names.Same(member.surname, surname)) then
@@ -344,6 +382,13 @@ local function OpenPage(pin, button)
         HC.Window.Show("tree")
     end
     HC.Window.Raise()
+end
+
+local function OpenPage(pin, button)
+    local spot = pin.spot
+    if spot and button == "LeftButton" then
+        Map.OpenMember(spot.member, spot.madeUp)
+    end
 end
 
 local function NewPin(canvas)
@@ -505,6 +550,10 @@ function Map.Start()
             frame:RegisterEvent(event)
         end
         Map.Apply()
+    end
+    -- (test mode's made-up cousins stand around you from the start)
+    if HC.TestMode.active then
+        HC.MiniPins.Wake()
     end
 end
 

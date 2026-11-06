@@ -30,6 +30,8 @@ local DEFAULTS = {
     -- the family map: your cousins' crests on yours; where you are, shared only when you say
     mapShow = true,
     mapShare = false,
+    -- those same cousins on your minimap
+    minimapCousins = true,
     -- your cousins' addons know you're online, and yours tells you when they are
     presence = true,
     -- a cousin's round levels, and family chat (/fam)

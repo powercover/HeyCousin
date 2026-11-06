@@ -96,6 +96,8 @@ local function Setting(key, default)
             HC.Map.Apply()
         elseif key == "plateCrest" then
             HC.Plates.Apply()
+        elseif key == "minimapCousins" then
+            HC.MiniPins.Apply()
         end
         UpdateReset()
     end

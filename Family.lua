@@ -566,7 +566,7 @@ function Family.Check()
     local now = GetTime()
     for _, line in ipairs(heard) do
         local cousin = Family.Cousin(line.sender)
-        Utils.Print(string.format("  %ds ago: %s, %s, from [%s], channel %s %s, cousin: %s", now - line.at, line.text,
+        Utils.Print(string.format("  %ds ago: %s, %s, from [%s], channel %s %s, cousin: %s", math.floor(now - line.at), line.text,
             tostring(line.channel), tostring(line.sender), tostring(line.localID), tostring(line.channelName),
             cousin and "yes" or "no"))
     end

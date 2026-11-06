@@ -12,6 +12,9 @@
 - **Groups.** A new tab: say what you're looking for, and cousins can click Join. That asks you, and
   the invite stays your click.
 - **"Hey cousin!"** A button on the pop-up and on a near cousin's page: you wave and say it out loud.
+- **The family map, fixed, and on your minimap.** Sharing beyond a guild didn't reach anyone in 1.0.0:
+  the game doesn't deliver addon messages on a channel. Now they go straight to each cousin, and
+  cousins who share show on your minimap too.
 - **Crests on nameplates.** Works with any nameplate addon. Drag and resize the crest on a sample
   plate in the settings.
 - **The family race.** You and your cousins with the addon, by level, on the Stats tab.

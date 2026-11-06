@@ -31,7 +31,8 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
   for each rank (Elder, Parent, Cousin, or their own) and a welcome line, and every member who
   runs Hey Cousin! gets them by themselves.
 - **The family map**: the cousins who share where they are show as crests on the game's own world
-  map, with their names; a click opens their page. Sharing is off until you turn it on; then your
+  map, with their names, and on the minimap (at its edge when they're further away); a click opens
+  their page. Sharing is off until you turn it on; then your
   guild and anyone with your surname who runs the addon can see you (your faction only, through a
   hidden family channel), every few seconds while you move, never in a fight or a dungeon. It works
   beside map addons that keep the game's map (Mapster, Leatrix Maps, TomTom, HandyNotes, Questie),

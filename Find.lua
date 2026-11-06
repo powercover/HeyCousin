@@ -26,6 +26,52 @@ local function Changed()
     HC.Window.Refresh(true)
 end
 
+-- The game opens its own window (Looking For Group) on a /who answer. While our search waits, the
+-- frames listening for that answer don't hear it, as /who addons have long done; a window you opened
+-- yourself keeps hearing it. If one opens anyway, the answer closes it again, never in a fight.
+local muted, closed = {}, {}
+
+local function Top(frame)
+    local parent = Utils.Call(frame.GetParent, frame)
+    while parent and parent ~= UIParent do
+        frame = parent
+        parent = Utils.Call(frame.GetParent, frame)
+    end
+    return frame
+end
+
+local function Mute()
+    muted, closed = {}, {}
+    local names = {}
+    for _, listener in ipairs({ Utils.Call(GetFramesRegisteredForEvent, "WHO_LIST_UPDATE") }) do
+        if listener ~= frame and Utils.Call(listener.IsVisible, listener) ~= true then
+            -- which frames these are: to read in the saved file if a window ever opens anyway
+            names[#names + 1] = tostring(Utils.Call(listener.GetName, listener))
+            local top = Top(listener)
+            closed[top] = true
+            if pcall(listener.UnregisterEvent, listener, "WHO_LIST_UPDATE") then
+                muted[#muted + 1] = listener
+            end
+        end
+    end
+    HeyCousinDB.whoFrames = names
+end
+
+local function Unmute()
+    for _, listener in ipairs(muted) do
+        pcall(listener.RegisterEvent, listener, "WHO_LIST_UPDATE")
+    end
+    muted = {}
+    if not InCombatLockdown() then
+        for top in pairs(closed) do
+            if Utils.Call(top.IsShown, top) == true then
+                pcall(top.Hide, top)
+            end
+        end
+    end
+    closed = {}
+end
+
 -- What this search asks: your surname, in one band of levels if it's come to that.
 local function Search(surname)
     local search = 'n-" ' .. surname .. '"'
@@ -114,6 +160,7 @@ function Find.Start()
     waiting = run
     if not (test and test.active) then
         local friends = C_FriendList
+        Mute()
         Utils.Call(friends and friends.SetWhoToUi, true)
         Utils.Call(friends and friends.SendWho, Search(surname))
     end
@@ -123,6 +170,7 @@ function Find.Start()
             run.answered = true
             Take()
         elseif not run.answered then
+            Unmute()
             Utils.Print(L["The game didn't answer. Try again in a moment."])
         end
         waiting = nil
@@ -134,7 +182,12 @@ frame:SetScript("OnEvent", Utils.Protect("find my family", function()
     -- the game's own /who window answers here too: only a search of ours is read
     if waiting and not waiting.answered then
         waiting.answered = true
-        Take()
+        -- back on even if reading it goes wrong
+        local ok, problem = pcall(Take)
+        Unmute()
+        if not ok then
+            Utils.NoteError("find my family", problem)
+        end
         Changed()
     end
 end))

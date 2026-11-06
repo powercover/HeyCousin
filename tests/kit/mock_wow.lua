@@ -378,7 +378,12 @@ local function Globals()
     -- /who: Mock.whoSent has the searches, Mock.who the answers ({ fullName, level, area, ... })
     C_FriendList = {
         SetWhoToUi = function() end,
-        SendWho = function(search) Mock.whoSent = Mock.whoSent or {}; table.insert(Mock.whoSent, search) end,
+        SendWho = function(search)
+            Mock.whoSent = Mock.whoSent or {}
+            table.insert(Mock.whoSent, search)
+            -- (Mock.whoOpens: a window the game opens by itself on a search)
+            if Mock.whoOpens then Mock.whoOpens:Show() end
+        end,
         GetNumWhoResults = function() local n = Mock.who and #Mock.who or 0; return n, n end,
         GetWhoInfo = function(i) return Mock.who and Mock.who[i] end,
     }
@@ -547,6 +552,12 @@ local function Globals()
 end
 
 -- --- running -----------------------------------------------------------------------------------
+
+function GetFramesRegisteredForEvent(event)
+    local list = {}
+    for frame in pairs(Mock.events[event] or {}) do list[#list + 1] = frame end
+    return unpack(list)
+end
 
 function Mock.Fire(event, ...)
     local list = {}

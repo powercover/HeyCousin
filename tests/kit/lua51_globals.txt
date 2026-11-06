@@ -34,6 +34,7 @@ GameTooltip
 GameTooltipTextLeft1
 GetBuildInfo
 GetChannelList
+GetFramesRegisteredForEvent
 GetCursorPosition
 GetGameTime
 GetGuildInfo

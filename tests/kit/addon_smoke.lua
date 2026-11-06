@@ -847,6 +847,15 @@ NoErrors(HC, "guild")
 
 HC = Mock.Boot("forever", { setupDone = true })
 house = HC.Kin.House()
+-- the game's own window, which opens when it hears a /who answer
+local gameWhoWindow = CreateFrame("Frame", "GameWhoWindow", UIParent)
+gameWhoWindow:Hide()
+local gameWhoHeard = 0
+gameWhoWindow:SetScript("OnEvent", function(self)
+    gameWhoHeard = gameWhoHeard + 1
+    self:Show()
+end)
+gameWhoWindow:RegisterEvent("WHO_LIST_UPDATE")
 Mock.whoSent, Mock.who = {}, {
     { fullName = "Rowan Ashbrook", filename = "ROGUE", level = 8, area = "Goldshire", fullGuildName = "" },
     { fullName = "Perrin Ashbrook", filename = "MAGE", level = 18, area = "Lordamere Overlook", fullGuildName = "Vale Kin" },
@@ -864,7 +873,10 @@ Settle()
 check(findButton:GetText() == "Looking..." and not findButton:IsEnabled(), "and shows it's looking")
 findButton:Click()
 check(#Mock.whoSent == 1, "a click while it looks asks nothing more")
+check(Mock.events.WHO_LIST_UPDATE[gameWhoWindow] == nil, "while it waits the game's window doesn't listen")
 Mock.Fire("WHO_LIST_UPDATE")
+check(gameWhoHeard == 0 and not gameWhoWindow:IsShown(), "so the answer doesn't open it")
+check(Mock.events.WHO_LIST_UPDATE[gameWhoWindow] == true, "and afterwards it listens again")
 check(house.relatives.Perrin and house.relatives.Perrin.level == 18 and house.relatives.Perrin.zone == "Lordamere Overlook",
     "a cousin it found, with their level and zone")
 check(house.relatives.Perrin.guild == "Vale Kin" and house.relatives.Perrin.met == 0 and house.relatives.Perrin.found,
@@ -879,6 +891,27 @@ Mock.Advance(7)
 check(findButton:IsEnabled() and findButton:GetText() == "Find my family", "then it can search again")
 Mock.Fire("WHO_LIST_UPDATE")
 check(house.relatives.Bram == nil and #Mock.whoSent == 1, "the game's own /who window isn't read")
+check(gameWhoHeard == 1 and gameWhoWindow:IsShown(), "and your own /who opens the game's window as usual")
+-- a window you opened keeps hearing the answers, and stays open
+gameWhoHeard = 0
+findButton:Click()
+check(Mock.events.WHO_LIST_UPDATE[gameWhoWindow] == true, "a window you opened keeps listening")
+Mock.Fire("WHO_LIST_UPDATE")
+check(gameWhoHeard == 1 and gameWhoWindow:IsShown(), "and stays open")
+Mock.Advance(7)
+-- a window the game opens anyway closes again with the answer; a part of it may be what listens
+gameWhoWindow:Hide()
+local gameWhoPart = CreateFrame("Frame", nil, gameWhoWindow)
+gameWhoWindow:UnregisterEvent("WHO_LIST_UPDATE")
+gameWhoPart:RegisterEvent("WHO_LIST_UPDATE")
+Mock.whoOpens = gameWhoWindow
+findButton:Click()
+check(gameWhoWindow:IsShown(), "the game opens its window by itself")
+Mock.Fire("WHO_LIST_UPDATE")
+check(not gameWhoWindow:IsShown(), "the answer closes it")
+Mock.whoOpens = nil
+gameWhoPart:UnregisterEvent("WHO_LIST_UPDATE")
+Mock.Advance(7)
 Mock.Advance(5 * 60)
 check(not HC.Kin.IsOnline("Perrin"), "after a while it doesn't claim they're still online")
 -- a full list: each next click looks at one band of levels

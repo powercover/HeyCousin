@@ -49,6 +49,7 @@ local linesFrom, linesCount = 0, 0
 local heyAt  -- GetTime() of your last "Hey cousin!"
 local heard = {}  -- the last lines heard, as the game gave them (/cousin check)
 local heardCount = 0
+local echoes = {}  -- your own lines coming back, by how they came: the proof the game delivers them
 local HEARD_KEEP = 8
 local spoke = {}  -- [first name] = GetTime() of their last line in family chat
 
@@ -341,11 +342,15 @@ end
 frame:SetScript("OnEvent", Utils.Protect("family", function(_, event, ...)
     if event == "CHAT_MSG_ADDON" then
         local prefix, text, channel, sender, _, _, localID, channelName = ...
-        if prefix == PREFIX and Utils.IsUsableString(text) and not Names.Same((Names.Split(sender)), (Names.Me())) then
-            heardCount = heardCount + 1
-            table.insert(heard, 1, { text = text:sub(1, 12), channel = channel, sender = sender, localID = localID,
-                channelName = channelName, at = GetTime() })
-            heard[HEARD_KEEP + 1] = nil
+        if prefix == PREFIX and Utils.IsUsableString(text) then
+            if Names.Same((Names.Split(sender)), (Names.Me())) then
+                echoes[channel] = (echoes[channel] or 0) + 1
+            else
+                heardCount = heardCount + 1
+                table.insert(heard, 1, { text = text:sub(1, 12), channel = channel, sender = sender, localID = localID,
+                    channelName = channelName, at = GetTime() })
+                heard[HEARD_KEEP + 1] = nil
+            end
         end
         if prefix ~= PREFIX or not Utils.IsUsableString(text) or not text:find("^[45]:") then
             return
@@ -394,6 +399,8 @@ function Family.Check()
     Utils.Print("Check: sent " .. log.count .. " in all. Last: " .. tostring(log.text and log.text:sub(1, 12)) .. " on "
         .. tostring(log.channel) .. " " .. tostring(log.target) .. ", call ok " .. tostring(log.ok) .. ", game's answer "
         .. tostring(log.result))
+    Utils.Print("Check: your own coming back on the channel: " .. (echoes.CHANNEL or 0) .. ", time since login: "
+        .. math.floor(GetTime() - (Family.startedAt or GetTime())) .. "s")
     Utils.Print("Check: heard " .. heardCount .. " from others." .. (heardCount > 0 and " Newest first:" or ""))
     local now = GetTime()
     for _, line in ipairs(heard) do
@@ -414,6 +421,7 @@ function Family.Start()
         return
     end
     Family.started = true
+    Family.startedAt = GetTime()
     for _, event in ipairs({ "CHAT_MSG_ADDON", "PLAYER_ENTERING_WORLD", "PLAYER_LEVEL_UP" }) do
         frame:RegisterEvent(event)
     end

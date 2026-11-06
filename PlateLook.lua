@@ -3,9 +3,10 @@ local _, HC = ...
 -- What your nameplates really look like, for the settings' samples. No addon can ask another to draw a
 -- plate for nobody, so this reads a real plate while one is on screen: whatever addon drew it, the
 -- bars, borders and words hanging on the game's plate frame, and where they are from that frame's
--- center, the point your crest is placed from. A friendly player's and an enemy player's are kept
--- apart, since addons draw them differently, and a creature's stands in until a player's is seen.
--- Saved, so the page shows them when nobody's around. It only ever reads other addons' frames.
+-- center, the point your crest is placed from. Only players' plates, since crests only go on players:
+-- a friendly player's and an enemy player's, kept apart, since addons draw them differently (often a
+-- friendly player is only a name). Saved, so the page shows them when nobody's around. It only ever
+-- reads other addons' frames.
 -- Names aren't kept: a sample shows its own, and of the other words only numbers (a level, a percent).
 HC.PlateLook = {}
 
@@ -24,6 +25,27 @@ local SKIP_KINDS = { Cooldown = true, Model = true, PlayerModel = true }
 
 local tries, done, waiting = {}, {}, {}
 local listeners = {}
+-- while /cousin plates asks: what was read, what was left out and why
+local trace
+
+local function Why(reason)
+    if trace then
+        trace.why[reason] = (trace.why[reason] or 0) + 1
+    end
+end
+
+-- One piece, read; one that fails is left out, and /cousin plates says what the game answered.
+local function Try(fn, ...)
+    local ok, piece = pcall(fn, ...)
+    if not ok then
+        if trace then
+            trace.errors = trace.errors + 1
+            trace.lastError = tostring(piece)
+        end
+        return nil
+    end
+    return piece
+end
 
 local function Saved()
     if type(HeyCousinDB.plateLook) ~= "table" then
@@ -35,7 +57,7 @@ end
 -- The look saved for "friend" or "enemy", or nothing.
 function PlateLook.Get(kind)
     local look = Saved()[kind]
-    return type(look) == "table" and type(look.pieces) == "table" and look or nil
+    return type(look) == "table" and look.player == true and type(look.pieces) == "table" and look or nil
 end
 
 -- A new look copied: `fn` runs.
@@ -67,12 +89,16 @@ local function Box(region, plate)
         width * scale / plateScale, height * scale / plateScale
 end
 
+-- Whether a region shows, and how solid. (An alpha the game keeps secret, a fade by distance: it shows.)
 local function Seen(region)
     if not region:IsVisible() then
         return false
     end
     local alpha = region:GetEffectiveAlpha()
-    return Utils.IsUsableNumber(alpha) and alpha > 0.01, alpha
+    if not Utils.IsUsableNumber(alpha) then
+        return true, 1
+    end
+    return alpha > 0.01, alpha
 end
 
 -- A plain color (SetColorTexture) can't be read back, so it's left out: painting it would come out white.
@@ -90,17 +116,19 @@ end
 local function ReadTexture(texture, plate, level)
     local shown, alpha = Seen(texture)
     if not shown then
-        return
+        return Why("hidden")
     end
     local file, atlas = Art(texture)
     local x, y, width, height = Box(texture, plate)
-    if (not file and not atlas) or not x or width <= 0 or height <= 0 then
-        return
+    if not file and not atlas then
+        return Why("plain color")
+    elseif not x or width <= 0 or height <= 0 then
+        return Why("no place")
     end
     local coords = { texture:GetTexCoord() }
     local r, g, b, a = texture:GetVertexColor()
     if not Usable(r, g, b) or not Usable(unpack(coords)) then
-        return
+        return Why("secret color")
     end
     local layer, sublevel = texture:GetDrawLayer()
     return { x = x, y = y, w = width, h = height, file = file, atlas = atlas, coords = coords, r = r, g = g, b = b,
@@ -113,19 +141,21 @@ local function ReadBar(bar, plate, level)
     local fill = bar:GetStatusBarTexture()
     local shown, alpha = Seen(bar)
     if not fill or not shown or not Seen(fill) then
-        return
+        return Why("hidden")
     end
     local file, atlas = Art(fill)
     local x, y, width, height = Box(bar, plate)
-    if (not file and not atlas) or not x or width <= 0 or height <= 0 then
-        return
+    if not file and not atlas then
+        return Why("plain color")
+    elseif not x or width <= 0 or height <= 0 then
+        return Why("no place")
     end
     local r, g, b, a = Utils.Call(bar.GetStatusBarColor, bar)
     if not Usable(r, g, b) then
         r, g, b, a = fill:GetVertexColor()
     end
     if not Usable(r, g, b) then
-        return
+        return Why("secret color")
     end
     local value = bar:GetValue()
     local least, most = bar:GetMinMaxValues()
@@ -138,22 +168,25 @@ end
 local function ReadText(text, plate, level, first)
     local shown, alpha = Seen(text)
     if not shown then
-        return
+        return Why("hidden")
     end
     local words = text:GetText()
     if not Utils.IsUsableString(words) then
-        return
+        return Why("no words, or secret")
     end
     local plain = words:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
     local isName = first ~= nil and plain:find(first, 1, true) ~= nil
     if not isName and not plain:match("^[%d%s%.,%%/%+%-%?kKmM]+$") then
-        return
+        return Why("other words")
     end
     local x, y, width, height = Box(text, plate)
     local font, size, flags = text:GetFont()
     local r, g, b, a = text:GetTextColor()
-    if not x or not Usable(r, g, b) then
-        return
+    if not x then
+        return Why("no place")
+    end
+    if not Usable(r, g, b) then
+        r, g, b, a = 1, 1, 1, 1
     end
     local shadowX, shadowY = text:GetShadowOffset()
     local shadowR, shadowG, shadowB, shadowA = text:GetShadowColor()
@@ -171,20 +204,23 @@ local function Walk(frame, plate, skip, depth, first, pieces)
     if depth > MOST_DEPTH or #pieces >= MOST_PIECES or Utils.Call(frame.IsForbidden, frame) == true then
         return
     end
+    if trace then
+        trace.frames = trace.frames + 1
+    end
     local level = Utils.Call(frame.GetFrameLevel, frame) or 0
     local kind = Utils.Call(frame.GetObjectType, frame)
     local fill
     if kind == "StatusBar" then
         fill = Utils.Call(frame.GetStatusBarTexture, frame)
-        pieces[#pieces + 1] = Utils.Call(ReadBar, frame, plate, level)
+        pieces[#pieces + 1] = Try(ReadBar, frame, plate, level)
     end
     for _, region in ipairs({ frame:GetRegions() }) do
         if region ~= fill and #pieces < MOST_PIECES then
             local what = Utils.Call(region.GetObjectType, region)
             if what == "Texture" then
-                pieces[#pieces + 1] = Utils.Call(ReadTexture, region, plate, level)
+                pieces[#pieces + 1] = Try(ReadTexture, region, plate, level)
             elseif what == "FontString" then
-                pieces[#pieces + 1] = Utils.Call(ReadText, region, plate, level, first)
+                pieces[#pieces + 1] = Try(ReadText, region, plate, level, first)
             end
         end
     end
@@ -237,23 +273,35 @@ local function Everyday(unit)
         and not Utils.Call(UnitCastingInfo, unit) and not Utils.Call(UnitChannelInfo, unit)
 end
 
-local function Copy(unit, kind, player)
-    if not Everyday(unit) then
-        return false
-    end
+-- What a plate's made of now, or nothing and why.
+local function Read(unit)
     local plate = C_NamePlate and Utils.Call(C_NamePlate.GetNamePlateForUnit, unit)
-    if not plate or Utils.Call(plate.IsForbidden, plate) == true then
-        return false
+    if not plate then
+        return nil, "the game gives no plate frame"
+    elseif Utils.Call(plate.IsForbidden, plate) == true then
+        return nil, "the game keeps this plate to itself"
     end
     local first = Names.Unit(unit) or Utils.Call(UnitName, unit)
     local pieces = {}
     -- (a frame that won't answer ends the walk, not the page)
-    pcall(Walk, plate, plate, HC.Plates.CrestOn(unit), 1, first, pieces)
+    local ok, problem = pcall(Walk, plate, plate, HC.Plates.CrestOn(unit), 1, first, pieces)
+    if not ok and trace then
+        trace.errors = trace.errors + 1
+        trace.lastError = tostring(problem)
+    end
     SettleBars(pieces)
-    if #pieces == 0 then
+    return pieces
+end
+
+local function Copy(unit, kind)
+    if not Everyday(unit) then
         return false
     end
-    Saved()[kind] = { player = player, pieces = pieces }
+    local pieces = Read(unit)
+    if not pieces or #pieces == 0 then
+        return false
+    end
+    Saved()[kind] = { player = true, pieces = pieces }
     return true
 end
 
@@ -263,47 +311,95 @@ local function Told()
     end
 end
 
--- A plate came on screen. The first of each kind this session is copied, a moment later, once its addon
--- has drawn it. A creature's only until a player's is known.
+-- A plate came on screen. The first player's of each kind this session is copied, a moment later, once
+-- its addon has drawn it.
 function PlateLook.Seen(unit)
     local kind, player = KindOf(unit)
-    if not kind then
+    if not kind or not player or done[kind] or waiting[kind] or (tries[kind] or 0) >= MOST_TRIES then
         return
     end
-    local key = kind .. (player and "Player" or "Creature")
-    local look = PlateLook.Get(kind)
-    if done[key] or waiting[key] or (tries[key] or 0) >= MOST_TRIES or (not player and look and look.player) then
-        return
-    end
-    waiting[key] = true
-    tries[key] = (tries[key] or 0) + 1
+    waiting[kind] = true
+    tries[kind] = (tries[kind] or 0) + 1
     local guid = Utils.Call(UnitGUID, unit)
     Utils.After(WAIT, "nameplate look", function()
-        waiting[key] = nil
-        -- (the same plate's token can belong to someone else by now)
-        if guid and Utils.Call(UnitGUID, unit) == guid and Copy(unit, kind, player) then
-            done[key] = true
+        waiting[kind] = nil
+        -- (the same plate's token can belong to someone else by now; a GUID the game keeps secret can't tell)
+        local now = Utils.Call(UnitGUID, unit)
+        local nowKind, nowPlayer = KindOf(unit)
+        if nowKind == kind and nowPlayer and (not guid or not now or now == guid) and Copy(unit, kind) then
+            done[kind] = true
             Told()
         end
     end)
 end
 
--- Every plate on screen, now: the page has just opened, and you may have changed your nameplate addon.
--- A player's first, for each kind.
+-- Every player's plate on screen, now: the page has just opened, and you may have changed your
+-- nameplate addon.
 function PlateLook.Scan()
-    for _, wanted in ipairs({ true, false }) do
-        local copied = {}
-        for index = 1, MOST_PLATES do
-            local unit = "nameplate" .. index
-            local kind, player = KindOf(unit)
-            local look = kind and PlateLook.Get(kind)
-            if kind and player == wanted and not copied[kind] and (player or not (look and look.player))
-                and Copy(unit, kind, player) then
-                copied[kind] = true
-                done[kind .. (player and "Player" or "Creature")] = true
-            end
+    local copied = {}
+    for index = 1, MOST_PLATES do
+        local unit = "nameplate" .. index
+        local kind, player = KindOf(unit)
+        if kind and player and not copied[kind] and Copy(unit, kind) then
+            copied[kind] = true
+            done[kind] = true
         end
     end
+end
+
+-- /cousin plates: what the addon sees on the plates around you, and why it copies them or not. English
+-- only: it's for reading out when something is wrong. No names.
+function PlateLook.Check()
+    local function Setting(name)
+        return tostring(Utils.Call(GetCVar, name))
+    end
+    Utils.Print("Plates: friendly players " .. Setting("nameplateShowFriendlyPlayers")
+        .. ", only names " .. Setting("nameplateShowOnlyNameForFriendlyPlayerUnits")
+        .. ", class-colored names " .. Setting("nameplateUseClassColorForFriendlyPlayerUnitNames")
+        .. ", enemies " .. Setting("nameplateShowEnemies"))
+    local shown = 0
+    for index = 1, MOST_PLATES do
+        local unit = "nameplate" .. index
+        local kind, player = KindOf(unit)
+        if Utils.Call(UnitExists, unit) == true and shown < 8 then
+            shown = shown + 1
+            trace = { frames = 0, why = {}, errors = 0 }
+            local pieces, problem
+            if kind then
+                pieces, problem = Read(unit)
+            end
+            local bars, texts, art = 0, 0, 0
+            for _, piece in ipairs(pieces or {}) do
+                if piece.bar then
+                    bars = bars + 1
+                elseif piece.text then
+                    texts = texts + 1
+                else
+                    art = art + 1
+                end
+            end
+            local left = {}
+            for reason, count in pairs(trace.why) do
+                left[#left + 1] = reason .. " " .. count
+            end
+            table.sort(left)
+            Utils.Print(string.format("  %s: %s, %s, everyday %s. %d frames: kept %d bars, %d art, %d words%s%s%s",
+                unit, kind or "hidden from addons", player and "player" or "not a player", tostring(kind ~= nil and Everyday(unit)),
+                trace.frames, bars, art, texts, #left > 0 and ". Left out: " .. table.concat(left, ", ") or "",
+                problem and ". " .. problem or "",
+                trace.errors > 0 and ". Errors " .. trace.errors .. ": " .. tostring(trace.lastError) or ""))
+            trace = nil
+        end
+    end
+    if shown == 0 then
+        Utils.Print("Plates: none on screen right now.")
+    end
+    PlateLook.Scan()
+    for _, kind in ipairs({ "friend", "enemy" }) do
+        local look = PlateLook.Get(kind)
+        Utils.Print("Plates: " .. kind .. " player look: " .. (look and (#look.pieces .. " pieces copied") or "not copied yet"))
+    end
+    Told()
 end
 
 -- --- drawing it ----------------------------------------------------------------------------------

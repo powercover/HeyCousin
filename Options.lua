@@ -277,7 +277,8 @@ end
 
 -- Two samples, a friendly player's plate and an enemy player's, copied from your real plates whichever
 -- addon draws them (PlateLook.lua), with the crest where it goes: drag either, scroll to resize. Real
--- plates on screen follow as you do. Until a plate has been seen, a plain one stands in, and says so.
+-- plates on screen follow as you do. Until a player's plate has been seen, a plain one stands in, as the
+-- game's settings say it looks (often a friendly player is only a name), and says so.
 local function BuildPlates()
     local p = NewPage()
     local Plates = HC.Plates
@@ -331,9 +332,11 @@ local function BuildPlates()
         local bar = Theme.Texture(plain, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 1, color)
         bar:SetSize(150, 10)
         bar:SetPoint("CENTER")
-        local shown = Theme.Text(plain, "Body", Theme.Readable(color))
-        shown:SetPoint("BOTTOM", bar, "TOP", 0, 4)
-        shown:SetText(name)
+        -- (a name alone is the game's own font: drawn bigger, as the crest is)
+        local nameFrame = CreateFrame("Frame", nil, plain)
+        nameFrame:SetSize(1, 1)
+        nameFrame:SetPoint("CENTER")
+        local shown = Theme.Text(nameFrame, "Body", Theme.Readable(color))
         local crest = Crest.Create(stage, Plates.SIZE * PLATE_ZOOM)
         crest:EnableMouse(true)
         -- (above all a copied plate's levels)
@@ -367,8 +370,23 @@ local function BuildPlates()
             if look then
                 PlateLook.Draw(holder, look, name)
             end
-            hint:SetText(not look and L["Not seen yet: the plain look, until a player's plate is on screen."]
-                or not look.player and L["Copied from a creature, until a player's plate is on screen."] or "")
+            local nameOnly = not enemy and Utils.Call(GetCVar, "nameplateShowOnlyNameForFriendlyPlayerUnits") == "1"
+            back:SetShown(not nameOnly)
+            bar:SetShown(not nameOnly)
+            nameFrame:SetScale(nameOnly and PLATE_ZOOM or 1)
+            shown:SetText("")
+            shown:SetFontObject(nameOnly and _G.SystemFont_NamePlate or Theme.Font("Body"))
+            shown:ClearAllPoints()
+            if nameOnly then
+                shown:SetPoint("CENTER", nameFrame, "CENTER", 0, 0)
+            else
+                shown:SetPoint("BOTTOM", bar, "TOP", 0, 4)
+            end
+            local white = nameOnly and Utils.Call(GetCVar, "nameplateUseClassColorForFriendlyPlayerUnitNames") == "0"
+            local tint = white and { 1, 1, 1 } or Theme.Readable(color)
+            shown:SetTextColor(tint[1], tint[2], tint[3])
+            shown:SetText(name)
+            hint:SetText(look and "" or L["Not seen yet: the plain look, until a player's plate is on screen."])
         end }
     end
     local _, class = Utils.Call(UnitClass, "player")

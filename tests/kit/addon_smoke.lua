@@ -1651,21 +1651,34 @@ check(#Pieces(enemy, function(p) return p.w == 50 or p.w == 20 or p.w == 60 end)
 for _, piece in ipairs(enemy.pieces) do
     check(piece.file ~= nil or piece.text, "no plain color painted white")
 end
--- a creature's plate doesn't replace a player's, but stands in until one is seen
+-- players' plates only: a creature's is never copied
 Mock.Fire("NAME_PLATE_UNIT_REMOVED", "nameplate1")
 RealPlate("nameplate2", "Hogger", nil, nil, true, false, GREEN)
 Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate2")
 Mock.Advance(1)
-check(HC.PlateLook.Get("enemy").player == true and HC.PlateLook.Get("enemy").pieces[1].g ~= GREEN[2], "a creature doesn't replace an enemy player")
+check(HC.PlateLook.Get("enemy").pieces[1].g ~= GREEN[2], "a creature doesn't replace an enemy player")
 RealPlate("nameplate3", "Innkeeper", nil, nil, true, true, GREEN)
 Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate3")
 Mock.Advance(1)
-check(HC.PlateLook.Get("friend") and HC.PlateLook.Get("friend").player == false, "a friendly creature's stands in")
-check(#Pieces(HC.PlateLook.Get("friend"), function(p) return p.name end) == 1, "and its name counts as the name")
+check(HC.PlateLook.Get("friend") == nil, "a friendly creature's isn't copied")
 RealPlate("nameplate4", "Fern", "Ashbrook", "Alliance", false, nil, GREEN)
 Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate4")
 Mock.Advance(1)
-check(HC.PlateLook.Get("friend").player == true, "until a friendly player's is seen")
+check(HC.PlateLook.Get("friend") and HC.PlateLook.Get("friend").player == true, "a friendly player's is")
+-- a name-only plate: the bar's hidden, so only the name is copied
+do
+    local _, onlyBar = RealPlate("nameplate5", "Wren", "Ashbrook", "Alliance", false, nil, GREEN)
+    for _, child in ipairs(onlyBar.parent.children) do
+        if child.kind == "StatusBar" then child:Hide() end
+    end
+    Mock.units.nameplate4 = nil
+    HC.PlateLook.Scan()
+    local onlyName = HC.PlateLook.Get("friend")
+    check(#Pieces(onlyName, function(p) return p.bar end) == 0 and #Pieces(onlyName, function(p) return p.name end) == 1, "name-only plates stay name-only")
+    onlyBar:Show()
+    Mock.units.nameplate5 = nil
+    HC.PlateLook.Scan()
+end
 -- the page draws them, with its own names
 HC.Options.Show("plates")
 local page = _G.HeyCousinOptions
@@ -1708,6 +1721,25 @@ Mock.units.player.faction = "Alliance"
 HC.Options.Show("plates")
 page = _G.HeyCousinOptions
 check(TextOn(page, "Rowan Ashbrook") ~= nil and TextOn(page, "Not seen yet: the plain look, until a player's plate is on screen.") ~= nil, "nothing seen: a plain plate, and it says so")
+local plainName = TextOn(page, "Rowan Ashbrook")
+check(plainName.anchors.BOTTOM ~= nil, "with a bar, by default")
+page:Hide()
+Mock.cvars = Mock.cvars or {}
+Mock.cvars.nameplateShowOnlyNameForFriendlyPlayerUnits = "1"
+_G.SystemFont_NamePlate = CreateFont("SystemFont_NamePlate")
+HC.Options.Show("plates")
+plainName = TextOn(page, "Rowan Ashbrook")
+check(plainName and plainName.anchors.CENTER ~= nil and plainName.font == _G.SystemFont_NamePlate, "your game shows friendly players as names: so does the sample, in the game's font")
+check(TextOn(page, "Grom Ashbrook").anchors.BOTTOM ~= nil, "an enemy's keeps its bar")
+Mock.cvars.nameplateUseClassColorForFriendlyPlayerUnitNames = "0"
+page:Hide()
+HC.Options.Show("plates")
+check(TextOn(page, "Rowan Ashbrook").textColor[1] == 1 and TextOn(page, "Rowan Ashbrook").textColor[2] == 1, "white if the game doesn't class-color names")
+Mock.cvars.nameplateShowOnlyNameForFriendlyPlayerUnits = nil
+Mock.cvars.nameplateUseClassColorForFriendlyPlayerUnitNames = nil
+_G.SystemFont_NamePlate = nil
+page:Hide()
+HC.Options.Show("plates")
 -- a plate comes while the page is open: the page shows it
 RealPlate("nameplate1", "Grom", "Ashbrook", "Horde", false, false, RED)
 Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
@@ -1755,6 +1787,7 @@ local _, secretBar, secretWords = RealPlate("nameplate1", "Grom", "Ashbrook", "H
 function secretBar:GetStatusBarColor() return Mock.SECRET, Mock.SECRET, Mock.SECRET, 1 end
 secretBar:GetStatusBarTexture():SetVertexColor(0.3, 0.2, 0.1)
 function secretWords:GetText() return Mock.SECRET end
+function secretBar:GetEffectiveAlpha() return Mock.SECRET end
 function secretBar:GetWidth() return 120 end
 Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
 Mock.Advance(1)
@@ -1767,6 +1800,22 @@ HeyCousinDB.plateLook = {}
 Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate2")
 Mock.Advance(1)
 check(HC.PlateLook.Get("enemy") == nil, "an addon that draws elsewhere: nothing to copy, no error")
+-- /cousin plates says what it sees, and what the game answered
+HeyCousinDB.plateLook = {}
+local _, _, askedWords = RealPlate("nameplate3", "Fern", "Ashbrook", "Alliance", false, nil, GREEN)
+function askedWords:GetFont() error("no such method") end
+Mock.chat = {}
+SlashCmdList.HEYCOUSIN("plates")
+local plateChat = table.concat(Mock.chat, "\n")
+check(plateChat:find("nameplate3: friend, player", 1, true) ~= nil, "/cousin plates lists the plate: " .. plateChat)
+check(plateChat:find("no such method", 1, true) ~= nil, "and the game's error")
+check(plateChat:find("Left out:", 1, true) ~= nil and plateChat:find("other words 1", 1, true) ~= nil, "and what it left out")
+check(not plateChat:find("Fern", 1, true) and not plateChat:find("Some Guild", 1, true), "and no names")
+Mock.units.nameplate3 = nil
+Mock.chat = {}
+Mock.units.nameplate2 = nil
+SlashCmdList.HEYCOUSIN("plates")
+check(table.concat(Mock.chat, "\n"):find("none on screen", 1, true) ~= nil, "no plates: it says so")
 -- a broken saved look is one thing less, not an error
 HeyCousinDB.plateLook = { enemy = { pieces = { "junk", { x = "bad", level = {} }, { text = true, x = {}, level = 1 } } }, friend = "junk" }
 HC.Options.Show("plates")

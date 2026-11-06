@@ -304,7 +304,6 @@ HC.Locale.Register("ukUA", {
     ["At its edge, faded, when they're further away."] = "На краю й блідіше, коли вони далі.",
     ["Cousins who share where they are show on your minimap too."] = "Кузени, які діляться місцем, видні й на мінімапі.",
     ["Not seen yet: the plain look, until a player's plate is on screen."] = "Ще не бачили: простий вигляд, поки на екрані немає індикатора гравця.",
-    ["Copied from a creature, until a player's plate is on screen."] = "Скопійовано з істоти, поки на екрані немає індикатора гравця.",
     ["Not met yet: found by searching"] = "Знайдено пошуком",
     ["Met once"] = "Одна зустріч",
     ["first seen: %s"] = "знайомство: %s",

@@ -139,6 +139,8 @@ local function HandleSlash(message)
         HC.Lookup.Show()
     elseif command == "check" then
         HC.Family.Check()
+    elseif command == "plates" then
+        HC.PlateLook.Check()
     elseif command == "portrait" then
         HC.Portrait.Toggle()
     elseif command == "race" then

@@ -135,6 +135,8 @@ local function HandleSlash(message)
         HC.Window.Recruit(true)
     elseif command == "find" then
         HC.Lookup.Show()
+    elseif command == "check" then
+        HC.Family.Check()
     elseif command == "portrait" then
         HC.Portrait.Toggle()
     elseif command == "race" then

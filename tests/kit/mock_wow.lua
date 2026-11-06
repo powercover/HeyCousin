@@ -384,6 +384,7 @@ local function Globals()
             return Mock.plates[unit]
         end,
     }
+    function ListChannelByName(name) Mock.listed = name end
     -- saying and emoting (Mock.said, Mock.emotes)
     Mock.said, Mock.emotes = {}, {}
     function SendChatMessage(text, kind) table.insert(Mock.said, { text = text, kind = kind }) end

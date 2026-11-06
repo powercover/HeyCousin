@@ -331,19 +331,27 @@ end
 
 -- --- messages ----------------------------------------------------------------------------------
 
--- Whether the game held a message back: a prefix sends 10 in a row, then one a second.
-local function Throttled(result)
-    local results = Enum and Enum.SendAddonMessageResult
-    return results ~= nil and (result == results.AddonMessageThrottle or result == results.ChannelThrottle)
-end
+-- What went out, for /cousin check: how many, and the last with the game's answer to it.
+Guild.sentLog = { count = 0 }
 
--- A message to your guild's addons; false when the game held it back, to send again.
+-- A message to your guild's addons; false when the game held it back or refused it, to send again.
 local function Send(text, channel, target)
     if not (C_ChatInfo and type(C_ChatInfo.SendAddonMessage) == "function") then
         return true
     end
     local ok, result = pcall(C_ChatInfo.SendAddonMessage, PREFIX, text, channel or "GUILD", target)
-    return not (ok and Throttled(result))
+    local log = Guild.sentLog
+    log.count = log.count + 1
+    log.text, log.channel, log.target, log.ok, log.result = text, channel or "GUILD", target, ok, result
+    if not ok then
+        return false
+    end
+    -- (a client that answers with a code: anything but success didn't go; true or nothing: it did)
+    local results = Enum and Enum.SendAddonMessageResult
+    if results ~= nil and results.Success ~= nil and Utils.IsUsableNumber(result) then
+        return result == results.Success
+    end
+    return result ~= false
 end
 
 -- The family's parts waiting to go, in turn: one the game holds back goes again a moment later.

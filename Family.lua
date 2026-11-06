@@ -47,6 +47,9 @@ local answered = {}  -- [full name] = GetTime() of the last answer to their hell
 local levelled = false  -- you've levelled up: it goes with the next tick
 local linesFrom, linesCount = 0, 0
 local heyAt  -- GetTime() of your last "Hey cousin!"
+local heard = {}  -- the last lines heard, as the game gave them (/cousin check)
+local heardCount = 0
+local HEARD_KEEP = 8
 local spoke = {}  -- [first name] = GetTime() of their last line in family chat
 
 -- --- the channel -------------------------------------------------------------------------------
@@ -338,6 +341,12 @@ end
 frame:SetScript("OnEvent", Utils.Protect("family", function(_, event, ...)
     if event == "CHAT_MSG_ADDON" then
         local prefix, text, channel, sender, _, _, localID, channelName = ...
+        if prefix == PREFIX and Utils.IsUsableString(text) and not Names.Same((Names.Split(sender)), (Names.Me())) then
+            heardCount = heardCount + 1
+            table.insert(heard, 1, { text = text:sub(1, 12), channel = channel, sender = sender, localID = localID,
+                channelName = channelName, at = GetTime() })
+            heard[HEARD_KEEP + 1] = nil
+        end
         if prefix ~= PREFIX or not Utils.IsUsableString(text) or not text:find("^[45]:") then
             return
         end
@@ -363,6 +372,41 @@ frame:SetScript("OnEvent", Utils.Protect("family", function(_, event, ...)
         end)
     end
 end))
+
+-- /cousin check: what goes out and what comes in, as the game gives it, to find why two cousins don't
+-- see each other. It sends one word now, and asks the game who's in the channel. English only: it's for
+-- reading out when something is wrong.
+function Family.Check()
+    local first, surname = Names.Me()
+    local id, name = Family.Channel()
+    Utils.Print("Check: you are " .. tostring(first) .. " " .. tostring(surname) .. ", "
+        .. tostring(Utils.Call(UnitFactionGroup, "player")) .. ", on " .. tostring(Utils.Call(function()
+            return UnitGUID("player")
+        end)))
+    Utils.Print("Check: family channel " .. tostring(name) .. ": " .. (id and ("in it, number " .. id) or "NOT in it")
+        .. (ready and "" or " (still waiting after login)"))
+    Utils.Print("Check: sharing where you are: " .. tostring(HeyCousinDB.mapShare == true)
+        .. ", your family on the map: " .. tostring(HeyCousinDB.mapShow ~= false)
+        .. ", family messages: " .. tostring(Family.Messages()))
+    local spoken = id and Family.Send(Line("S"))
+    Utils.Print("Check: a word sent just now: " .. tostring(spoken))
+    local log = HC.Guild.sentLog
+    Utils.Print("Check: sent " .. log.count .. " in all. Last: " .. tostring(log.text and log.text:sub(1, 12)) .. " on "
+        .. tostring(log.channel) .. " " .. tostring(log.target) .. ", call ok " .. tostring(log.ok) .. ", game's answer "
+        .. tostring(log.result))
+    Utils.Print("Check: heard " .. heardCount .. " from others." .. (heardCount > 0 and " Newest first:" or ""))
+    local now = GetTime()
+    for _, line in ipairs(heard) do
+        local cousin = Family.Cousin(line.sender)
+        Utils.Print(string.format("  %ds ago: %s, %s, from [%s], channel %s %s, cousin: %s", now - line.at, line.text,
+            tostring(line.channel), tostring(line.sender), tostring(line.localID), tostring(line.channelName),
+            cousin and "yes" or "no"))
+    end
+    if id and type(ListChannelByName) == "function" then
+        Utils.Print("Check: who's in the channel, from the game:")
+        Utils.Call(ListChannelByName, name)
+    end
+end
 
 -- On Forever only: surnames are what it's for.
 function Family.Start()

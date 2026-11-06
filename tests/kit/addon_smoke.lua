@@ -1212,6 +1212,31 @@ check(_G.HeyCousinPortrait:IsShown(), "with nobody yet, it still opens")
 _G.HeyCousinPortrait:Hide()
 NoErrors(HC, "an empty family portrait")
 
+-- /cousin check: what goes out and comes in, to find why two cousins don't see each other
+HC = Mock.Boot("forever", { setupDone = true })
+Mock.Fire("PLAYER_ENTERING_WORLD")
+Mock.Advance(40)
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:P:1429:5000:2500:MAGE:30", "CHANNEL", "Kit Ashbrook", "", 0, 7, "HCashbrookA")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "3:P:1429:5000:2500:MAGE:30", "CHANNEL", "Sly Stranger", "", 0, 7, "HCashbrookA")
+chatBefore = #Mock.chat
+SlashCmdList.HEYCOUSIN("check")
+local checkText = table.concat(Mock.chat, "\n", chatBefore + 1)
+check(checkText:find("family channel HCashbrookA: in it, number 7", 1, true), "it says the channel")
+check(checkText:find("heard 2 from others", 1, true) and checkText:find("[Kit Ashbrook]", 1, true) and checkText:find("cousin: yes", 1, true)
+    and checkText:find("cousin: no", 1, true), "what it heard, as the game gave it, and whether that's a cousin")
+check(checkText:find("a word sent just now: true", 1, true) and Mock.listed == "HCashbrookA", "it sends a word and asks who's in the channel")
+-- a refusal from the game is not "sent"
+Mock.throttle = 0
+local realSend = C_ChatInfo.SendAddonMessage
+C_ChatInfo.SendAddonMessage = function() return Enum.SendAddonMessageResult.GeneralError or 9 end
+Enum.SendAddonMessageResult.Success, Enum.SendAddonMessageResult.GeneralError = 0, 9
+check(HC.Family.Send("4:S:::") == false, "the game refuses a message: it didn't go")
+C_ChatInfo.SendAddonMessage = function() error("nope") end
+check(HC.Family.Send("4:S:::") == false, "the call fails: it didn't go")
+C_ChatInfo.SendAddonMessage = realSend
+check(HC.Family.Send("4:S:::") == true, "and goes again when the game takes it")
+NoErrors(HC, "/cousin check")
+
 -- crests on nameplates: on the game's own plate frame, so any nameplate addon keeps them
 HC = Mock.Boot("forever", { setupDone = true })
 house = HC.Kin.House()

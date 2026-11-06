@@ -302,6 +302,7 @@ HC.Locale.Register("ruRU", {
     ["At its edge, faded, when they're further away."] = "На краю и бледнее, когда они дальше.",
     ["Cousins who share where they are show on your minimap too."] = "Кузены, делящиеся местом, видны и на миникарте.",
     ["Not seen yet: the plain look, until a player's plate is on screen."] = "Ещё не видели: простой вид, пока на экране нет индикатора игрока.",
+    ["While this page is open, the real plates around you show the crest too."] = "Пока эта страница открыта, герб видно и на настоящих индикаторах вокруг тебя.",
     ["Not met yet: found by searching"] = "Ещё не встречались: найден поиском",
     ["Met once"] = "Одна встреча",
     ["first seen: %s"] = "впервые: %s",

@@ -286,6 +286,7 @@ local function BuildPlates()
     Heading(p, L["Nameplates"])
     Toggle(p, L["Crests on your cousins' nameplates"], L["Works with any nameplate addon."], "plateCrest", true)
     Note(p, L["Drag the crest to place it, and scroll on it to resize it. Cousins on your side need the game's friendly nameplates on. In dungeons the game keeps those to itself."])
+    Note(p, L["While this page is open, the real plates around you show the crest too."])
     p.y = p.y - 2
     local size = Theme.Text(p, "Body", C.text2)
     local reset
@@ -395,6 +396,13 @@ local function BuildPlates()
     Sample("friend", L["Cousin"], C.text2, HC.Names.Full(first or "", surname), Utils.ClassColor(class), false)
     Sample("enemy", L["Black sheep"], C.enemy, HC.Names.Full(SHEEP_FIRST, surname), C.enemy, true)
     p.y = p.y - 2
+    -- open, the real plates around you show the crest
+    p:SetScript("OnShow", function()
+        Plates.Preview(true)
+    end)
+    p:SetScript("OnHide", function()
+        Plates.Preview(false)
+    end)
     PlateLook.OnChange(function()
         if p:IsVisible() then
             for _, sample in ipairs(samples) do
@@ -428,6 +436,9 @@ local function BuildPlates()
     p.parts[#p.parts + 1] = {
         Refresh = function()
             local _, last = HC.Names.Me()
+            if p:IsVisible() then
+                Plates.Preview(true)
+            end
             PlateLook.Scan()
             for _, sample in ipairs(samples) do
                 sample.Repaint()

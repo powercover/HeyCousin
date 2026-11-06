@@ -1938,6 +1938,45 @@ NoErrors(HC, "a broken saved plate look")
 check((Mock.fontAfterText or 0) == 0, "copied fonts go on before the words")
 end
 
+do
+-- while the page is open, the real plates around you show the crest: the game won't let us measure them
+HC = Mock.Boot("forever", { setupDone = true })
+Mock.units.player.faction = "Alliance"
+Mock.units.nameplate1 = { name = "Sly", surname = "Stranger", guid = "Player-1-SLY", class = "MAGE", faction = "Alliance" }
+Mock.units.nameplate2 = { name = "Hogger", guid = "Creature-1-HOG", npc = true }
+Mock.units.nameplate3 = { name = "Fern", surname = "Ashbrook", guid = "Player-1-FERN", class = "DRUID", faction = "Alliance" }
+Mock.units.nameplate4 = Mock.units.player
+for index = 1, 4 do
+    Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate" .. index)
+end
+check(HC.Plates.CrestOn("nameplate1") == nil and HC.Plates.CrestOn("nameplate2") == nil and HC.Plates.CrestOn("nameplate3") ~= nil, "page closed: only cousins")
+HC.Options.Show("family")
+check(HC.Plates.CrestOn("nameplate1") == nil, "another page: only cousins")
+HC.Options.Show("plates")
+local onStranger, onCreature = HC.Plates.CrestOn("nameplate1"), HC.Plates.CrestOn("nameplate2")
+check(onStranger and onStranger:IsShown() and onStranger.parent == C_NamePlate.GetNamePlateForUnit("nameplate1"), "the page open: every plate shows it")
+check(onStranger.anchors.CENTER.y == 34 and onCreature and onCreature.anchors.CENTER.y == 34, "where it'll be")
+check(onCreature.fill.color[1] == HC.Theme.C.enemy[1] and onStranger.fill.color[1] ~= HC.Theme.C.enemy[1], "red on an enemy's, as a black sheep's")
+check(HC.Plates.CrestOn("nameplate4") == nil, "not on your own")
+HC.Plates.Move(10, 20)
+check(onStranger.anchors.CENTER.x == 10 and onStranger.anchors.CENTER.y == 20, "they follow as you drag")
+Mock.units.nameplate5 = { name = "Passer", surname = "Bystander", guid = "Player-1-PASS", class = "MAGE", faction = "Alliance" }
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate5")
+check(HC.Plates.CrestOn("nameplate5") ~= nil, "a plate that comes while it's open shows it too")
+local samplePage = Crest(_G.HeyCousinOptions, 33).parent.parent
+samplePage:GetScript("OnHide")(samplePage)
+check(HC.Plates.CrestOn("nameplate1") == nil and HC.Plates.CrestOn("nameplate2") == nil and HC.Plates.CrestOn("nameplate3") ~= nil, "closed: only cousins again")
+samplePage:GetScript("OnShow")(samplePage)
+check(HC.Plates.CrestOn("nameplate1") ~= nil, "open again: all of them")
+HeyCousinDB.plateCrest = false
+HC.Plates.Apply()
+check(HC.Plates.CrestOn("nameplate1") == nil, "crests off: none, page open or not")
+HeyCousinDB.plateCrest = true
+samplePage:GetScript("OnHide")(samplePage)
+_G.HeyCousinOptions:Hide()
+NoErrors(HC, "crests on real plates while the page is open")
+end
+
 -- one switch for all the family's messages, both ways
 HC = Mock.Boot("forever", { setupDone = true })
 house = HC.Kin.House()

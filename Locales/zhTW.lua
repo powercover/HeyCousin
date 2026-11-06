@@ -302,6 +302,7 @@ HC.Locale.Register("zhTW", {
     ["At its edge, faded, when they're further away."] = "距離較遠時淡顯在邊緣。",
     ["Cousins who share where they are show on your minimap too."] = "分享位置的表親也會顯示在小地圖上。",
     ["Not seen yet: the plain look, until a player's plate is on screen."] = "尚未見到：畫面上出現玩家名條之前，顯示簡單樣式。",
+    ["While this page is open, the real plates around you show the crest too."] = "此頁面開啟時，你周圍真實的名條上也會顯示家徽。",
     ["Not met yet: found by searching"] = "尚未見過：透過搜尋找到",
     ["Met once"] = "見過1次",
     ["first seen: %s"] = "初次見到：%s",

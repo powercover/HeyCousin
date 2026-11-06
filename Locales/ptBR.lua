@@ -305,6 +305,7 @@ HC.Locale.Register("ptBR", {
     ["At its edge, faded, when they're further away."] = "Na borda, mais claros, quando estão longe.",
     ["Cousins who share where they are show on your minimap too."] = "Primos que compartilham o local também aparecem no minimapa.",
     ["Not seen yet: the plain look, until a player's plate is on screen."] = "Ainda não vista: o visual simples, até a placa de um jogador aparecer.",
+    ["While this page is open, the real plates around you show the crest too."] = "Enquanto esta página estiver aberta, as placas reais ao seu redor também mostram o brasão.",
     ["Not met yet: found by searching"] = "Ainda não encontrado: achado na busca",
     ["Met once"] = "1 encontro",
     ["first seen: %s"] = "primeira vez: %s",

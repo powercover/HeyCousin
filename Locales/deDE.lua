@@ -303,6 +303,7 @@ HC.Locale.Register("deDE", {
     ["At its edge, faded, when they're further away."] = "Blass am Rand, wenn sie weiter weg sind.",
     ["Cousins who share where they are show on your minimap too."] = "Cousins, die ihren Standort teilen, erscheinen auch auf deiner Minikarte.",
     ["Not seen yet: the plain look, until a player's plate is on screen."] = "Noch nicht gesehen: die einfache Form, bis die Plakette eines Spielers zu sehen ist.",
+    ["While this page is open, the real plates around you show the crest too."] = "Solange diese Seite offen ist, zeigen auch die echten Plaketten um dich das Wappen.",
     ["Not met yet: found by searching"] = "Nur per Suche gefunden",
     ["Met once"] = "Einmal getroffen",
     ["first seen: %s"] = "zuerst gesehen: %s",

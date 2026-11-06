@@ -4,7 +4,9 @@ local _, HC = ...
 -- nameplate frame, the one C_NamePlate gives, and not on what's drawn in it: a nameplate addon (Plater,
 -- ElvUI, Kui...) replaces the bar inside, while this frame stays, so the crest follows the plate
 -- under any of them. Its place and size are yours (the settings), kept relative to that frame's
--- center. It takes no clicks, so the plate under it still does.
+-- center. It takes no clicks, so the plate under it still does. While the settings' page is open, every
+-- plate around you shows it, cousin or not: the game won't let an addon measure a plate, so this is the one
+-- way to see the crest exactly where it'll be, on your own plates.
 HC.Plates = {}
 
 local Plates = HC.Plates
@@ -27,6 +29,7 @@ local frame = CreateFrame("Frame")
 local active = {}  -- [unit] = its crest
 local pool = {}
 local running = false
+local previewing = false
 
 local function Clamp(value, least, most)
     return math.max(least, math.min(most, value))
@@ -94,13 +97,19 @@ local function Paint(crest, unit, first, surname)
     crest:SetCrest(Kin.CrestOf(first), surname, sheep)
 end
 
+-- A plate that isn't a cousin's, while the page is open: your crest, red on an enemy's as a black sheep's.
+local function PaintPreview(crest, unit)
+    local _, mine = Names.Me()
+    crest:SetCrest(Kin.Crest(), mine, Utils.Call(UnitIsFriend, "player", unit) ~= true)
+end
+
 local function Added(unit)
     Release(unit)
     if HeyCousinDB.plateCrest == false then
         return
     end
     local first, surname = Cousin(unit)
-    if not first then
+    if not first and (not previewing or Utils.Call(UnitIsUnit, unit, "player") == true) then
         return
     end
     -- (in a dungeon the game keeps friendly plates to itself: no frame, or one nobody may touch)
@@ -110,7 +119,11 @@ local function Added(unit)
     end
     local crest = table.remove(pool) or Crest.Create(UIParent, Plates.SIZE)
     active[unit] = crest
-    Paint(crest, unit, first, surname)
+    if first then
+        Paint(crest, unit, first, surname)
+    else
+        PaintPreview(crest, unit)
+    end
     Hang(crest, plate)
 end
 
@@ -127,6 +140,14 @@ function Plates.Apply()
         if Utils.Call(UnitExists, unit) == true then
             Added(unit)
         end
+    end
+end
+
+-- The settings' page opens or closes: every plate around you shows the crest, or only cousins' again.
+function Plates.Preview(on)
+    if previewing ~= (on == true) then
+        previewing = on == true
+        Plates.Apply()
     end
 end
 
@@ -161,6 +182,8 @@ Kin.OnChange(function()
         local first, surname = Cousin(unit)
         if first then
             Paint(crest, unit, first, surname)
+        elseif previewing then
+            PaintPreview(crest, unit)
         end
     end
 end)

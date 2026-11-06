@@ -275,11 +275,13 @@ local function BuildMap()
     return p
 end
 
--- Two sample nameplates, yours and a black sheep's on the other side, with the crest where it goes:
--- drag either, scroll to resize. Real plates on screen follow as you do, whichever addon draws them.
+-- Two samples, a friendly player's plate and an enemy player's, copied from your real plates whichever
+-- addon draws them (PlateLook.lua), with the crest where it goes: drag either, scroll to resize. Real
+-- plates on screen follow as you do. Until a plate has been seen, a plain one stands in, and says so.
 local function BuildPlates()
     local p = NewPage()
     local Plates = HC.Plates
+    local PlateLook = HC.PlateLook
     Heading(p, L["Nameplates"])
     Toggle(p, L["Crests on your cousins' nameplates"], L["Works with any nameplate addon."], "plateCrest", true)
     Note(p, L["Drag the crest to place it, and scroll on it to resize it. Cousins on your side need the game's friendly nameplates on. In dungeons the game keeps those to itself."])
@@ -304,8 +306,8 @@ local function BuildPlates()
         Plates.Move(nil, nil, scale + delta * Plates.SCALE_STEP)
         Show()
     end
-    -- a sample: a bar and a name, as the game draws a plate by default, and a crest to drag
-    local function Sample(word, wordColor, name, color, enemy)
+    -- a sample: your real plate of this kind, or a plain bar and a name, and a crest to drag
+    local function Sample(kind, word, wordColor, name, color, enemy)
         local stage = CreateFrame("Frame", nil, p)
         stage:SetSize(PAGE_W, PLATE_STAGE_H)
         stage:SetPoint("TOPLEFT", 0, p.y)
@@ -315,17 +317,27 @@ local function BuildPlates()
         local label = Theme.Text(stage, "Tiny", wordColor)
         label:SetPoint("TOPLEFT", 8, -6)
         label:SetText(word)
-        local back = Theme.Texture(stage, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 0, C.ink)
+        local hint = Theme.Text(stage, "Tiny", C.text3)
+        hint:SetPoint("BOTTOMLEFT", 8, 6)
+        local holder = CreateFrame("Frame", nil, stage)
+        holder:SetSize(1, 1)
+        holder:SetPoint("CENTER")
+        holder:SetScale(PLATE_ZOOM)
+        local plain = CreateFrame("Frame", nil, stage)
+        plain:SetAllPoints(stage)
+        local back = Theme.Texture(plain, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 0, C.ink)
         back:SetSize(154, 14)
         back:SetPoint("CENTER")
-        local bar = Theme.Texture(stage, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 1, color)
+        local bar = Theme.Texture(plain, "Interface\\Buttons\\WHITE8X8", "ARTWORK", 1, color)
         bar:SetSize(150, 10)
         bar:SetPoint("CENTER")
-        local shown = Theme.Text(stage, "Body", Theme.Readable(color))
+        local shown = Theme.Text(plain, "Body", Theme.Readable(color))
         shown:SetPoint("BOTTOM", bar, "TOP", 0, 4)
         shown:SetText(name)
         local crest = Crest.Create(stage, Plates.SIZE * PLATE_ZOOM)
         crest:EnableMouse(true)
+        -- (above all a copied plate's levels)
+        crest:SetFrameLevel(stage:GetFrameLevel() + 100)
         -- the drag: from where the mouse went down, in the stage's own points
         local function Stop()
             crest:SetScript("OnUpdate", nil)
@@ -348,13 +360,29 @@ local function BuildPlates()
                 Resize(delta)
             end))
         end
-        samples[#samples + 1] = { crest = crest, stage = stage, enemy = enemy }
+        samples[#samples + 1] = { crest = crest, stage = stage, enemy = enemy, Repaint = function()
+            local look = PlateLook.Get(kind)
+            plain:SetShown(not look)
+            holder:SetShown(look ~= nil)
+            if look then
+                PlateLook.Draw(holder, look, name)
+            end
+            hint:SetText(not look and L["Not seen yet: the plain look, until a player's plate is on screen."]
+                or not look.player and L["Copied from a creature, until a player's plate is on screen."] or "")
+        end }
     end
     local _, class = Utils.Call(UnitClass, "player")
     local first, surname = HC.Names.Me()
-    Sample(L["Cousin"], C.text2, HC.Names.Full(first or "", surname), Utils.ClassColor(class), false)
-    Sample(L["Black sheep"], C.enemy, HC.Names.Full(SHEEP_FIRST, surname), C.enemy, true)
+    Sample("friend", L["Cousin"], C.text2, HC.Names.Full(first or "", surname), Utils.ClassColor(class), false)
+    Sample("enemy", L["Black sheep"], C.enemy, HC.Names.Full(SHEEP_FIRST, surname), C.enemy, true)
     p.y = p.y - 2
+    PlateLook.OnChange(function()
+        if p:IsVisible() then
+            for _, sample in ipairs(samples) do
+                sample.Repaint()
+            end
+        end
+    end)
     -- the same by button
     local smaller = Theme.Button(p, "-", "secondary", 32, 28)
     smaller:SetPoint("TOPLEFT", 0, p.y)
@@ -381,7 +409,9 @@ local function BuildPlates()
     p.parts[#p.parts + 1] = {
         Refresh = function()
             local _, last = HC.Names.Me()
+            PlateLook.Scan()
             for _, sample in ipairs(samples) do
+                sample.Repaint()
                 sample.crest:SetCrest(Kin.Crest(), last, sample.enemy)
             end
             Show()

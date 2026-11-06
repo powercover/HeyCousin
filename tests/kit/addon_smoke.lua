@@ -1568,6 +1568,213 @@ _G.HeyCousinOptions:Hide()
 NoErrors(HC, "the nameplate page in test mode")
 end
 
+do
+-- the settings' samples: your real plates, whichever addon drew them, never a name kept
+HC = Mock.Boot("forever", { setupDone = true })
+local WHITE = "Interface\\Buttons\\WHITE8X8"
+local function Place(region, x, y, w, h)
+    region.cx, region.cy = x, y
+    region:SetSize(w, h)
+end
+-- a plate as an addon draws it: under a frame of its own, 10 above the plate's center
+local function RealPlate(token, name, surname, faction, npc, friendly, color)
+    Mock.units[token] = { name = name, surname = surname, guid = "Unit-" .. token .. name, class = "MAGE", faction = faction,
+        level = 14, npc = npc, friendly = friendly, isPlayer = not npc }
+    local plate = C_NamePlate.GetNamePlateForUnit(token)
+    plate.cx, plate.cy = 500, 400
+    local root = CreateFrame("Frame", nil, plate)
+    local bar = CreateFrame("StatusBar", nil, root)
+    Place(bar, 500, 410, 120, 10)
+    bar:SetStatusBarTexture(WHITE)
+    bar:SetStatusBarColor(color[1], color[2], color[3])
+    bar:SetMinMaxValues(0, 100)
+    bar:SetValue(30)
+    local plainColor = bar:CreateTexture(nil, "BACKGROUND")
+    Place(plainColor, 500, 410, 120, 10)
+    plainColor:SetColorTexture(0, 0, 0, 1)
+    local edge = bar:CreateTexture(nil, "OVERLAY")
+    Place(edge, 500, 410, 122, 12)
+    edge:SetTexture(WHITE)
+    edge:SetVertexColor(0, 0, 0, 1)
+    local shield = CreateFrame("StatusBar", nil, root)
+    Place(shield, 500, 410, 60, 10)
+    shield:SetStatusBarTexture(WHITE)
+    function shield:GetValue() return Mock.SECRET end
+    local words = root:CreateFontString(nil, "OVERLAY")
+    Place(words, 500, 428, 100, 12)
+    words:SetFont("Fonts\\FRIZQT__.TTF", 14, "OUTLINE")
+    words:SetTextColor(1, 0.5, 0)
+    words:SetText(surname and (name .. " " .. surname) or name)
+    local percent = bar:CreateFontString(nil, "OVERLAY")
+    Place(percent, 540, 410, 30, 10)
+    percent:SetFont("Fonts\\FRIZQT__.TTF", 9, "")
+    percent:SetText("30%")
+    local guild = root:CreateFontString(nil, "OVERLAY")
+    Place(guild, 500, 440, 100, 12)
+    guild:SetFont("Fonts\\FRIZQT__.TTF", 9, "")
+    guild:SetText("<Some Guild>")
+    local hidden = root:CreateTexture(nil, "OVERLAY")
+    Place(hidden, 500, 450, 50, 50)
+    hidden:SetTexture(WHITE)
+    hidden:Hide()
+    local sweep = CreateFrame("Cooldown", nil, root)
+    local sweepArt = sweep:CreateTexture(nil, "OVERLAY")
+    Place(sweepArt, 500, 460, 20, 20)
+    sweepArt:SetTexture(WHITE)
+    return plate, bar, words
+end
+local function Pieces(look, test)
+    local found = {}
+    for _, piece in ipairs(look and look.pieces or {}) do
+        if test(piece) then found[#found + 1] = piece end
+    end
+    return found
+end
+local RED, GREEN = { 0.8, 0.1, 0.1 }, { 0.1, 0.8, 0.1 }
+Mock.units.player.faction = "Alliance"
+-- an enemy player's plate: copied a moment after it comes, once its addon has drawn it
+RealPlate("nameplate1", "Grom", "Ashbrook", "Horde", false, false, RED)
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
+check(HC.PlateLook.Get("enemy") == nil, "not at once: its addon may not have drawn it yet")
+Mock.Advance(1)
+local enemy = HC.PlateLook.Get("enemy")
+check(enemy and enemy.player == true, "an enemy player's plate is copied")
+local bars = Pieces(enemy, function(p) return p.bar end)
+check(#bars == 1 and bars[1].x == 0 and bars[1].y == 10 and bars[1].w == 120 and bars[1].h == 10, "its bar, full, in its place from the plate's center")
+check(bars[1].r == RED[1] and bars[1].g == RED[2], "in its own color")
+check(#Pieces(enemy, function(p) return p.w == 122 and p.h == 12 end) == 1, "its border")
+local named = Pieces(enemy, function(p) return p.name end)
+check(#named == 1 and named[1].font == "Fonts\\FRIZQT__.TTF" and named[1].size == 14 and named[1].flags == "OUTLINE" and named[1].r == 1, "the name's place and font")
+check(#Pieces(enemy, function(p) return p.words == "30%" end) == 1, "numbers are kept")
+check(#Pieces(enemy, function(p) return p.words and not p.words:match("^%d+%%$") end) == 0, "no name or guild is kept")
+check(#Pieces(enemy, function(p) return p.w == 50 or p.w == 20 or p.w == 60 end) == 0, "not what's hidden, a timer's sweep, or a bar nobody can read")
+for _, piece in ipairs(enemy.pieces) do
+    check(piece.file ~= nil or piece.text, "no plain color painted white")
+end
+-- a creature's plate doesn't replace a player's, but stands in until one is seen
+Mock.Fire("NAME_PLATE_UNIT_REMOVED", "nameplate1")
+RealPlate("nameplate2", "Hogger", nil, nil, true, false, GREEN)
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate2")
+Mock.Advance(1)
+check(HC.PlateLook.Get("enemy").player == true and HC.PlateLook.Get("enemy").pieces[1].g ~= GREEN[2], "a creature doesn't replace an enemy player")
+RealPlate("nameplate3", "Innkeeper", nil, nil, true, true, GREEN)
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate3")
+Mock.Advance(1)
+check(HC.PlateLook.Get("friend") and HC.PlateLook.Get("friend").player == false, "a friendly creature's stands in")
+check(#Pieces(HC.PlateLook.Get("friend"), function(p) return p.name end) == 1, "and its name counts as the name")
+RealPlate("nameplate4", "Fern", "Ashbrook", "Alliance", false, nil, GREEN)
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate4")
+Mock.Advance(1)
+check(HC.PlateLook.Get("friend").player == true, "until a friendly player's is seen")
+-- the page draws them, with its own names
+HC.Options.Show("plates")
+local page = _G.HeyCousinOptions
+local function TextOn(root, words)
+    for _, region in ipairs(root.regions or {}) do
+        if region.text == words and region:IsVisible() then return region end
+    end
+    for _, child in ipairs(root.children or {}) do
+        local found = TextOn(child, words)
+        if found then return found end
+    end
+end
+local mine = TextOn(page, "Rowan Ashbrook")
+local sheepName = TextOn(page, "Grom Ashbrook")
+check(mine and mine:GetFont() == "Fonts\\FRIZQT__.TTF" and select(2, mine:GetFont()) == 14 and mine.anchors.CENTER.y == 28, "your name, on your friendly plate's copy")
+check(sheepName and sheepName.textColor[1] == 1 and sheepName.textColor[2] == 0.5, "a black sheep's on your enemy plate's copy")
+check(TextOn(page, "30%") ~= nil, "with what else it shows")
+check(not TextOn(page, "Not seen yet: the plain look, until a player's plate is on screen."), "no hint: these are real")
+check(mine.parent.parent.scale == 1.5, "drawn bigger, as the crest is")
+-- drawn again: nothing piles up
+local function CountTextures(root)
+    local count = 0
+    for _, region in ipairs(root.regions or {}) do
+        if region.file and region:IsVisible() then count = count + 1 end
+    end
+    for _, child in ipairs(root.children or {}) do
+        count = count + CountTextures(child)
+    end
+    return count
+end
+local before = CountTextures(page)
+page:Hide()
+HC.Options.Show("plates")
+check(CountTextures(_G.HeyCousinOptions) == before, "open it again: the same pieces, not more: " .. before .. ", " .. CountTextures(_G.HeyCousinOptions))
+_G.HeyCousinOptions:Hide()
+NoErrors(HC, "copying real plates")
+-- nothing seen yet: the plain sample, and it says so
+HC = Mock.Boot("forever", { setupDone = true })
+Mock.units.player.faction = "Alliance"
+HC.Options.Show("plates")
+page = _G.HeyCousinOptions
+check(TextOn(page, "Rowan Ashbrook") ~= nil and TextOn(page, "Not seen yet: the plain look, until a player's plate is on screen.") ~= nil, "nothing seen: a plain plate, and it says so")
+-- a plate comes while the page is open: the page shows it
+RealPlate("nameplate1", "Grom", "Ashbrook", "Horde", false, false, RED)
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
+Mock.Advance(1)
+check(TextOn(page, "30%") ~= nil, "a plate comes while it's open: it shows at once")
+page:Hide()
+-- opening the page reads plates already on screen
+HC = Mock.Boot("forever", { setupDone = true })
+Mock.units.player.faction = "Alliance"
+RealPlate("nameplate1", "Grom", "Ashbrook", "Horde", false, false, RED)
+HC.Options.Show("plates")
+check(HC.PlateLook.Get("enemy") and HC.PlateLook.Get("enemy").player == true, "plates already on screen are read when the page opens")
+_G.HeyCousinOptions:Hide()
+-- not in a fight or a dungeon, not your target, not a cast
+HC = Mock.Boot("forever", { setupDone = true })
+Mock.units.player.faction = "Alliance"
+RealPlate("nameplate1", "Grom", "Ashbrook", "Horde", false, false, RED)
+Mock.combat = true
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
+Mock.Advance(1)
+check(HC.PlateLook.Get("enemy") == nil, "not in a fight")
+Mock.combat = false
+Mock.instance = "party"
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
+Mock.Advance(1)
+check(HC.PlateLook.Get("enemy") == nil, "not in a dungeon")
+Mock.instance = nil
+Mock.units.target = Mock.units.nameplate1
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
+Mock.Advance(1)
+check(HC.PlateLook.Get("enemy") == nil, "not your target's: it lights up")
+Mock.units.target = nil
+Mock.units.nameplate1.casting = "Fireball"
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
+Mock.Advance(1)
+check(HC.PlateLook.Get("enemy") == nil, "not while it shows a cast")
+Mock.units.nameplate1.casting = nil
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
+Mock.Advance(1)
+check(HC.PlateLook.Get("enemy") ~= nil, "the next plate of that kind then")
+-- secrets, and an addon that draws elsewhere
+HC = Mock.Boot("forever", { setupDone = true })
+Mock.units.player.faction = "Alliance"
+local _, secretBar, secretWords = RealPlate("nameplate1", "Grom", "Ashbrook", "Horde", false, false, RED)
+function secretBar:GetStatusBarColor() return Mock.SECRET, Mock.SECRET, Mock.SECRET, 1 end
+secretBar:GetStatusBarTexture():SetVertexColor(0.3, 0.2, 0.1)
+function secretWords:GetText() return Mock.SECRET end
+function secretBar:GetWidth() return 120 end
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate1")
+Mock.Advance(1)
+local secretLook = HC.PlateLook.Get("enemy")
+check(secretLook and #Pieces(secretLook, function(p) return p.name end) == 0, "a secret name is left out")
+check(Pieces(secretLook, function(p) return p.bar end)[1].r == 0.3, "a secret color: the bar's own art's")
+Mock.units.nameplate1 = nil
+Mock.units.nameplate2 = { name = "Grom", surname = "Ashbrook", guid = "Unit-empty", class = "MAGE", faction = "Horde" }
+HeyCousinDB.plateLook = {}
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate2")
+Mock.Advance(1)
+check(HC.PlateLook.Get("enemy") == nil, "an addon that draws elsewhere: nothing to copy, no error")
+-- a broken saved look is one thing less, not an error
+HeyCousinDB.plateLook = { enemy = { pieces = { "junk", { x = "bad", level = {} }, { text = true, x = {}, level = 1 } } }, friend = "junk" }
+HC.Options.Show("plates")
+_G.HeyCousinOptions:Hide()
+NoErrors(HC, "a broken saved plate look")
+check((Mock.fontAfterText or 0) == 0, "copied fonts go on before the words")
+end
+
 -- one switch for all the family's messages, both ways
 HC = Mock.Boot("forever", { setupDone = true })
 house = HC.Kin.House()

@@ -303,6 +303,8 @@ HC.Locale.Register("koKR", {
     ["Your family on the minimap"] = "미니맵에 가족 표시",
     ["At its edge, faded, when they're further away."] = "멀리 있으면 가장자리에 흐리게 표시돼요.",
     ["Cousins who share where they are show on your minimap too."] = "위치를 공유하는 사촌이 미니맵에도 보여요.",
+    ["Not seen yet: the plain look, until a player's plate is on screen."] = "아직 못 봤어요: 플레이어 이름표가 화면에 나오기 전까지 기본 모양이에요.",
+    ["Copied from a creature, until a player's plate is on screen."] = "플레이어 이름표가 화면에 나오기 전까지 생물 이름표를 복사해 보여 줘요.",
     ["Not met yet: found by searching"] = "아직 못 만남: 검색으로 찾음",
     ["Met once"] = "한 번 만남",
     ["first seen: %s"] = "처음 만남: %s",

@@ -304,6 +304,8 @@ HC.Locale.Register("ptBR", {
     ["Your family on the minimap"] = "Sua família no minimapa",
     ["At its edge, faded, when they're further away."] = "Na borda, mais claros, quando estão longe.",
     ["Cousins who share where they are show on your minimap too."] = "Primos que compartilham o local também aparecem no minimapa.",
+    ["Not seen yet: the plain look, until a player's plate is on screen."] = "Ainda não vista: o visual simples, até a placa de um jogador aparecer.",
+    ["Copied from a creature, until a player's plate is on screen."] = "Copiada de uma criatura, até a placa de um jogador aparecer.",
     ["Not met yet: found by searching"] = "Ainda não encontrado: achado na busca",
     ["Met once"] = "1 encontro",
     ["first seen: %s"] = "primeira vez: %s",

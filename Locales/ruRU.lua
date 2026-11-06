@@ -301,6 +301,8 @@ HC.Locale.Register("ruRU", {
     ["Your family on the minimap"] = "Семья на миникарте",
     ["At its edge, faded, when they're further away."] = "На краю и бледнее, когда они дальше.",
     ["Cousins who share where they are show on your minimap too."] = "Кузены, делящиеся местом, видны и на миникарте.",
+    ["Not seen yet: the plain look, until a player's plate is on screen."] = "Ещё не видели: простой вид, пока на экране нет индикатора игрока.",
+    ["Copied from a creature, until a player's plate is on screen."] = "Скопировано с существа, пока на экране нет индикатора игрока.",
     ["Not met yet: found by searching"] = "Ещё не встречались: найден поиском",
     ["Met once"] = "Одна встреча",
     ["first seen: %s"] = "впервые: %s",

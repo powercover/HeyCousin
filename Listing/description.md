@@ -41,7 +41,7 @@ A cousin on the other side of the war is the family's **black sheep**, with a po
 
 ![Spot a cousin in a crowd](IMAGE_PLATES)
 
-Your family's crests on nameplates, and a red one on a black sheep's enemy nameplate, so you know who you're fighting. They're made to work with any nameplate addon, such as Plater, ElvUI or Kui. Drag and resize the crest on the sample nameplates in the settings, and real nameplates follow as you do it.
+Your family's crests on nameplates, and a red one on a black sheep's enemy nameplate, so you know who you're fighting. They're made to work with any nameplate addon, such as Plater, ElvUI or Kui. The settings copy your own nameplates, a friendly player's and an enemy player's, so you place the crest on what you really see. Drag and resize it, and real nameplates follow as you do it.
 
 ## The family map
 

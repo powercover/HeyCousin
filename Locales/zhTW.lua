@@ -301,6 +301,8 @@ HC.Locale.Register("zhTW", {
     ["Your family on the minimap"] = "在小地圖上顯示家人",
     ["At its edge, faded, when they're further away."] = "距離較遠時淡顯在邊緣。",
     ["Cousins who share where they are show on your minimap too."] = "分享位置的表親也會顯示在小地圖上。",
+    ["Not seen yet: the plain look, until a player's plate is on screen."] = "尚未見到：畫面上出現玩家名條之前，顯示簡單樣式。",
+    ["Copied from a creature, until a player's plate is on screen."] = "畫面上出現玩家名條之前，先複製生物的名條。",
     ["Not met yet: found by searching"] = "尚未見過：透過搜尋找到",
     ["Met once"] = "見過1次",
     ["first seen: %s"] = "初次見到：%s",

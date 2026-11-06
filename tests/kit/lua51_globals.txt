@@ -140,3 +140,6 @@ tonumber
 tostring
 type
 unpack
+UnitCastingInfo
+UnitChannelInfo
+UnitIsFriend

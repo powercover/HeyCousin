@@ -211,6 +211,7 @@ function EditBox:SetMaxLetters(n) self.max = n end
 function EditBox:SetText(text) self.text = text; Mock.Run(self, "OnTextChanged", false) end
 function EditBox:GetText() return self.text or "" end
 function EditBox:HasFocus() return self.focus == true end
+function EditBox:HighlightText() self.highlighted = true end
 function EditBox:SetFocus() self.focus = true; Mock.Run(self, "OnEditFocusGained") end
 function EditBox:ClearFocus() self.focus = false; Mock.Run(self, "OnEditFocusLost") end
 
@@ -467,6 +468,8 @@ local function Globals()
     function time() return math.floor(Mock.now) end
     function GetLocale() return "enUS" end
     function InCombatLockdown() return Mock.combat end
+    function IsControlKeyDown() return Mock.controlDown == true end
+    function IsMetaKeyDown() return false end
     -- (Mock.instance: the kind of instance you're in, "party" or "raid"; nil out in the world)
     function IsInInstance() return Mock.instance ~= nil, Mock.instance or "none" end
     function IsInGroup() return Mock.inGroup end

@@ -844,6 +844,7 @@ def main():
     pair("1b-found.png", "found")
     pair("1c-found-page.png", "foundpage")
     pair("1d-recruit.png", "recruit")
+    pair("1dd-recruit-copy.png", "recruitcopy")
     pair("1e-groups.png", "groups")
     pair("1f-lookup.png", "lookup")
     pair("2-cousin.png", "cousin")

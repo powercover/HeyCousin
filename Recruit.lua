@@ -1,10 +1,11 @@
 local _, HC = ...
 
 -- Recruit: the cousins known to have no guild, each with one Invite button and a ready welcome. It
--- gathers a family: Find my family finds them, this brings them in. The game keeps the guild invite
--- to itself: an addon's call and a secure button's /ginvite are both blocked (seen in the game,
--- 2026-11-07), and a blocked call raises no error. So Invite puts /ginvite in your chat box, for you to
--- press Enter. The whisper button opens the welcome: a whisper is never sent by itself.
+-- gathers a family: Find my family finds them, this brings them in. The game lets only the player send
+-- a guild invite. Seen in the game, 2026-11-07: an addon's call, a secure button's /ginvite and /ginvite
+-- in a chat box the addon opened are all blocked (and raise no error); /ginvite typed in a chat box you
+-- opened yourself works. So Invite shows the line, ready to copy, and the addon never touches the chat
+-- box for it. The whisper button opens the welcome: a whisper is never sent by itself.
 HC.Recruit = {}
 
 local Recruit = HC.Recruit
@@ -19,12 +20,12 @@ local ROW = 38
 -- the list's columns from a row's left
 local LEVEL_X, ZONE_X = 150, 192
 local TOP = 118
--- after an invite, the button rests this long: nobody wants two
-local INVITE_AGAIN = 60 * 60
+-- the line to copy, under the list
+local COPY_HEIGHT = 54
 local WELCOME_MAX = 200
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 
-local panel, list, empty
+local panel, list, empty, copy
 
 local function IsOnline(first)
     return Kin.IsOnline(first) or Kin.IsNear(first)
@@ -96,21 +97,33 @@ function Recruit.Whisper(first)
     OpenChat("/w " .. FullName(first) .. " " .. Welcome())
 end
 
--- /ginvite in your chat box, for Enter.
-function Recruit.Invite(first, relative)
+-- Shows `line` under the list, chosen and ready for Ctrl+C.
+function Recruit.ShowCopy(line)
+    copy.line = line
+    copy.box.edit:SetText(line)
+    copy:Show()
+    list:SetPoint("BOTTOMRIGHT", 0, COPY_HEIGHT + 6)
+    copy.box.edit:SetFocus()
+    copy.box.edit:HighlightText()
+end
+
+local function CloseCopy()
+    copy.line = nil
+    copy:Hide()
+    list:SetPoint("BOTTOMRIGHT", 0, 0)
+end
+
+-- The line for your own chat box.
+function Recruit.Invite(first)
     if HC.TestMode.active then
         Utils.Print(L["Test mode: made-up cousins can't hear you."])
         return
     end
-    local full = FullName(first)
-    relative.invited = time()
-    Kin.Changed()
-    OpenChat("/ginvite " .. full)
-    Utils.Print(string.format(L["Press Enter to invite %s."], full))
+    Recruit.ShowCopy("/ginvite " .. FullName(first))
 end
 
 -- Why Invite is off for a row, or nothing when it's on.
-local function Barred(first, relative)
+local function Barred(first)
     local guild, can = Rights()
     if not guild then
         return L["You have no guild."]
@@ -118,8 +131,6 @@ local function Barred(first, relative)
         return L["Your rank can't invite."]
     elseif not IsOnline(first) then
         return L["Not seen online in the last few minutes. Click Find my family."]
-    elseif Utils.IsUsableNumber(relative.invited) and time() - relative.invited < INVITE_AGAIN then
-        return L["Invited"]
     end
     return nil
 end
@@ -150,12 +161,12 @@ local function NewRow(parent)
     row.invite = Theme.Button(row, L["Invite"], "primary", 90, 26)
     row.invite:SetPoint("RIGHT", -4, 0)
     Theme.Tip(row.invite, L["Invite"], function(self)
-        return self.barred or L["Puts /ginvite in your chat box. Press Enter to invite them."]
+        return self.barred or L["Shows the line to copy into chat. The game lets only you send a guild invite."]
     end)
     Theme.OnClick(row.invite, "recruit invite", function(self)
         local item = self:GetParent().item
         if item then
-            Recruit.Invite(item.first, item.relative)
+            Recruit.Invite(item.first)
         end
     end)
     row.whisper = Theme.IconButton(row, "Whisper", 26, L["Whisper"], L["Opens a whisper with your welcome, for you to send."])
@@ -195,10 +206,9 @@ local function PaintRow(row, item)
     row.level:SetText(relative.level and tostring(relative.level) or "")
     row.zone:SetText(relative.zone or "")
     row.dot:SetShown(IsOnline(item.first))
-    local barred = Barred(item.first, relative)
+    local barred = Barred(item.first)
     row.invite.barred = barred
     row.invite:SetEnabled(barred == nil)
-    row.invite:SetText(barred == L["Invited"] and L["Invited"] or L["Invite"])
     Theme.Fit(row.invite, 12, 80)
 end
 
@@ -239,6 +249,44 @@ function Recruit.Build(window, x, top, bottom)
     empty:SetWordWrap(true)
     empty:SetJustifyH("CENTER")
     empty:SetText(L["Nobody yet: click Find my family to look for cousins with no guild."])
+    -- the line to copy: it can't be changed, and the box's X closes it
+    copy = CreateFrame("Frame", nil, panel)
+    copy:SetPoint("BOTTOMLEFT", 0, 0)
+    copy:SetPoint("BOTTOMRIGHT", 0, 0)
+    copy:SetHeight(COPY_HEIGHT)
+    copy:Hide()
+    copy.how = Theme.Text(copy, "Small", C.text2)
+    copy.how:SetPoint("TOPLEFT", 0, 0)
+    copy.how:SetText(L["Ctrl+C, then Enter, Ctrl+V, Enter."])
+    copy.box = Theme.EditBox(copy, window:GetWidth() - x * 2, nil, nil, 80)
+    copy.box:SetPoint("BOTTOMLEFT", 0, 0)
+    copy.box.onChange = function(text, user)
+        if not copy.line then
+            return
+        elseif text == "" and not user then
+            CloseCopy()
+        elseif text ~= copy.line then
+            copy.box.edit:SetText(copy.line)
+            copy.box.edit:HighlightText()
+        end
+    end
+    -- copied: the box lets go, so the next Enter opens your own chat box
+    local copying = false
+    local function Ctrl()
+        return IsControlKeyDown() or (IsMetaKeyDown and IsMetaKeyDown())
+    end
+    copy.box.edit:SetScript("OnKeyDown", function(_, key)
+        copying = copying or (key == "C" and Ctrl())
+    end)
+    copy.box.edit:SetScript("OnKeyUp", function(self, key)
+        if copying or (key == "C" and Ctrl()) then
+            copying = false
+            self:ClearFocus()
+        end
+    end)
+    panel:SetScript("OnHide", function()
+        CloseCopy()
+    end)
     return panel
 end
 

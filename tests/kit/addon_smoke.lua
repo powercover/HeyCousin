@@ -1924,14 +1924,24 @@ recruitRow = RecruitRows()[1]
 check(recruitRow.invite:IsEnabled() and recruitRow.invite.barred == nil, "a rank that can invite")
 Mock.opened = {}
 recruitRow.invite:Click()
-check(Mock.opened[1] == "/ginvite Kit Ashbrook" and Mock.Said("Press Enter to invite Kit Ashbrook."),
-    "one click: /ginvite by their whole name in your chat box, for Enter: " .. tostring(Mock.opened[1]))
-check(#Mock.opened == 1, "and no whisper opens over it")
-check(not Mock.guildInviteBlocked, "the addon never calls the invite itself: the game blocks that")
-check(#Mock.chat >= 0 and house.relatives.Kit.invited ~= nil, "it's remembered")
+local copyBox = All(_G.HeyCousinWindow, function(f) return f.edit ~= nil and f.edit:GetText() == "/ginvite Kit Ashbrook" and f:IsVisible() end)[1]
+check(copyBox and copyBox.edit:HasFocus() and copyBox.edit.highlighted, "one click: /ginvite by their whole name, chosen, ready to copy")
+check(#Mock.opened == 0 and not Mock.guildInviteBlocked, "the addon touches neither the invite nor the chat box: the game blocks those")
+copyBox.edit:SetText("oops")
+check(copyBox.edit:GetText() == "/ginvite Kit Ashbrook", "the line can't be changed by a slip")
+Mock.controlDown = true
+Mock.Run(copyBox.edit, "OnKeyDown", "C")
+Mock.controlDown = false
+Mock.Run(copyBox.edit, "OnKeyUp", "CTRL")
+check(not copyBox.edit:HasFocus(), "Ctrl+C: the box lets go, so Enter opens your own chat box")
+recruitRow.invite:Click()
+check(recruitRow.invite:IsEnabled() and copyBox.edit:HasFocus(), "the button stays: you may have closed the box")
+copyBox.edit:SetText("")
+check(not copyBox:IsVisible(), "the box's X closes it")
+recruitRow.invite:Click()
+_G.HeyCousinWindow:Hide()
+_G.HeyCousinWindow:Show()
 Settle()
-recruitRow = RecruitRows()[1]
-check(recruitRow.item.first == "Kit" and not recruitRow.invite:IsEnabled() and recruitRow.invite:GetText() == "Invited", "the button says so, and rests")
 -- your own welcome is kept
 local welcomeBox = All(_G.HeyCousinWindow, function(f) return f.edit ~= nil and f.onChange ~= nil and f:IsVisible() end)[1]
 welcomeBox.edit:SetFocus()

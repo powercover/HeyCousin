@@ -97,6 +97,18 @@ function Screens.recruit(skin)
     return { frames = { HeyCousinWindow } }
 end
 
+-- Recruit's Invite: the line to copy into your own chat box
+function Screens.recruitcopy(skin)
+    local HC = Boot(skin)
+    HC.Window.Show("family")
+    HeyCousinWindow.find:Click()
+    Mock.Advance(2)
+    HC.Window.Recruit(true)
+    HC.Recruit.ShowCopy("/ginvite Perrin Ashbrook")
+    HeyCousinWindow.badge:Hide()
+    return { frames = { HeyCousinWindow } }
+end
+
 -- Groups: made-up cousins looking for a group, and your own post
 function Screens.groups(skin)
     local HC = Boot(skin)

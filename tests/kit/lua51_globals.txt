@@ -72,12 +72,14 @@ HideUIPanel
 InCombatLockdown
 InspectFrame
 InviteUnit
+IsControlKeyDown
 IsGuildLeader
 IsInGroup
 IsInGuild
 IsInInstance
 IsInRaid
 IsIndoors
+IsMetaKeyDown
 IsResting
 IsShiftKeyDown
 JoinTemporaryChannel

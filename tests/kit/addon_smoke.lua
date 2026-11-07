@@ -1456,6 +1456,19 @@ check(fernCrest and fernCrest:IsShown() and fernCrest.parent == fernPlate, "a co
 check(fernCrest.anchors.CENTER.to == fernPlate and fernCrest.anchors.CENTER.x == 0 and fernCrest.anchors.CENTER.y == 34, "in its place")
 check(not fernCrest.mouse, "it takes no clicks")
 check(fernCrest:GetFrameLevel() > fernPlate:GetFrameLevel() + 10, "above what an addon draws")
+check(not (fernCrest.crown and fernCrest.crown:IsShown()), "no crown while nobody can be compared")
+house.relatives.Fern.guid = "Player-1-00000A"
+house.relatives.Later = { guid = "Player-1-00000F", class = "MAGE", met = 1, lastSeen = 1 }
+HC.Kin.Changed()
+Settle()
+check(fernCrest.crown and fernCrest.crown:IsShown(), "the eldest cousin's plate: a crown over the crest")
+house.relatives.Later.guid = "Player-1-000001"
+HC.Kin.Changed()
+Settle()
+check(not fernCrest.crown:IsShown(), "someone older comes: the crown goes")
+house.relatives.Later, house.relatives.Fern.guid = nil, nil
+HC.Kin.Changed()
+Settle()
 -- not on anyone else
 PlateUnit("nameplate2", "Sly", "Stranger", "Alliance", "Player-1-SLY")
 Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate2")

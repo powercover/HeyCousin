@@ -24,6 +24,8 @@ Plates.LEAST_SCALE, Plates.MOST_SCALE, Plates.SCALE_STEP = 0.5, 3, 0.1
 -- above what an addon draws on the plate
 local LEVEL_UP = 50
 local MOST_PLATES = 40
+-- the crown over the crest of who looks like the eldest
+local CROWN_SIZE = 16
 
 local frame = CreateFrame("Frame")
 local active = {}  -- [unit] = its crest
@@ -92,15 +94,28 @@ local function Cousin(unit)
     end
 end
 
+local function SetCrown(crest, shown)
+    if shown and not crest.crown then
+        crest.crown = Theme.Texture(crest, Theme.Icon("Crown"), "OVERLAY", 0, Theme.C.gold)
+        crest.crown:SetSize(CROWN_SIZE, CROWN_SIZE)
+        crest.crown:SetPoint("BOTTOM", crest, "TOP", 0, 0)
+    end
+    if crest.crown then
+        crest.crown:SetShown(shown)
+    end
+end
+
 local function Paint(crest, unit, first, surname)
     local sheep = Kin.IsBlackSheep({ faction = Utils.Call(UnitFactionGroup, unit) })
     crest:SetCrest(Kin.CrestOf(first), surname, sheep)
+    SetCrown(crest, Kin.Eldest() == first)
 end
 
 -- A plate that isn't a cousin's, while the page is open: your crest, red on an enemy's as a black sheep's.
 local function PaintPreview(crest, unit)
     local _, mine = Names.Me()
     crest:SetCrest(Kin.Crest(), mine, Utils.Call(UnitIsFriend, "player", unit) ~= true)
+    SetCrown(crest, false)
 end
 
 local function Added(unit)

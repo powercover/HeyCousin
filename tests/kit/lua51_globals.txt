@@ -73,6 +73,7 @@ InCombatLockdown
 InspectFrame
 InviteUnit
 IsControlKeyDown
+IsEncounterInProgress
 IsGuildLeader
 IsInGroup
 IsInGuild

@@ -114,9 +114,22 @@ function Family.Channel()
     return Utils.IsUsableNumber(id) and id > 0 and id or nil, name
 end
 
+-- In combat, a boss fight or a key, the game blocks an addon's channel calls (joining, leaving, who's
+-- in it): they wait until it's over.
+local function Blocked()
+    return Utils.Call(InCombatLockdown) == true or Utils.Call(IsEncounterInProgress) == true
+        or Utils.Call(C_ChatInfo and C_ChatInfo.InChatMessagingLockdown) == true
+end
+
+local keepLater = false  -- Keep came while blocked: the next tick does it
+
 -- In it while anything of the family's wants it; a full channel list just means no channel.
 function Family.Keep()
     if not ready then
+        return
+    end
+    keepLater = Blocked()
+    if keepLater then
         return
     end
     local id, name = Family.Channel()
@@ -137,7 +150,7 @@ end
 -- Asks the game who's in the channel; its answer comes as chat lines, kept out of your chat.
 function Family.AskRoster(shown)
     local id, name = Family.Channel()
-    if not id or rosterAsking then
+    if not id or rosterAsking or Blocked() then
         return
     end
     rosterAskedAt = GetTime()
@@ -361,6 +374,9 @@ local function Line(kind)
 end
 
 local function Tick()
+    if keepLater then
+        Family.Keep()
+    end
     if GetTime() - rosterAskedAt >= ROSTER_GAP then
         Family.AskRoster()
     end

@@ -1343,6 +1343,18 @@ check(rosterFilter(nil, "CHAT_MSG_CHANNEL_LIST", "*Rowan Ashbrook", "", "", "7. 
 check(not rosterFilter(nil, "CHAT_MSG_CHANNEL_LIST", "Bo Other", "", "", "8. SomeChannel", "", "", 0, 8, "SomeChannel"), "another channel's stays")
 Mock.Advance(3)
 check(not rosterFilter(nil, "CHAT_MSG_CHANNEL_LIST", "*Rowan Ashbrook", "", "", "7. HCashbrookA", "", "", 0, 7, "HCashbrookA"), "and your own /chatlist shows")
+-- in combat, a boss fight or a key the game blocks asking who's there: it waits, then asks
+for _, lock in ipairs({ "combat", "encounter", "chatLockdown" }) do
+    Mock[lock] = true
+    Mock.listed = nil
+    HC.Family.AskRoster()
+    Mock.Advance(70)
+    check(Mock.listed == nil, "no channel list asked during " .. lock)
+    Mock[lock] = false
+    Mock.Advance(6)
+    check(Mock.listed ~= nil, "asked once " .. lock .. " is over")
+    Mock.Advance(3)
+end
 -- /fam, a post and the map all reach them, and they're heard by whisper
 SlashCmdList.HEYCOUSINFAM("hello")
 check(SentTo("Kit Ashbrook", "^5:C:hello") and SentTo("Lia Ashbrook", "^5:C:hello"), "/fam goes to each")

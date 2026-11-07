@@ -392,6 +392,8 @@ local function Globals()
     -- who's in a channel comes as a chat line; a listener is there unless a test says who is
     Mock.channelMembers = { "*Rowan Ashbrook", "Anyone Ashbrook" }
     function ListChannelByName(name)
+        assert(not Mock.combat and not Mock.encounter and not Mock.chatLockdown,
+            "the game blocks an addon's ListChannelByName in combat, a boss fight or a key")
         Mock.listed = name
         if not Mock.rosterSilent then
             Mock.Fire("CHAT_MSG_CHANNEL_LIST", table.concat(Mock.channelMembers, ", "), "", "", "7. " .. name, "", "", 0, 7, name)
@@ -415,6 +417,8 @@ local function Globals()
     }
     C_ChatInfo = {
         RegisterAddonMessagePrefix = function(prefix) Mock.prefix = prefix end,
+        -- (Mock.chatLockdown: a key or a boss fight, when the game blocks an addon's chat)
+        InChatMessagingLockdown = function() return Mock.chatLockdown == true end,
         -- (Mock.throttle: how many messages the game holds back, as when a prefix sends too many)
         SendAddonMessage = function(prefix, text, channel, target)
             assert(type(text) == "string" and #text <= 255, "an addon message is 255 bytes at most")
@@ -468,6 +472,7 @@ local function Globals()
     function time() return math.floor(Mock.now) end
     function GetLocale() return "enUS" end
     function InCombatLockdown() return Mock.combat end
+    function IsEncounterInProgress() return Mock.encounter == true end
     function IsControlKeyDown() return Mock.controlDown == true end
     function IsMetaKeyDown() return false end
     -- (Mock.instance: the kind of instance you're in, "party" or "raid"; nil out in the world)

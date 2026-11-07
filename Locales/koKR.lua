@@ -194,7 +194,7 @@ HC.Locale.Register("koKR", {
     ["You have no guild."] = "길드가 없어요.",
     ["Your rank can't invite."] = "내 등급은 초대할 수 없어요.",
     ["Not seen online in the last few minutes. Click Find my family."] = "최근 몇 분간 접속이 확인되지 않았어요. 내 가족 찾기를 누르세요.",
-    ["Invites them to your guild, then opens a whisper with your welcome."] = "길드에 초대한 뒤 환영 인사가 담긴 귓속말을 열어요.",
+    ["Puts /ginvite in your chat box. Press Enter to invite them."] = "대화창에 /ginvite를 넣어 줘요. Enter를 눌러 초대하세요.",
     ["Opens a whisper with your welcome, for you to send."] = "환영 인사가 담긴 귓속말을 열어요. 직접 보내세요.",
     ["Nobody yet: click Find my family to look for cousins with no guild."] = "아직 아무도 없어요. 내 가족 찾기를 눌러 길드 없는 사촌을 찾아보세요.",
     ["Press Enter to invite %s."] = "Enter를 눌러 %s 님을 초대하세요.",

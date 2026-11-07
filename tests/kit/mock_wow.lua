@@ -85,8 +85,6 @@ function Region:GetParent() return self.parent end
 function Region:Show() self.shown = true end
 function Region:Hide() self.shown = false end
 function Region:GetCenter() return 400, 300 end
-function Region:GetLeft() return 380 end
-function Region:GetBottom() return 290 end
 function Region:GetEffectiveScale() return 1 end
 function Region:SetScale(s) self.scale = s end
 function Region:CreateAnimationGroup() return New(Group, self) end

@@ -1923,28 +1923,15 @@ HC.Window.Refresh()
 recruitRow = RecruitRows()[1]
 check(recruitRow.invite:IsEnabled() and recruitRow.invite.barred == nil, "a rank that can invite")
 Mock.opened = {}
-Mock.Run(recruitRow.invite, "OnEnter")
-local inviteGate = _G.HeyCousinRecruitInvite
-check(inviteGate and inviteGate:IsShown() and inviteGate:GetAttribute("type1") == "macro"
-    and inviteGate:GetAttribute("macrotext1") == "/ginvite Kit Ashbrook", "the mouse on Invite: a secure button, with /ginvite by their whole name")
-check(inviteGate.parent == UIParent, "not in the window, which must still close in a fight")
-Mock.Run(inviteGate, "OnEnter")
-check(recruitRow.invite.hovered == true, "the Invite under it looks hovered")
-Mock.Run(inviteGate, "PostClick", "LeftButton", true)
-check(#Mock.opened == 0, "nothing on the way down")
-Mock.Run(inviteGate, "PostClick", "RightButton", false)
-check(#Mock.opened == 0 and house.relatives.Kit.invited == nil, "a right-click invites nobody")
-Mock.Run(inviteGate, "PostClick", "LeftButton", false)
+recruitRow.invite:Click()
+check(Mock.opened[1] == "/ginvite Kit Ashbrook" and Mock.Said("Press Enter to invite Kit Ashbrook."),
+    "one click: /ginvite by their whole name in your chat box, for Enter: " .. tostring(Mock.opened[1]))
+check(#Mock.opened == 1, "and no whisper opens over it")
 check(not Mock.guildInviteBlocked, "the addon never calls the invite itself: the game blocks that")
-check(Mock.opened[1] and Mock.opened[1]:find("^/w Kit Ashbrook "), "and opens the welcome for you to send")
 check(#Mock.chat >= 0 and house.relatives.Kit.invited ~= nil, "it's remembered")
 Settle()
 recruitRow = RecruitRows()[1]
 check(recruitRow.item.first == "Kit" and not recruitRow.invite:IsEnabled() and recruitRow.invite:GetText() == "Invited", "the button says so, and rests")
-Mock.Tick(1, 0.03)
-check(not inviteGate:IsShown(), "the secure button goes with it")
-Mock.Run(recruitRow.invite, "OnEnter")
-check(not inviteGate:IsShown(), "and doesn't come over an Invite that rests")
 -- your own welcome is kept
 local welcomeBox = All(_G.HeyCousinWindow, function(f) return f.edit ~= nil and f.onChange ~= nil and f:IsVisible() end)[1]
 welcomeBox.edit:SetFocus()
@@ -1956,28 +1943,6 @@ HC.Window.Refresh()
 Mock.opened = {}
 RecruitRows()[2].whisper:Click()
 check(Mock.opened[1] == "/w Perrin Ashbrook Come home, cousin!", "and goes out: " .. tostring(Mock.opened[1]))
--- the window closes under it: no click left on an empty spot
-Mock.Run(RecruitRows()[2].invite, "OnEnter")
-check(inviteGate:IsShown() and inviteGate:GetAttribute("macrotext1") == "/ginvite Perrin Ashbrook", "over the next cousin's Invite")
-local perrinInvite = RecruitRows()[2].invite
-_G.HeyCousinWindow:Hide()
-Mock.Tick(1, 0.03)
-check(not inviteGate:IsShown(), "the window closed: it goes too")
-_G.HeyCousinWindow:Show()
-Settle()
--- a fight comes: it goes just before, and doesn't come back; Invite puts /ginvite in your chat box, for Enter
-Mock.Run(perrinInvite, "OnEnter")
-check(inviteGate:IsShown(), "before the fight")
-Mock.Fire("PLAYER_REGEN_DISABLED")
-check(not inviteGate:IsShown(), "it goes as the fight starts")
-Mock.combat = true
-Mock.Run(perrinInvite, "OnEnter")
-check(not inviteGate:IsShown(), "in a fight it stays away")
-Mock.opened = {}
-perrinInvite:Click()
-check(Mock.opened[1] == "/ginvite Perrin Ashbrook" and Mock.Said("Press Enter to invite Perrin Ashbrook."), "a click in a fight: /ginvite for you to send: " .. tostring(Mock.opened[1]))
-Mock.combat = false
-Mock.Fire("PLAYER_REGEN_ENABLED")
 Mock.guild, Mock.mayInvite = nil, nil
 -- offline: invite rests
 Mock.Advance(5 * 60)

@@ -194,7 +194,7 @@ HC.Locale.Register("frFR", {
     ["You have no guild."] = "Tu n'as pas de guilde.",
     ["Your rank can't invite."] = "Ton rang ne peut pas inviter.",
     ["Not seen online in the last few minutes. Click Find my family."] = "Pas vu en ligne ces dernières minutes. Clique sur Trouver ma famille.",
-    ["Invites them to your guild, then opens a whisper with your welcome."] = "L'invite dans ta guilde, puis ouvre un chuchotement avec ton message d'accueil.",
+    ["Puts /ginvite in your chat box. Press Enter to invite them."] = "Met /ginvite dans ta zone de discussion. Appuie sur Entrée pour l'inviter.",
     ["Opens a whisper with your welcome, for you to send."] = "Ouvre un chuchotement avec ton message d'accueil, à envoyer toi-même.",
     ["Nobody yet: click Find my family to look for cousins with no guild."] = "Personne pour l'instant : clique sur Trouver ma famille pour chercher des cousins sans guilde.",
     ["Press Enter to invite %s."] = "Appuie sur Entrée pour inviter %s.",

@@ -192,7 +192,7 @@ HC.Locale.Register("zhTW", {
     ["You have no guild."] = "你沒有公會。",
     ["Your rank can't invite."] = "你的階級不能邀請。",
     ["Not seen online in the last few minutes. Click Find my family."] = "最近幾分鐘未見線上。請點擊「尋找我的家人」。",
-    ["Invites them to your guild, then opens a whisper with your welcome."] = "邀請其加入你的公會，然後開啟帶有歡迎語的密語。",
+    ["Puts /ginvite in your chat box. Press Enter to invite them."] = "把 /ginvite 放進聊天框。按 Enter 鍵邀請。",
     ["Opens a whisper with your welcome, for you to send."] = "開啟帶有歡迎語的密語，由你傳送。",
     ["Nobody yet: click Find my family to look for cousins with no guild."] = "還沒有人：點擊「尋找我的家人」尋找沒有公會的表親。",
     ["Press Enter to invite %s."] = "按 Enter 鍵邀請 %s。",

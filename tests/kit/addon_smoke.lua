@@ -1220,7 +1220,7 @@ HC = Mock.Boot("forever", { setupDone = true })
 Mock.Fire("PLAYER_ENTERING_WORLD")
 Mock.Advance(25)
 local function MiniCrests()
-    return All(Minimap, function(f) return f.size == 16 and f.SetCrest ~= nil and f:IsShown() end)
+    return All(Minimap, function(f) return f.size == 20 and f.SetCrest ~= nil and f:IsShown() end)
 end
 check(#MiniCrests() == 0, "nobody shares: nothing on the minimap")
 -- right where you are (the mock's player stands at a known place on map 1429)
@@ -1236,6 +1236,7 @@ Say("Kit", px + 100 / widthYards, py - 50 / heightYards)
 Mock.Advance(0.5)
 local crests = MiniCrests()
 check(#crests == 1 and crests[1].member and crests[1].member.first == "Kit", "a cousin who shares: a crest on the minimap")
+check(crests[1].symbol:IsShown() or crests[1].letter:IsShown(), "with its symbol, as on the world map")
 local spot = crests[1].anchors.CENTER
 check(spot.to == Minimap and spot.x > 0 and spot.y > 0, "to the north-east: right and up, got " .. spot.x .. ", " .. spot.y)
 -- the zoom: at the widest, 466.67 yards across on a minimap 198 wide
@@ -1308,14 +1309,14 @@ Say("Kit", px, py)
 Mock.Advance(0.5)
 SlashCmdList.HEYCOUSIN("theme")
 Mock.Advance(0.5)
-check(#All(Minimap, function(f) return f.size == 16 and f.SetCrest ~= nil and f.member ~= nil and f:IsShown() end) >= 1, "a new look: still there")
+check(#All(Minimap, function(f) return f.size == 20 and f.SetCrest ~= nil and f.member ~= nil and f:IsShown() end) >= 1, "a new look: still there")
 SlashCmdList.HEYCOUSIN("theme")
 SlashCmdList.HEYCOUSIN("theme")
 NoErrors(HC, "cousins on the minimap")
 -- test mode: the made-up family
 HC = Mock.Boot("retail", { setupDone = true })
 Mock.Advance(1)
-check(#All(Minimap, function(f) return f.size == 16 and f.member ~= nil and f:IsShown() end) > 0, "test mode: made-up cousins on the minimap")
+check(#All(Minimap, function(f) return f.size == 20 and f.member ~= nil and f:IsShown() end) > 0, "test mode: made-up cousins on the minimap")
 NoErrors(HC, "the minimap in test mode")
 end
 

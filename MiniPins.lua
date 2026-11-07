@@ -14,7 +14,8 @@ local Kin = HC.Kin
 local L = HC.L
 local C = Theme.C
 
-local SIZE = 16
+-- (a crest under 18 has no room for its symbol)
+local SIZE = 20
 local LOOK_GAP = 0.2
 local MOST = 20
 local EDGE_ALPHA = 0.6

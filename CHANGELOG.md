@@ -1,4 +1,14 @@
-# Hey Cousin! 1.1.0
+# Hey Cousin! 1.1.1
+
+- **Guild invites, fixed.** The game lets only you send a guild invite: in 1.1.0, Invite showed a
+  "blocked" window and sent nothing. Now it shows the line to copy into your chat box: Ctrl+C, Enter,
+  Ctrl+V, Enter.
+- **`/cousin delete Name`.** Takes a cousin off your list, with every meeting. Meet them again and they're
+  new, first pop-up and all.
+- **Crests on the minimap show their symbol.** They were too small to get one.
+- **A crown on the nameplate.** Over the crest of the cousin who looks like the eldest.
+
+## 1.1.0
 
 - **Settings.** Every choice in one place, by what it's for: the gear, the minimap's right-click or
   `/cousin settings`, and a page in the game's Options > AddOns. A click on the version number shows

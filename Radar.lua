@@ -189,6 +189,7 @@ frame:SetScript("OnEvent", Utils.Protect("radar", function(_, event, ...)
         -- before the lockdown starts: the pop-up's secure button must go now
         fighting = true
         HC.Alert.HideForCombat()
+        HC.Recruit.HideForCombat()
     elseif event == "PLAYER_REGEN_ENABLED" then
         fighting = false
         HC.Alert.Next()

@@ -85,6 +85,8 @@ function Region:GetParent() return self.parent end
 function Region:Show() self.shown = true end
 function Region:Hide() self.shown = false end
 function Region:GetCenter() return 400, 300 end
+function Region:GetLeft() return 380 end
+function Region:GetBottom() return 290 end
 function Region:GetEffectiveScale() return 1 end
 function Region:SetScale(s) self.scale = s end
 function Region:CreateAnimationGroup() return New(Group, self) end
@@ -542,10 +544,8 @@ local function Globals()
     FACTION_HORDE, FACTION_ALLIANCE = "Horde", "Alliance"
     ERR_CHAT_PLAYER_NOT_FOUND_S = "No player named '%s' is currently playing."
     -- (Mock.noInviteCall: this client has no invite call; Mock.mayInvite false: your rank can't)
-    C_GuildInfo = { GuildRoster = function() end, Invite = function(name)
-        assert(not Mock.inviteRefused, "the game refused")
-        Mock.guildInvited = name
-    end }
+    -- (the game shows its "blocked" window for an addon's invite call, and no error comes back)
+    C_GuildInfo = { GuildRoster = function() end, Invite = function() Mock.guildInviteBlocked = true end }
     function CanGuildInvite() return Mock.mayInvite ~= false end
 
     -- units: Mock.units[token] = { name, surname, guid, class, race, level, sex, faction, guild, npc }

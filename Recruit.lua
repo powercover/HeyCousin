@@ -1,9 +1,12 @@
 local _, HC = ...
 
 -- Recruit: the cousins known to have no guild, each with one Invite button and a ready welcome. It
--- gathers a family: Find my family finds them, this brings them in. Invite asks the game to invite
--- them, then opens your whisper box with the welcome, for you to send. A whisper is never sent
--- by itself. If the game refuses the invite call, the chat box gets /ginvite instead, for Enter.
+-- gathers a family: Find my family finds them, this brings them in. Invite runs the game's /ginvite,
+-- then opens your whisper box with the welcome, for you to send. A whisper is never sent by itself.
+-- The game keeps the invite call to itself (a blocked call raises no error: the game just shows its
+-- "blocked" window), and only a secure button may run /ginvite. So one such button lies over the Invite
+-- your mouse is on. It's on UIParent, not in the window: a secure button in the window would keep the
+-- window from closing in a fight. In a fight it can't move: the chat box gets /ginvite, for Enter.
 HC.Recruit = {}
 
 local Recruit = HC.Recruit
@@ -95,23 +98,108 @@ function Recruit.Whisper(first)
     OpenChat("/w " .. FullName(first) .. " " .. Welcome())
 end
 
--- The guild invite, then the welcome. Without a call the game takes: /ginvite, for Enter.
+-- A click on Invite that the secure button couldn't take (a fight): /ginvite, for Enter.
 function Recruit.Invite(first, relative)
     if HC.TestMode.active then
         Utils.Print(L["Test mode: made-up cousins can't hear you."])
         return
     end
     local full = FullName(first)
-    local invite = (C_GuildInfo and C_GuildInfo.Invite) or GuildInvite
-    local ok = type(invite) == "function" and pcall(invite, full)
     relative.invited = time()
     Kin.Changed()
-    if ok then
-        OpenChat("/w " .. full .. " " .. Welcome())
-    else
-        OpenChat("/ginvite " .. full)
-        Utils.Print(string.format(L["Press Enter to invite %s."], full))
+    OpenChat("/ginvite " .. full)
+    Utils.Print(string.format(L["Press Enter to invite %s."], full))
+end
+
+-- --- the secure button over Invite --------------------------------------------------------------
+
+local gate
+
+local function InviteTip(owner)
+    GameTooltip:SetOwner(owner, "ANCHOR_TOP")
+    GameTooltip:SetText(L["Invite"], C.tip[1], C.tip[2], C.tip[3])
+    GameTooltip:AddLine(L["Invites them to your guild, then opens a whisper with your welcome."], C.tip2[1], C.tip2[2], C.tip2[3], true)
+    GameTooltip:Show()
+end
+
+-- The Invite under it looks hovered and pressed as usual.
+local function Paint(hovered, pressed)
+    local owner = gate.owner
+    if owner then
+        owner.hovered, owner.pressed = hovered, pressed
+        Theme.PaintButton(owner)
     end
+end
+
+local function Close()
+    if gate and gate:IsShown() and not Utils.Call(InCombatLockdown) then
+        Paint(false, false)
+        gate:Hide()
+    end
+end
+-- (a fight is about to start: only now can it still go)
+Recruit.HideForCombat = Close
+
+local function BuildGate()
+    gate = CreateFrame("Button", "HeyCousinRecruitInvite", UIParent, "SecureActionButtonTemplate")
+    gate:SetFrameStrata("FULLSCREEN_DIALOG")
+    gate:RegisterForClicks("AnyUp", "AnyDown")
+    gate:SetAttribute("useOnKeyDown", false)
+    gate:SetAttribute("type1", "macro")
+    gate:Hide()
+    gate:SetScript("OnEnter", function(self)
+        Paint(true, false)
+        if self.owner then
+            InviteTip(self.owner)
+        end
+    end)
+    gate:SetScript("OnLeave", function()
+        GameTooltip:Hide()
+        Close()
+    end)
+    gate:SetScript("OnMouseDown", function()
+        Paint(true, true)
+    end)
+    gate:SetScript("OnMouseUp", function()
+        Paint(true, false)
+    end)
+    -- /ginvite has run: the row rests, and the welcome is yours to send
+    gate:SetScript("PostClick", Utils.Protect("recruit invite", function(self, button, down)
+        local item = self.item
+        if down or button ~= "LeftButton" or not item then
+            return
+        end
+        item.relative.invited = time()
+        Kin.Changed()
+        OpenChat("/w " .. FullName(item.first) .. " " .. Welcome())
+    end))
+    -- the window closed, the list scrolled, or the row changed under it: never a click on something else
+    gate:SetScript("OnUpdate", Utils.Protect("recruit invite", function(self)
+        local owner = self.owner
+        local row = owner and owner:GetParent()
+        if not owner or not owner:IsVisible() or owner.barred or not row.item or row.item.first ~= self.item.first then
+            GameTooltip:Hide()
+            Close()
+        end
+    end))
+end
+
+-- The mouse came on an Invite: the secure button lies over it.
+local function Offer(invite)
+    local item = invite:GetParent().item
+    if not item or invite.barred or HC.TestMode.active or Utils.Call(InCombatLockdown) then
+        return
+    end
+    if not gate then
+        BuildGate()
+    end
+    gate.owner, gate.item = invite, item
+    gate:SetAttribute("macrotext1", "/ginvite " .. FullName(item.first))
+    local scale = invite:GetEffectiveScale() / UIParent:GetEffectiveScale()
+    gate:ClearAllPoints()
+    gate:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", invite:GetLeft() * scale, invite:GetBottom() * scale)
+    gate:SetSize(invite:GetWidth() * scale, invite:GetHeight() * scale)
+    gate:Show()
 end
 
 -- Why Invite is off for a row, or nothing when it's on.
@@ -163,6 +251,7 @@ local function NewRow(parent)
             Recruit.Invite(item.first, item.relative)
         end
     end)
+    row.invite:HookScript("OnEnter", Utils.Protect("recruit invite", Offer))
     row.whisper = Theme.IconButton(row, "Whisper", 26, L["Whisper"], L["Opens a whisper with your welcome, for you to send."])
     row.whisper:SetPoint("RIGHT", row.invite, "LEFT", -4, 0)
     Theme.OnClick(row.whisper, "recruit whisper", function(self)

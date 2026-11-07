@@ -481,6 +481,8 @@ HC.Locale.Register("zhCN", {
     ["take a deleted character off your list"] = "把已删除的角色从列表中移除",
     ["%s forgotten."] = "已忘记 %s。",
     ["%s isn't one of your other characters."] = "%s 不是你的其他角色。",
+    ["take a cousin off your list"] = "把表亲从列表中移除",
+    ["%s isn't in your family."] = "%s 不在你的家族中。",
     ["a pop-up to try"] = "试看一次弹出提示",
     ["made-up cousins on your map, to try"] = "在地图上显示虚构的表亲，试试看",
     ["Made-up cousins are on your map for two minutes. Open it to see them."] = "虚构的表亲会在你的地图上显示两分钟。打开地图查看。",

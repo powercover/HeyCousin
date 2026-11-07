@@ -483,6 +483,8 @@ HC.Locale.Register("koKR", {
     ["take a deleted character off your list"] = "삭제한 캐릭터를 목록에서 빼기",
     ["%s forgotten."] = "%s: 목록에서 뺐어요.",
     ["%s isn't one of your other characters."] = "%s: 내 다른 캐릭터가 아니에요.",
+    ["take a cousin off your list"] = "사촌을 목록에서 빼기",
+    ["%s isn't in your family."] = "%s: 내 가족에 없어요.",
     ["a pop-up to try"] = "팝업 미리 보기",
     ["made-up cousins on your map, to try"] = "지도에 가상의 사촌 표시 (시험용)",
     ["Made-up cousins are on your map for two minutes. Open it to see them."] = "2분 동안 지도에 가상의 사촌이 표시돼요. 지도를 열어 확인하세요.",

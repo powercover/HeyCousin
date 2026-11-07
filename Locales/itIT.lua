@@ -483,6 +483,8 @@ HC.Locale.Register("itIT", {
     ["take a deleted character off your list"] = "togli dalla lista un personaggio cancellato",
     ["%s forgotten."] = "%s dimenticato.",
     ["%s isn't one of your other characters."] = "%s non è uno dei tuoi altri personaggi.",
+    ["take a cousin off your list"] = "togli un cugino dalla lista",
+    ["%s isn't in your family."] = "%s non è nella tua famiglia.",
     ["a pop-up to try"] = "un pop-up di prova",
     ["made-up cousins on your map, to try"] = "cugini inventati sulla tua mappa, da provare",
     ["Made-up cousins are on your map for two minutes. Open it to see them."] = "Ci sono cugini inventati sulla tua mappa per due minuti. Aprila per vederli.",

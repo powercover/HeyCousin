@@ -103,6 +103,7 @@ function HC.Commands()
         "/cousin setup - " .. L["your crest and the main choices"],
         "/cousin test - " .. L["a pop-up to try"],
         "/cousin test map - " .. L["made-up cousins on your map, to try"],
+        "/cousin delete Name - " .. L["take a cousin off your list"],
         "/cousin forget Name - " .. L["take a deleted character off your list"],
         "/cousin theme - " .. L["the next look"],
         "/cousin status - " .. L["what the game tells the addon about you"],
@@ -123,6 +124,9 @@ local function HandleSlash(message)
     local rest = Utils.Trim(message):match("^%a+%s+(.+)$")
     if command:find("^find%s") and rest then
         HC.Lookup.Show(rest)
+    elseif command:find("^delete%s") and rest then
+        local name = HC.Kin.DeleteCousin(rest)
+        Utils.Print(name and string.format(L["%s forgotten."], name) or string.format(L["%s isn't in your family."], rest))
     elseif command:find("^forget%s") and rest then
         local name = HC.Kin.ForgetCharacter(rest)
         Utils.Print(name and string.format(L["%s forgotten."], name)

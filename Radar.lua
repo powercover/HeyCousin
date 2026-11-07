@@ -44,6 +44,14 @@ local function How(unit)
     end
 end
 
+-- The next sighting of this player counts at once (a cousin you just deleted, still standing there).
+function Radar.LookAgain(guid)
+    if guid and looked[guid] then
+        looked[guid] = nil
+        lookedCount = lookedCount - 1
+    end
+end
+
 -- One unit: a player with your surname becomes (or stays) a relative. `near`: seen around you,
 -- so a pop-up may show.
 function Radar.Look(unit, near)

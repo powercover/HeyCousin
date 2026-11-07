@@ -511,6 +511,22 @@ function Kin.ForgetCharacter(name)
     end
 end
 
+-- Takes a cousin off your family, with every meeting; their name as saved, or nothing if there's none
+-- like it. Seen again, they're a new cousin, first pop-up and all.
+function Kin.DeleteCousin(name)
+    local house = Kin.House()
+    local wanted = Names.Split(name)
+    for first, relative in pairs(house and house.relatives or {}) do
+        if Names.Same(first, wanted) then
+            house.relatives[first] = nil
+            near[first], online[first] = nil, nil
+            HC.Radar.LookAgain(relative.guid)
+            Kin.Changed()
+            return first
+        end
+    end
+end
+
 -- The family stats: meetings, the relatives met most, the surnames met most (top `limit`).
 function Kin.Stats(limit)
     limit = limit or 5

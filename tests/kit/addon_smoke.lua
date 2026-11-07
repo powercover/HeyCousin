@@ -2001,6 +2001,25 @@ SlashCmdList.HEYCOUSIN("forget Rowan")
 check(house.mine.Rowan ~= nil, "the character you're on can't be forgotten")
 SlashCmdList.HEYCOUSIN("forget SLATE")
 check(house.mine.Slate == nil and #HC.Kin.Alts() == 0 and Mock.Said("Slate forgotten."), "/cousin forget takes a deleted one off the list")
+SlashCmdList.HEYCOUSIN("delete Nobody")
+check(Mock.Said("Nobody isn't in your family."), "deleting a name that isn't family says so")
+SlashCmdList.HEYCOUSIN("delete Rowan")
+check(house.mine.Rowan ~= nil and Mock.Said("Rowan isn't in your family."), "you aren't your own cousin to delete")
+Mock.units.nameplate7 = { name = "Dell", surname = "Ashbrook", guid = "Player-1-DELL", class = "MAGE", race = "Human",
+    level = 30, sex = 3, faction = "Alliance" }
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate7")
+check(house.relatives.Dell and house.relatives.Dell.met == 1 and HC.Kin.IsNear("Dell"), "a cousin met")
+house.relatives.Dell.met = 5
+SlashCmdList.HEYCOUSIN("delete dell ashbrook")
+check(house.relatives.Dell == nil and not HC.Kin.IsNear("Dell") and Mock.Said("Dell forgotten."),
+    "/cousin delete takes them off, by their whole name in any letters")
+Settle()
+Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate7")
+check(house.relatives.Dell and house.relatives.Dell.met == 1 and house.relatives.Dell.alerted ~= nil,
+    "still standing there, they're a new cousin at once, with the first pop-up")
+house.relatives.Dell, Mock.units.nameplate7 = nil, nil
+HC.Alert.Dismiss()
+Settle()
 Mock.Fire("PLAYER_LOGOUT")
 check(house.mine.Rowan.lastSeen ~= nil, "logging out notes it again, where you were")
 NoErrors(HC, "your other characters")
@@ -2355,7 +2374,7 @@ for _, page in ipairs({ "alerts", "family", "map", "plates", "game", "look", "ab
 end
 _G.HeyCousinOptions:Hide()
 for _, command in ipairs({ "tree", "recruit", "groups", "find", "find Stormvale", "settings", "setup", "test", "test map", "theme",
-    "theme", "theme", "status", "help", "debug", "debug", "forget Nobody", "nonsense" }) do
+    "theme", "theme", "status", "help", "debug", "debug", "forget Nobody", "delete Nobody", "nonsense" }) do
     SlashCmdList.HEYCOUSIN(command)
     Settle()
 end

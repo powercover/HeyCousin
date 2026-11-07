@@ -477,6 +477,8 @@ HC.Locale.Register("ruRU", {
     ["take a deleted character off your list"] = "убрать удалённого персонажа из списка",
     ["%s forgotten."] = "%s забыт.",
     ["%s isn't one of your other characters."] = "%s — не твой другой персонаж.",
+    ["take a cousin off your list"] = "убрать кузена из списка",
+    ["%s isn't in your family."] = "%s нет в твоей семье.",
     ["a pop-up to try"] = "пробное всплывающее окно",
     ["made-up cousins on your map, to try"] = "выдуманные кузены на твоей карте, для пробы",
     ["Made-up cousins are on your map for two minutes. Open it to see them."] = "Выдуманные кузены будут на твоей карте две минуты. Открой её, чтобы увидеть.",

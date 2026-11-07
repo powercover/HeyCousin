@@ -483,6 +483,8 @@ HC.Locale.Register("ukUA", {
     ["take a deleted character off your list"] = "прибрати видаленого персонажа зі списку",
     ["%s forgotten."] = "%s забуто.",
     ["%s isn't one of your other characters."] = "%s — не твій інший персонаж.",
+    ["take a cousin off your list"] = "прибрати кузена зі списку",
+    ["%s isn't in your family."] = "%s немає у твоїй родині.",
     ["a pop-up to try"] = "пробне спливне вікно",
     ["made-up cousins on your map, to try"] = "вигадані кузени на твоїй карті, для проби",
     ["Made-up cousins are on your map for two minutes. Open it to see them."] = "Вигадані кузени будуть на твоїй карті дві хвилини. Відкрий її, щоб побачити.",

@@ -481,6 +481,8 @@ HC.Locale.Register("zhTW", {
     ["take a deleted character off your list"] = "把已刪除的角色從清單中移除",
     ["%s forgotten."] = "已忘記 %s。",
     ["%s isn't one of your other characters."] = "%s 不是你的其他角色。",
+    ["take a cousin off your list"] = "把表親從清單中移除",
+    ["%s isn't in your family."] = "%s 不在你的家族中。",
     ["a pop-up to try"] = "試看一次跳出提示",
     ["made-up cousins on your map, to try"] = "在地圖上顯示虛構的表親，試試看",
     ["Made-up cousins are on your map for two minutes. Open it to see them."] = "虛構的表親會在你的地圖上顯示兩分鐘。打開地圖查看。",

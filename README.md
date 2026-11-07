@@ -77,6 +77,7 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - `/cousin setup`: your crest and the main choices
 - `/cousin test`: a pop-up to try
 - `/cousin test map`: made-up cousins on your map for two minutes, to try
+- `/cousin delete Name`: take a cousin off your list, with every meeting (seen again, they come back as new)
 - `/cousin forget Name`: take a deleted character off your list
 - `/cousin theme`: the next look
 - `/cousin status`: what the game tells the addon about you, your character ID too

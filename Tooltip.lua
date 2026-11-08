@@ -15,6 +15,21 @@ local C = Theme.C
 -- not as a field on the game's tooltip: the addon writes nothing on Blizzard's frames.
 local added = setmetatable({}, { __mode = "k" })
 
+-- Another house's player: their house, and how many of it you've met, from two on ("House Stone:
+-- met 3"). A setting of its own.
+local function AddHouse(tooltip, surname)
+    if type(HeyCousinDB) ~= "table" or HeyCousinDB.houseLine == false or type(HeyCousinDB.surnames) ~= "table" then
+        return
+    end
+    local met = HeyCousinDB.surnames[surname]
+    if type(met) ~= "number" or met < 2 then
+        return
+    end
+    added[tooltip] = true
+    tooltip:AddLine(string.format(L["House %s: met %d"], surname, met), C.text3[1], C.text3[2], C.text3[3])
+    tooltip:Show()
+end
+
 -- A relative's tooltip gets the family line ("Family: Ashbrook (cousin)") and how often you met.
 local function AddLines(tooltip)
     if tooltip ~= GameTooltip or added[tooltip] then
@@ -42,6 +57,10 @@ local function AddLines(tooltip)
         first, surname = Names.Unit(unit)
     end
     local house, mine = Kin.House()
+    if first and house and not me and Utils.IsUsableString(surname) and not Names.Same(surname, mine) then
+        AddHouse(tooltip, surname)
+        return
+    end
     if not first or not house or not Names.Same(surname, mine) then
         return
     end

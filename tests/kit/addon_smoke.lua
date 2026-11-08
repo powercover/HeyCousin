@@ -426,6 +426,22 @@ check(lines:find("Family: Ashbrook (cousin)", 1, true) and lines:find("Met once"
 local count = #GameTooltip.lines
 Mock.postCalls[2](GameTooltip, {})
 check(#GameTooltip.lines == count, "a tooltip refresh doesn't add the lines twice")
+-- another house's player: how many of it you've met, from two on
+local function HouseTip()
+    GameTooltip.unit = "mouseover"
+    Mock.Run(GameTooltip, "OnTooltipCleared")
+    GameTooltip.lines = {}
+    Mock.postCalls[2](GameTooltip, {})
+    return table.concat(GameTooltip.lines, " ")
+end
+check(not HouseTip():find("House Stone", 1, true), "only one Stone met: no line")
+HeyCousinDB.surnames.Stone = 3
+check(HouseTip():find("House Stone: met 3", 1, true), "another house: how many of it you've met")
+HeyCousinDB.houseLine = false
+check(not HouseTip():find("House Stone", 1, true), "switched off: no line")
+HeyCousinDB.houseLine = nil
+HeyCousinDB.surnames.Stone = 1
+GameTooltip.unit = "target"
 NoErrors(HC, "tooltips")
 
 -- layers: asking, and being asked

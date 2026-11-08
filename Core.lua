@@ -23,6 +23,8 @@ local DEFAULTS = {
     cooldown = 30,
     chatCrest = true,
     tooltipLine = true,
+    -- another house's player: how many of it you've met
+    houseLine = true,
     -- a banner when two or more of the family are in one group
     reunion = true,
     showMinimap = true,

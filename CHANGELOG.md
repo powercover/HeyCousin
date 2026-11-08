@@ -1,4 +1,22 @@
-# Hey Cousin! 1.1.1
+# Hey Cousin! 1.1.2
+
+- **Family reunions.** When two or more of your house are in one group, everyone in it who has the addon
+  gets a banner with your crests side by side; five or more, a family raid. Once a group, again when
+  another cousin joins, never in a fight. Try `/cousin test reunion`; a switch in the settings, under
+  Alerts.
+- **The family portrait** counts the cousins online, puts the crown by the eldest, names the highest
+  level, and has a **Take a picture** button: a screenshot without the card's buttons.
+- **Mottos travel.** Cousins who have the addon see your motto on your page and your tooltip, and you
+  see theirs.
+- **Other houses on tooltips.** A player of another house shows how many of it you've met ("House
+  Stone: met 3"), from two on. A switch in the settings, under In the game.
+- **Look up a family** also finds players from other realms in your group: `/who` lists your own realm
+  only.
+- **Fixed:** an error in dungeon fights (the family channel now waits out combat, boss fights and keys),
+  and the surnames you meet most, which counted a player again after each login. Those counts start
+  over.
+
+## 1.1.1
 
 - **Guild invites, fixed.** The game lets only you send a guild invite: in 1.1.0, Invite showed a
   "blocked" window and sent nothing. Now it shows the line to copy into your chat box: Ctrl+C, Enter,

@@ -41,10 +41,12 @@ local bridge
 -- What's new in this version: the version number's tooltip.
 local function News()
     return {
-        L["Guild invites, fixed: Invite shows the line to copy into your chat box. The game lets only you send one."],
-        L["/cousin delete Name takes a cousin off your list."],
-        L["Crests on the minimap show their symbol."],
-        L["A crown over the eldest cousin's crest on their nameplate."],
+        L["Family reunions: a banner when cousins are in your group. Try /cousin test reunion."],
+        L["The family portrait shows who's online and the highest level, with a Take a picture button."],
+        L["Mottos travel: cousins with the addon see yours, and you see theirs."],
+        L["Tooltips show other houses: how many of each you've met."],
+        L["Look up a family also finds players from other realms in your group."],
+        L["Fixed: an error in dungeon fights, and surnames counted again after each login."],
     }
 end
 

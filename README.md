@@ -48,7 +48,9 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
   the crest too, so you see where it goes. On the game's own plate frame, so they follow the plate under any nameplate
   addon. The settings draw a sample plate: drag the crest, scroll to resize it, and real plates follow.
 - **The family race**: you and the cousins who have the addon, by level, with a line when one passes you.
-- **The family portrait**: your house on one card, made for a screenshot.
+- **Family reunions**: two or more of your house in one group get a banner with their crests side by
+  side, five or more a family raid. Only the ones in the group see it.
+- **The family portrait**: your house on one card, made for a screenshot, with a button that takes it.
 - **Look up a family**: who's online with any surname, by the same `/who` search. Nobody joins your
   family by it.
 - **The settings**: every choice, grouped by what it's for, with a page in the game's Options > AddOns
@@ -77,6 +79,7 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - `/cousin setup`: your crest and the main choices
 - `/cousin test`: a pop-up to try
 - `/cousin test map`: made-up cousins on your map for two minutes, to try
+- `/cousin test reunion`: a family reunion, to try
 - `/cousin delete Name`: take a cousin off your list, with every meeting (seen again, they come back as new)
 - `/cousin forget Name`: take a deleted character off your list
 - `/cousin theme`: the next look

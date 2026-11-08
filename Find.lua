@@ -17,6 +17,7 @@ local LIMIT = 50
 local WAIT = 6 -- the game takes one search every few seconds
 local TEST_WAIT = 1
 local BANDS = { { 1, 9 }, { 10, 19 }, { 20, 29 }, { 30, 39 }, { 40, 49 }, { 50, 59 }, { 60, 99 } }
+local NAMEPLATES = 40
 
 local frame = CreateFrame("Frame")
 -- the search waiting for its answer, and the next band of levels when one list wasn't enough
@@ -184,18 +185,62 @@ function Find.Start()
     end
 end
 
+-- Who has this surname among the players the game shows you now: your group, your target, the
+-- nameplates around you, and your guild's online members. /who lists your own realm only, so a
+-- player from another realm in your dungeon group is found only here. As /who's rows.
+local function Around(surname)
+    local rows, units = {}, { "target", "focus", "mouseover" }
+    local raid = Utils.Call(IsInRaid) == true
+    local count = (raid and Utils.Call(GetNumGroupMembers) or Utils.Call(GetNumSubgroupMembers)) or 0
+    for i = 1, count do
+        units[#units + 1] = (raid and "raid" or "party") .. i
+    end
+    for i = 1, NAMEPLATES do
+        units[#units + 1] = "nameplate" .. i
+    end
+    for _, unit in ipairs(units) do
+        if Utils.Call(UnitIsPlayer, unit) == true and Utils.Call(UnitIsUnit, unit, "player") ~= true then
+            local first, last = Names.Unit(unit)
+            if first and Names.Same(last, surname) then
+                local _, class = Utils.Call(UnitClass, unit)
+                rows[#rows + 1] = {
+                    fullName = Names.Full(first, last), filename = class, level = Utils.Call(UnitLevel, unit),
+                    area = Utils.Call(UnitIsVisible, unit) == true and Utils.Zone() or nil,
+                    fullGuildName = Utils.Call(GetGuildInfo, unit),
+                }
+            end
+        end
+    end
+    local me = Names.Me()
+    for i = 1, Utils.Call(GetNumGuildMembers) or 0 do
+        local full, _, _, level, _, zone, _, _, online, _, class = Utils.Call(GetGuildRosterInfo, i)
+        local first, last = Names.Split(full)
+        if online == true and Names.Same(last, surname) and not Names.Same(first, me) then
+            rows[#rows + 1] = { fullName = full, filename = class, level = level, area = zone,
+                fullGuildName = Utils.Call(GetGuildInfo, "player") }
+        end
+    end
+    return rows
+end
+
 -- One search for any surname: done(rows, more) gets those with exactly it, as they are, the highest
--- level first, and whether the game's list was full. Nobody joins your family by it.
+-- level first, and whether the game's list was full. /who's answer, and who the game shows you now
+-- (Around). Nobody joins your family by it.
 function Find.Lookup(surname, done)
     if waiting then
         return
     end
     Ask('n-" ' .. surname .. '"', function()
         local rows, total = Listed(surname)
-        local kept = {}
+        local more = #rows >= LIMIT or total > #rows
+        for _, row in ipairs(Around(surname)) do
+            rows[#rows + 1] = row
+        end
+        local kept, taken = {}, {}
         for _, info in ipairs(rows) do
             local first, last = Names.Split(info.fullName)
-            if first and Names.Same(last, surname) then
+            if first and Names.Same(last, surname) and not taken[first:lower()] then
+                taken[first:lower()] = true
                 kept[#kept + 1] = { first = first, full = info.fullName, class = info.filename, level = info.level,
                     zone = info.area, guild = info.fullGuildName }
             end
@@ -206,7 +251,7 @@ function Find.Lookup(surname, done)
             end
             return a.first < b.first
         end)
-        done(kept, #rows >= LIMIT or total > #rows)
+        done(kept, more)
     end)
 end
 

@@ -1,6 +1,7 @@
 local _, HC = ...
 
--- Look up a family: who's online with any surname, by the same /who search as Find my family. It's a
+-- Look up a family: who's online with any surname, by the same /who search as Find my family, and
+-- among the players the game shows you (your group: /who lists your own realm only). It's a
 -- look at another house: nobody joins your family by it. Each search needs a click of its own (or
 -- Enter), and the game lists 50 people at most.
 HC.Lookup = {}

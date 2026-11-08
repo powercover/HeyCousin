@@ -1872,6 +1872,25 @@ local function LookupSays(words)
 end
 check(LookupSays("Nobody with the surname Nobodyhere"), "nobody there: it says so")
 Mock.Advance(7)
+-- /who lists your own realm only: someone in your group from another realm is found there
+Mock.units.party1 = { name = "Fen", surname = "Thornwick", guid = "Player-9-FEN", class = "DRUID", level = 44,
+    faction = "Alliance", visible = false }
+Mock.roster[#Mock.roster + 1] = { full = "Ivo Thornwick", level = 30, class = "MAGE", zone = "Duskwood", online = true }
+Mock.roster[#Mock.roster + 1] = { full = "Ada Thornwick", level = 31, class = "MAGE", zone = "Duskwood", online = false }
+Mock.who = { { fullName = "Ivo Thornwick", filename = "MAGE", level = 30, area = "Duskwood", fullGuildName = "" } }
+SlashCmdList.HEYCOUSIN("find Thornwick")
+Mock.Fire("WHO_LIST_UPDATE")
+lookupRows = All(lookupWindow, function(f) return f.where and f.item and f:IsVisible() end)
+local foundNames = {}
+for _, row in ipairs(lookupRows) do foundNames[#foundNames + 1] = row.item.first end
+table.sort(foundNames)
+check(table.concat(foundNames, ",") == "Fen,Ivo", "your group's player and /who's, once each, and your guild's online only: "
+    .. table.concat(foundNames, ","))
+Mock.units.party1 = nil
+table.remove(Mock.roster)
+table.remove(Mock.roster)
+Mock.who = {}
+Mock.Advance(7)
 -- no answer: it says so
 SlashCmdList.HEYCOUSIN("find Quiet")
 check(LookupSays("Looking..."), "while it waits, it says so")

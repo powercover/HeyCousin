@@ -42,6 +42,7 @@ Map.lua
 MiniPins.lua
 TestMode.lua
 Alert.lua
+Reunion.lua
 Radar.lua
 Layer.lua
 Tree.lua

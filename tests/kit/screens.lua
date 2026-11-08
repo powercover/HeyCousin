@@ -145,6 +145,14 @@ function Screens.portrait(skin)
     return { frames = { HeyCousinPortrait } }
 end
 
+-- A family reunion: you and three cousins in one group
+function Screens.reunion(skin)
+    local HC = Boot(skin)
+    HC.Reunion.Preview()
+    Mock.Tick(30, 0.1)
+    return { frames = { HeyCousinReunion } }
+end
+
 -- a pop-up as a player sees it, for the store page: Forever, a cousin near you
 function Screens.heypop(skin)
     local HC = Boot(skin, "forever", { houses = { Ashbrook = {} } })

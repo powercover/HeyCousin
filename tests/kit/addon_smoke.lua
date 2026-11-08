@@ -2225,7 +2225,7 @@ local function Row(root, text)
         if row.label.text == text then return row end
     end
 end
-check(#Rows(options) == 3, "Alerts: three rows")
+check(#Rows(options) == 4, "Alerts: four rows")
 Row(options, "Every time you meet"):Click()
 check(HeyCousinDB.popupEvery == true, "a row sets its setting")
 Row(options, "Every time you meet"):Click()
@@ -2439,6 +2439,74 @@ Mock.Fire("NAME_PLATE_UNIT_ADDED", "nameplate7")
 Settle()
 check(HC.Kin.House().relatives.Fern ~= nil and _G.HeyCousinAlert and _G.HeyCousinAlert:IsShown(), "a cousin near you: known, with a pop-up")
 NoErrors(HC, "a new player who closed the setup")
+
+-- === Family reunion ===========================================================================
+
+local function Says(root, words)
+    for _, region in ipairs(root.regions or {}) do
+        if type(region.text) == "string" and region.text:find(words, 1, true) and region:IsVisible() then return region end
+    end
+    for _, child in ipairs(root.children or {}) do
+        local found = Says(child, words)
+        if found then return found end
+    end
+end
+HC = Mock.Boot("forever", { setupDone = true })
+Mock.Fire("PLAYER_ENTERING_WORLD")
+-- already in a group with a cousin when you log in: no banner for it
+Mock.inGroup = true
+Mock.units.party1 = { name = "Kit", surname = "Ashbrook", guid = "Player-1-KIT", class = "MAGE", level = 20, faction = "Alliance" }
+Mock.Fire("GROUP_ROSTER_UPDATE")
+Mock.Advance(12)
+local reunion = _G.HeyCousinReunion
+check(not (reunion and reunion:IsShown()), "the group you log in with: no banner")
+-- a second cousin joins: a reunion of three
+Mock.units.party2 = { name = "Lia", surname = "Ashbrook", guid = "Player-1-LIA", class = "PRIEST", level = 22, faction = "Alliance" }
+Mock.units.party3 = { name = "Sly", surname = "Stranger", guid = "Player-1-SLY", class = "ROGUE", level = 22, faction = "Alliance" }
+Mock.Fire("GROUP_ROSTER_UPDATE")
+Mock.Advance(3)
+reunion = _G.HeyCousinReunion
+check(reunion and reunion:IsShown(), "a cousin joins: the banner shows")
+check(Says(reunion, "Family reunion!") and Says(reunion, "3 of House Ashbrook in one group"), "three of the house, the stranger not counted")
+local reunionCrests = All(reunion, function(f) return f.SetCrest ~= nil and f:IsVisible() end)
+check(#reunionCrests == 3, "a crest each: " .. #reunionCrests)
+Mock.Tick(60, 0.25)
+check(not reunion:IsShown(), "it goes by itself")
+-- the same group again: nothing new
+Mock.Fire("GROUP_ROSTER_UPDATE")
+Mock.Advance(3)
+check(not reunion:IsShown(), "the same cousins: no second banner")
+-- one joins in a fight: it waits for the fight to end
+Mock.units.party4 = { name = "Ned", surname = "Ashbrook", guid = "Player-1-NED", class = "WARRIOR", level = 25, faction = "Alliance" }
+Mock.combat = true
+Mock.Fire("GROUP_ROSTER_UPDATE")
+Mock.Advance(3)
+check(not reunion:IsShown(), "not in a fight")
+Mock.combat = false
+Mock.Fire("PLAYER_REGEN_ENABLED")
+check(reunion:IsShown() and Says(reunion, "4 of House Ashbrook"), "after the fight: four of the house")
+Mock.Tick(60, 0.25)
+-- off in the settings: none
+HeyCousinDB.reunion = false
+Mock.units.party3 = { name = "Ola", surname = "Ashbrook", guid = "Player-1-OLA", class = "HUNTER", level = 25, faction = "Alliance" }
+Mock.Fire("GROUP_ROSTER_UPDATE")
+Mock.Advance(3)
+check(not reunion:IsShown(), "switched off: no banner")
+HeyCousinDB.reunion = true
+-- the group ends: the next one is news again
+for i = 1, 4 do Mock.units["party" .. i] = nil end
+Mock.inGroup = false
+Mock.Fire("GROUP_ROSTER_UPDATE")
+Mock.Advance(3)
+-- the preview
+SlashCmdList.HEYCOUSIN("test reunion")
+check(reunion:IsShown() and Says(reunion, "Preview: a reunion shows like this"), "/cousin test reunion shows one")
+HC.Theme.SetSkin("smooth")
+check(not reunion:IsShown(), "a new look: the next one is built in it")
+SlashCmdList.HEYCOUSIN("test reunion")
+check(_G.HeyCousinReunion:IsShown(), "and shows in it")
+HC.Theme.SetSkin("pixel")
+NoErrors(HC, "family reunion")
 
 -- === Broken saved data ========================================================================
 

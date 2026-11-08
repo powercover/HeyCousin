@@ -861,6 +861,7 @@ def main():
     pair("5c-settings-guild.png", "guild")
     pair("5f-settings-plates.png", "settingsplates")
     pair("3b-hey.png", "heypop")
+    pair("3c-reunion.png", "reunion")
     rows = [[shot("settings" + page, skin)[0] for skin in SKINS] for page in ("alerts", "family", "map")]
     sheet(rows, SKINS).save(os.path.join(out, "5d-settings-1.png"))
     rows = [[shot("settings" + page, skin)[0] for skin in SKINS] for page in ("plates", "game", "look", "about")]

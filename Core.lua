@@ -23,6 +23,8 @@ local DEFAULTS = {
     cooldown = 30,
     chatCrest = true,
     tooltipLine = true,
+    -- a banner when two or more of the family are in one group
+    reunion = true,
     showMinimap = true,
     minimapAngle = 200,
     lockMinimap = false,
@@ -103,6 +105,7 @@ function HC.Commands()
         "/cousin setup - " .. L["your crest and the main choices"],
         "/cousin test - " .. L["a pop-up to try"],
         "/cousin test map - " .. L["made-up cousins on your map, to try"],
+        "/cousin test reunion - " .. L["a family reunion, to try"],
         "/cousin delete Name - " .. L["take a cousin off your list"],
         "/cousin forget Name - " .. L["take a deleted character off your list"],
         "/cousin theme - " .. L["the next look"],
@@ -162,6 +165,8 @@ local function HandleSlash(message)
         end
     elseif command == "test map" then
         HC.Map.Preview()
+    elseif command == "test reunion" then
+        HC.Reunion.Preview()
     elseif command == "theme" or command == "look" then
         HC.Theme.SetSkin(HC.Theme.Next(HC.Theme.Skin().key))
         Utils.Print(string.format(L["Look: %s"], HC.Theme.Skin().name))

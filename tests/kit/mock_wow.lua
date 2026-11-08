@@ -473,6 +473,7 @@ local function Globals()
     function GetLocale() return "enUS" end
     function InCombatLockdown() return Mock.combat end
     function IsEncounterInProgress() return Mock.encounter == true end
+    function Screenshot() Mock.screenshots = (Mock.screenshots or 0) + 1 end
     function IsControlKeyDown() return Mock.controlDown == true end
     function IsMetaKeyDown() return false end
     -- (Mock.instance: the kind of instance you're in, "party" or "raid"; nil out in the world)

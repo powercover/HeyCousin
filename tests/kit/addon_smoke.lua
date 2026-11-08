@@ -1199,6 +1199,16 @@ check(card and card:IsShown() and next(card.anchors) ~= nil and Crest(card, 180)
 check(Mock.Said("Print Screen"), "and it says how to keep it")
 local cardFaces = All(card, function(f) return f.avatar ~= nil and f:IsVisible() end)
 check(#cardFaces > 0 and #cardFaces <= 12 and cardFaces[1].name.text ~= "", "the cousins met most: " .. #cardFaces)
+check((function()
+    for _, region in ipairs(card.regions or {}) do
+        if type(region.text) == "string" and region.text:find("^Highest level: ") then return true end
+    end
+end)(), "the highest level of the family")
+local shootButton = ButtonWith(card, "Take a picture")
+shootButton:Click()
+check(Mock.screenshots == 1 and not shootButton:IsShown() and not card.close:IsShown(), "a picture, without its buttons")
+Mock.Advance(1)
+check(shootButton:IsShown() and card.close:IsShown(), "and they come back")
 SlashCmdList.HEYCOUSIN("theme")
 Settle()
 check(_G.HeyCousinPortrait:IsShown(), "a new look builds it again")

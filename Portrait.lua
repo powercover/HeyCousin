@@ -1,7 +1,8 @@
 local _, HC = ...
 
 -- The family portrait: your house on one card, made to be a good picture: crest, name, motto, the
--- family in numbers, and the cousins you've met most.
+-- family in numbers, the eldest and the highest level, and the cousins you've met most. Take a picture
+-- saves it as a screenshot, without the card's buttons.
 HC.Portrait = {}
 
 local Portrait = HC.Portrait
@@ -13,11 +14,12 @@ local Kin = HC.Kin
 local L = HC.L
 local C = Theme.C
 
-local WIDTH, HEIGHT = 440, 610
+local WIDTH, HEIGHT = 440, 650
+local SHOT_BACK = 0.5 -- the buttons come back once the game has taken the picture
 local COUSINS = 12
 local PER_ROW = 4
 
-local window, crest, ribbon, motto, counts, eldest, faces, none
+local window, crest, ribbon, motto, counts, eldest, highest, faces, none, shoot
 
 local function Build()
     window = Theme.Window("HeyCousinPortrait", WIDTH, HEIGHT)
@@ -38,6 +40,10 @@ local function Build()
     eldest:SetPoint("TOP", 0, -302)
     eldest:SetWidth(WIDTH - 40)
     eldest:SetJustifyH("CENTER")
+    highest = Theme.Text(window, "Small", C.text2)
+    highest:SetPoint("TOP", 0, -320)
+    highest:SetWidth(WIDTH - 40)
+    highest:SetJustifyH("CENTER")
     -- the cousins met most, each with their class and name
     faces = {}
     local cellW, cellH = (WIDTH - 40) / PER_ROW, 76
@@ -45,7 +51,7 @@ local function Build()
         local face = CreateFrame("Frame", nil, window)
         face:SetSize(cellW, cellH)
         local column, row = (index - 1) % PER_ROW, math.floor((index - 1) / PER_ROW)
-        face:SetPoint("TOPLEFT", 20 + column * cellW, -330 - row * cellH)
+        face:SetPoint("TOPLEFT", 20 + column * cellW, -348 - row * cellH)
         face.avatar = Theme.Skin().Avatar(face, 38)
         face.avatar:SetPoint("TOP", 0, -4)
         face.name = Theme.Text(face, "Small")
@@ -55,15 +61,22 @@ local function Build()
         faces[index] = face
     end
     none = Theme.Text(window, "Body", C.text3)
-    none:SetPoint("TOP", 0, -380)
+    none:SetPoint("TOP", 0, -398)
     none:SetWidth(WIDTH - 60)
     none:SetWordWrap(true)
     none:SetJustifyH("CENTER")
     none:SetText(L["No cousins yet. Click Find my family, and they'll be here."])
     -- a word for whoever sees the picture
     local made = Theme.Text(window, "Tiny", C.text3)
-    made:SetPoint("BOTTOM", 0, 26)
+    made:SetPoint("BOTTOM", 0, 16)
     made:SetText(L["Made with Hey Cousin!"])
+    shoot = Theme.Button(window, L["Take a picture"], "primary", 150, 28)
+    shoot:SetPoint("BOTTOM", 0, 36)
+    Theme.Fit(shoot, 14, 120)
+    Theme.Tip(shoot, L["Take a picture"], L["Saved in your Screenshots folder, without these buttons."])
+    Theme.OnClick(shoot, "portrait picture", function()
+        Portrait.Picture()
+    end)
 end
 
 local function Paint()
@@ -77,9 +90,23 @@ local function Paint()
     if sheep > 0 then
         parts[#parts + 1] = sheep == 1 and L["1 black sheep"] or string.format(L["%d black sheep"], sheep)
     end
+    local online = select(4, Kin.Counts())
+    if online > 0 then
+        parts[#parts + 1] = string.format(L["%d online now"], online)
+    end
     counts:SetText(table.concat(parts, "  ·  "))
     local oldest = Kin.Eldest()
-    eldest:SetText(oldest and string.format(L["Eldest we know: %s"], oldest) or "")
+    -- (the crown before it, in gold: the theme's own art)
+    local crown = "|T" .. Theme.Icon("Crown") .. ":14:14:0:0:1:1:0:1:0:1:255:209:92|t "
+    eldest:SetText(oldest and (crown .. string.format(L["Eldest we know: %s"], oldest)) or "")
+    local top
+    for _, entry in ipairs(Kin.List()) do
+        local level = entry.relative.level
+        if type(level) == "number" and (not top or level > top.relative.level) then
+            top = entry
+        end
+    end
+    highest:SetText(top and string.format(L["Highest level: %s, %d"], top.first, top.relative.level) or "")
     local list = Kin.Stats(COUSINS).mostMet
     for index, face in ipairs(faces) do
         local entry = list[index]
@@ -93,6 +120,20 @@ local function Paint()
         end
     end
     none:SetShown(#list == 0)
+end
+
+-- A screenshot of the card: its buttons hide for it, and come back.
+function Portrait.Picture()
+    if not window or not window:IsShown() or type(Screenshot) ~= "function" then
+        return
+    end
+    shoot:Hide()
+    window.close:Hide()
+    pcall(Screenshot)
+    Utils.After(SHOT_BACK, "portrait picture", function()
+        shoot:Show()
+        window.close:Show()
+    end)
 end
 
 -- Opens the card, and says how to keep it.

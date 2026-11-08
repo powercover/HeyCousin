@@ -95,6 +95,7 @@ PlaySoundFile
 RAID_CLASS_COLORS
 RegionalUniqueNamesEnabled
 ReloadUI
+Screenshot
 SendChatMessage
 Settings
 SettingsPanel

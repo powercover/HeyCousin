@@ -2568,6 +2568,15 @@ Mock.Fire("GROUP_ROSTER_UPDATE")
 Mock.Advance(3)
 check(not reunion:IsShown(), "switched off: no banner")
 HeyCousinDB.reunion = true
+-- in an instance the game can hide who they are, or give secret values: no banner, no error
+Mock.units.party3 = { name = Mock.SECRET, surname = Mock.SECRET, guid = "Player-1-HID", class = "HUNTER",
+    level = Mock.SECRET, faction = "Alliance" }
+Mock.units.party4 = { name = "Ula", surname = "Ashbrook", guid = "Player-1-ULA", class = "MAGE", level = Mock.SECRET,
+    faction = "Alliance" }
+for _ = 1, 30 do Mock.Fire("GROUP_ROSTER_UPDATE") end
+Mock.Advance(3)
+Mock.Tick(60, 0.25)
+check(#HC.errors == 0, "a group with secret names: no errors")
 -- the group ends: the next one is news again
 for i = 1, 4 do Mock.units["party" .. i] = nil end
 Mock.inGroup = false

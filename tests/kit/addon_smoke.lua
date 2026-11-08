@@ -2476,6 +2476,29 @@ Settle()
 check(HC.Kin.House().relatives.Fern ~= nil and _G.HeyCousinAlert and _G.HeyCousinAlert:IsShown(), "a cousin near you: known, with a pop-up")
 NoErrors(HC, "a new player who closed the setup")
 
+-- === The surnames you meet ====================================================================
+
+-- each player counts once: not again after a reload
+local bob = { name = "Bob", surname = "Stone", guid = "Player-1-BOB", class = "ROGUE", faction = "Alliance" }
+HC = Mock.Boot("forever", { setupDone = true })
+Mock.units.mouseover = bob
+Mock.Fire("UPDATE_MOUSEOVER_UNIT")
+local saved = HeyCousinDB
+HC = Mock.Boot("forever", saved)
+Mock.units.mouseover = bob
+Mock.Fire("UPDATE_MOUSEOVER_UNIT")
+check(HeyCousinDB.surnames.Stone == 1, "the same stranger after a reload: still one Stone")
+Mock.units.mouseover = { name = "Bea", surname = "Stone", guid = "Player-1-BEA", class = "MAGE", faction = "Alliance" }
+Mock.Fire("UPDATE_MOUSEOVER_UNIT")
+check(HeyCousinDB.surnames.Stone == 2, "another Stone: two")
+-- counts from before 1.1.2 (each session again) start over
+HC = Mock.Boot("forever", { setupDone = true, surnames = { Stone = 38 }, surnameCount = 1 })
+check(next(HeyCousinDB.surnames) == nil and HeyCousinDB.surnameCount == 0, "old counts start over")
+Mock.units.mouseover = bob
+Mock.Fire("UPDATE_MOUSEOVER_UNIT")
+check(HeyCousinDB.surnames.Stone == 1, "and count again, one a player")
+NoErrors(HC, "the surnames you meet")
+
 -- === Family reunion ===========================================================================
 
 local function Says(root, words)

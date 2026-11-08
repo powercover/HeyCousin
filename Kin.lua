@@ -14,8 +14,10 @@ local MEETING_GAP = 15 * 60
 local NEAR_FOR = 150
 -- A relative found by a search counts as online this long after it.
 local ONLINE_FOR = 5 * 60
--- The surnames you meet: trimmed to the 200 met most once there are 400.
+-- The surnames you meet: trimmed to the 200 met most once there are 400. Each counts the players
+-- you met with it, each once: up to 150 of them, then it counts no more.
 local SURNAMES_KEEP, SURNAMES_MAX = 200, 400
+local NAMES_MAX = 150
 -- Each relative's meetings: the first one and the latest, this many in all (the count goes on).
 local MEETINGS_KEEP = 100
 -- what they said, when you met in /say: this long at most
@@ -340,8 +342,12 @@ function Kin.Meetings(relative)
     return list
 end
 
--- The first builds took realm codes for surnames: they go from the saved counts.
+-- The first builds took realm codes for surnames: they go from the saved counts. Builds before 1.1.2
+-- counted a player again each session: those counts start over, now one a player.
 function Kin.ForgetRealms()
+    if type(HeyCousinDB.surnameNames) ~= "table" then
+        HeyCousinDB.surnames, HeyCousinDB.surnameCount, HeyCousinDB.surnameNames = {}, 0, {}
+    end
     local surnames = HeyCousinDB.surnames
     if type(surnames) ~= "table" then
         return
@@ -354,18 +360,28 @@ function Kin.ForgetRealms()
     end
 end
 
--- Every player you see counts once a session toward the surnames you meet most.
+-- Every player you see counts once toward the surnames you meet most.
 function Kin.SawPlayer(first, surname)
     local full = first .. "\1" .. surname
     if counted[full] then
         return
     end
     counted[full] = true
-    local surnames = HeyCousinDB.surnames
-    if type(surnames) ~= "table" then
-        surnames = {}
-        HeyCousinDB.surnames = surnames
+    local surnames, names = HeyCousinDB.surnames, HeyCousinDB.surnameNames
+    if type(surnames) ~= "table" or type(names) ~= "table" then
+        surnames, names = {}, {}
+        HeyCousinDB.surnames, HeyCousinDB.surnameCount, HeyCousinDB.surnameNames = surnames, 0, names
     end
+    local known = names[surname]
+    if type(known) ~= "table" then
+        known = {}
+        names[surname] = known
+    end
+    local key = first:lower()
+    if known[key] or (surnames[surname] or 0) >= NAMES_MAX then
+        return
+    end
+    known[key] = true
     if surnames[surname] == nil then
         HeyCousinDB.surnameCount = (HeyCousinDB.surnameCount or 0) + 1
     end
@@ -378,11 +394,12 @@ function Kin.SawPlayer(first, surname)
         table.sort(list, function(a, b)
             return a[2] > b[2]
         end)
-        local kept = {}
+        local kept, keptNames = {}, {}
         for i = 1, math.min(SURNAMES_KEEP, #list) do
             kept[list[i][1]] = list[i][2]
+            keptNames[list[i][1]] = names[list[i][1]]
         end
-        HeyCousinDB.surnames = kept
+        HeyCousinDB.surnames, HeyCousinDB.surnameNames = kept, keptNames
         HeyCousinDB.surnameCount = math.min(SURNAMES_KEEP, #list)
     end
 end

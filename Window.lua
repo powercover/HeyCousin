@@ -608,7 +608,9 @@ local function PaintPage(keep)
     end
     local layer = HC.Layer and HC.Layer.Status(opened)
     -- (what matters first: on a narrow line, what can wait is what's cut)
-    page.met:SetText(metText .. (relative.usesAddon and ("  ·  " .. L["(uses addon)"]) or "")
+    -- their motto first, if their addon told it
+    local motto = Utils.IsUsableString(relative.motto) and ("\226\128\156" .. relative.motto .. "\226\128\157  ·  ") or ""
+    page.met:SetText(motto .. metText .. (relative.usesAddon and ("  ·  " .. L["(uses addon)"]) or "")
         .. (layer and ("  ·  " .. layer) or "") .. "  ·  " .. string.format(L["first seen: %s"], Utils.When(relative.firstSeen)))
     -- black sheep play on the other side: no layer of theirs to join
     page.layer:SetShown(not sheep)

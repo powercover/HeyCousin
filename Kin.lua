@@ -116,8 +116,12 @@ function Kin.SetCrest(crest, motto)
         return
     end
     house.crest = Crest.Normalize(crest)
+    local newMotto = type(motto) == "string" and motto ~= house.motto
     if type(motto) == "string" then
         house.motto = motto
+    end
+    if newMotto and HC.Family and HC.Family.ShareMotto then
+        HC.Family.ShareMotto()
     end
     local test = HC.TestMode
     if test and test.active then

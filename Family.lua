@@ -373,6 +373,22 @@ local function Line(kind)
         Utils.Call(UnitLevel, "player") or 0, CrestCode(Kin.Crest()))
 end
 
+-- Your motto, for cousins' addons (M): nothing when you have none. Older addons let it go by.
+local MOTTO_MAX = 40
+local function MottoLine()
+    local house = Kin.House()
+    local words = HC.Guild.Plain(house and house.motto, MOTTO_MAX)
+    return words ~= "" and ("4:M:" .. words) or nil
+end
+
+-- Your motto changed: cousins online hear it now.
+function Family.ShareMotto()
+    local line = MottoLine()
+    if line and Family.On() and Family.Channel() and not HC.TestMode.active then
+        Family.Send(line)
+    end
+end
+
 local function Tick()
     if keepLater then
         Family.Keep()
@@ -387,6 +403,10 @@ local function Tick()
     if not greeted then
         if Family.Send(Line("H")) then
             greeted, lastTold, quietUntil, levelled = true, now, now + QUIET, false
+            local motto = MottoLine()
+            if motto then
+                Family.Send(motto)
+            end
             Family.quietCount = 0
             Utils.After(QUIET, "family hello", function()
                 if (Family.quietCount or 0) > 0 and Family.On() then
@@ -405,7 +425,27 @@ end
 
 -- --- hearing it --------------------------------------------------------------------------------
 
+-- A cousin's motto (M): kept with them, shown on their page and tooltip.
+local function HeardMotto(said, sender)
+    local member = Family.Cousin(sender)
+    if not member then
+        return
+    end
+    local relative = Kin.Seen({ first = member.first, faction = Utils.Call(UnitFactionGroup, "player"), quiet = true,
+        online = true, usesAddon = true })
+    if relative then
+        local words = HC.Guild.Plain(said, MOTTO_MAX)
+        relative.motto = words ~= "" and words or nil
+        Kin.Changed()
+    end
+end
+
 local function Heard(text, sender)
+    local said = text:match("^4:M:(.*)$")
+    if said then
+        HeardMotto(said, sender)
+        return
+    end
     local kind, class, level, code = text:match("^4:(%u):(%u*):(%d*):?(.*)$")
     if kind ~= "H" and kind ~= "S" and kind ~= "A" and kind ~= "L" then
         return
@@ -453,6 +493,10 @@ local function Heard(text, sender)
         answered[member.full] = now
         Utils.After(math.random(1, ANSWER_WITHIN), "family answer", function()
             Family.Whisper(Line("A"), member.full)
+            local motto = MottoLine()
+            if motto then
+                Family.Whisper(motto, member.full)
+            end
             HC.Groups.Greet(member.full)
         end)
     end

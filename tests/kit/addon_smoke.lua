@@ -1369,6 +1369,32 @@ end
 SlashCmdList.HEYCOUSINFAM("hello")
 check(SentTo("Kit Ashbrook", "^5:C:hello") and SentTo("Lia Ashbrook", "^5:C:hello"), "/fam goes to each")
 check(not SentTo("Sly Stranger", "^5:C:"), "and not to a stranger in the channel")
+-- your motto goes to them when it changes, and theirs comes to you
+HC.Kin.SetCrest(HC.Kin.Crest(), "Family first")
+check(SentTo("Kit Ashbrook", "^4:M:Family first$") and SentTo("Lia Ashbrook", "^4:M:Family first$"), "a new motto goes to each")
+local mottoSent = #Mock.addonSent
+HC.Kin.SetCrest(HC.Kin.Crest(), "Family first")
+check(#Mock.addonSent == mottoSent, "the same motto again: nothing goes")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:M:Never skip |cffleg day", "WHISPER", "Kit Ashbrook")
+Settle()
+check(HC.Kin.House().relatives.Kit.motto == "Never skip cffleg day", "their motto is kept, without codes: "
+    .. tostring(HC.Kin.House().relatives.Kit.motto))
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:M:Sly words", "WHISPER", "Sly Stranger")
+check(HC.Kin.House().relatives.Sly == nil, "a stranger's motto: nothing")
+HC.Window.ShowRelative("Kit")
+Settle()
+local mottoShown = false
+Walk(_G.HeyCousinWindow, function(f)
+    for _, region in ipairs(f.regions or {}) do
+        if type(region.text) == "string" and region.text:find("Never skip cffleg day", 1, true) and region:IsVisible() then
+            mottoShown = true
+        end
+    end
+end)
+check(mottoShown, "their page shows it")
+_G.HeyCousinWindow:Hide()
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:M:", "WHISPER", "Kit Ashbrook")
+check(HC.Kin.House().relatives.Kit.motto == nil, "an empty one clears it")
 for _, line in ipairs(Mock.addonSent) do
     check(not line.text:find("^5:C:") or line.channel == "WHISPER", "/fam goes to no guild or group: only whispers to cousins")
 end

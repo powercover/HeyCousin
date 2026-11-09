@@ -189,6 +189,13 @@ function Reunion.Show(gathered, note)
     if HC.Alert.SoundKey() ~= "none" then
         HC.Alert.PlaySound("bell")
     end
+    -- (a preview has its note: it earns nothing)
+    if not note then
+        HC.Badges.Earn("reunion")
+        if #gathered >= RAID then
+            HC.Badges.Earn("raid")
+        end
+    end
 end
 
 function Reunion.Dismiss()

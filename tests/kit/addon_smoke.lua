@@ -2294,7 +2294,7 @@ local function Row(root, text)
         if row.label.text == text then return row end
     end
 end
-check(#Rows(options) == 4, "Alerts: four rows")
+check(#Rows(options) == 5, "Alerts: five rows")
 Row(options, "Every time you meet"):Click()
 check(HeyCousinDB.popupEvery == true, "a row sets its setting")
 Row(options, "Every time you meet"):Click()
@@ -2537,6 +2537,73 @@ Mock.Fire("PLAYER_TARGET_CHANGED")
 Settle()
 check(not apartToast:IsShown(), "two days apart: no pop-up (first time only, by default)")
 NoErrors(HC, "long time no see")
+
+-- === Family achievements ======================================================================
+
+local twelve = {}
+for i = 1, 12 do
+    twelve["Kin" .. i] = { met = 1, firstSeen = 1700000000 - 86400, lastSeen = 1700000000 - 86400, class = "MAGE" }
+end
+HC = Mock.Boot("forever", { setupDone = true, houses = { Ashbrook = { relatives = twelve } } })
+Mock.Fire("PLAYER_LOGIN")
+Settle()
+Mock.Advance(3)
+local badges = HC.Kin.House().badges
+check(badges and badges.first and badges.ten and not badges.fifty, "what you'd done before counts")
+check(not Mock.Said("Family achievement"), "and without a word")
+-- one earned: one quiet line, a moment later
+Mock.inGroup = true
+Mock.units.party1 = { name = "Kin1", surname = "Ashbrook", guid = "Player-1-KIN1", class = "MAGE", level = 20,
+    faction = "Alliance" }
+HC.Reunion.Show(HC.Reunion.Gathered())
+Mock.Advance(3)
+check(badges.reunion and Mock.Said("Family achievement: Family reunion!"), "a reunion: one quiet line")
+check(#Mock.sounds <= 1, "no sound of its own: only the banner's bell")
+-- several at once: one line for them all
+local linesBefore = #Mock.chat
+HC.Badges.Earn("hey")
+HC.Badges.Earn("apart")
+Mock.Advance(3)
+check(#Mock.chat == linesBefore + 1 and Mock.Said("2 new family achievements"), "two at once: one line")
+-- the same again: nothing
+linesBefore = #Mock.chat
+HC.Badges.Earn("hey")
+Mock.Advance(3)
+check(#Mock.chat == linesBefore, "earned already: nothing")
+-- lines off: still earned, no line
+HeyCousinDB.badgeLines = false
+HC.Badges.Earn("raid")
+Mock.Advance(3)
+check(badges.raid and #Mock.chat == linesBefore, "lines off: earned without a word")
+HeyCousinDB.badgeLines = nil
+-- the list
+SlashCmdList.HEYCOUSIN("achievements")
+local badgeList = _G.HeyCousinBadges
+local function ListSays(words, root)
+    local found = false
+    Walk(root or badgeList, function(f)
+        for _, region in ipairs(f.regions or {}) do
+            if type(region.text) == "string" and region.text:find(words, 1, true) and region:IsVisible() then found = true end
+        end
+    end)
+    return found
+end
+check(badgeList and badgeList:IsShown() and ListSays("6 of 11"), "/cousin achievements: the list, with how many")
+check(ListSays("Know 50 cousins.") and ListSays("Earned "), "what's left says how, what's earned says when")
+SlashCmdList.HEYCOUSIN("achievements")
+check(not badgeList:IsShown(), "and closes it")
+HC.Window.Show("stats")
+Settle()
+check(ListSays("6 of 11", _G.HeyCousinWindow), "the Stats tab says how many")
+_G.HeyCousinWindow:Hide()
+_G.HeyCousinReunion:Hide()
+Mock.units.party1 = nil
+Mock.inGroup = false
+-- test mode earns nothing by itself
+HC = Mock.Boot("retail", { setupDone = true })
+HC.Badges.Earn("hey")
+check(not (HC.TestMode.House().badges or {}).hey, "test mode: nothing earned")
+NoErrors(HC, "family achievements")
 
 -- === The surnames you meet ====================================================================
 

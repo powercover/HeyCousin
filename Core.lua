@@ -27,6 +27,8 @@ local DEFAULTS = {
     houseLine = true,
     -- a banner when two or more of the family are in one group
     reunion = true,
+    -- a quiet line in chat for a new family achievement
+    badgeLines = true,
     showMinimap = true,
     minimapAngle = 200,
     lockMinimap = false,
@@ -102,6 +104,7 @@ function HC.Commands()
         "/cousin groups - " .. L["cousins looking for a group"],
         "/cousin race - " .. L["the family race, by level"],
         "/cousin portrait - " .. L["your house on one card, for a screenshot"],
+        "/cousin achievements - " .. L["your family achievements"],
         "/cousin find Surname - " .. L["who's online with any surname"],
         "/cousin settings - " .. L["every choice, by what it's for"],
         "/cousin setup - " .. L["your crest and the main choices"],
@@ -150,6 +153,8 @@ local function HandleSlash(message)
         HC.Family.Check()
     elseif command == "portrait" then
         HC.Portrait.Toggle()
+    elseif command == "achievements" then
+        HC.Badges.Toggle()
     elseif command == "race" then
         HC.Window.Show("stats")
         HC.Window.Race(true)
@@ -221,6 +226,7 @@ frame:SetScript("OnEvent", Utils.Protect("event", function(_, event, arg1)
         HC.Map.Start()
         HC.Options.Start()
         HC.Plates.Start()
+        HC.Badges.Start()
     elseif event == "PLAYER_LOGOUT" then
         HC.Kin.NoteMe()
     elseif event == "PLAYER_ENTERING_WORLD" then

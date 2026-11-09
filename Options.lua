@@ -198,6 +198,7 @@ local function BuildAlerts()
     Toggle(p, L["Every time you meet"], L["Not only the first time."], "popupEvery", false)
     Toggle(p, L["Black sheep too"], L["Cousins from the other faction."], "enemyAlerts", true)
     Toggle(p, L["Family reunions"], L["A banner when cousins are in your group."], "reunion", true)
+    Toggle(p, L["Achievements in chat"], L["One quiet line when you earn one. No pop-ups, no sounds."], "badgeLines", true)
     Heading(p, L["Sound"])
     Chips(p, SoundChips(p))
     return p

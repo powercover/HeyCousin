@@ -94,6 +94,10 @@ local function Paint()
     if online > 0 then
         parts[#parts + 1] = string.format(L["%d online now"], online)
     end
+    local badges = HC.Badges.Count()
+    if badges > 0 then
+        parts[#parts + 1] = string.format(L["%d achievements"], badges)
+    end
     counts:SetText(table.concat(parts, "  ·  "))
     local oldest = Kin.Eldest()
     -- (the crown before it, in gold: the theme's own art)

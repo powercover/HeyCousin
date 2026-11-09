@@ -138,6 +138,13 @@ function Screens.race(skin)
     return { frames = { HeyCousinWindow } }
 end
 
+-- The family achievements: what the made-up family has, and what's left
+function Screens.badges(skin)
+    local HC = Boot(skin)
+    HC.Badges.Show()
+    return { frames = { HeyCousinBadges } }
+end
+
 -- The family portrait
 function Screens.portrait(skin)
     local HC = Boot(skin)

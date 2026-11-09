@@ -50,6 +50,7 @@ Recruit.lua
 Groups.lua
 Race.lua
 Portrait.lua
+Badges.lua
 Lookup.lua
 Window.lua
 Tooltip.lua

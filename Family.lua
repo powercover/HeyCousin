@@ -296,6 +296,7 @@ function Family.Hey(first, unit)
     heyAt = now
     Utils.Call(DoEmote, "WAVE", unit or "none")
     Utils.Call((C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage, string.format(L["Hey cousin %s!"], first), "SAY")
+    HC.Badges.Earn("hey")
 end
 
 -- The game's answer to who's in the channel: "[7. Name] First Surname, *First Surname" in chat. Stays
@@ -524,6 +525,7 @@ function Family.Say(text)
     elseif Family.Send("5:C:" .. words) then
         local _, class = Utils.Call(UnitClass, "player")
         ChatLine(Names.Me(), class, words)
+        HC.Badges.Earn("fam")
     else
         Utils.Print(L["The family's channel isn't ready yet. Try again in a moment."])
     end

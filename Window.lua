@@ -760,10 +760,19 @@ local function BuildStats()
     Theme.OnClick(stats.portrait, "family portrait", function()
         HC.Portrait.Show()
     end)
+    -- the family achievements: a star, and how many you have
+    stats.badges = Theme.IconButton(stats, "Star", 26, L["Family achievements"])
+    stats.badges:SetPoint("LEFT", stats.portrait, "RIGHT", 6, 0)
+    Theme.OnClick(stats.badges, "achievements", function()
+        HC.Badges.Toggle()
+    end)
+    stats.badgeCount = Theme.Text(stats, "Small", C.text2)
+    stats.badgeCount:SetPoint("LEFT", stats.badges, "RIGHT", 6, 0)
 end
 
 local function PaintStats()
     local data = Kin.Stats(5)
+    stats.badgeCount:SetText(string.format(L["%d of %d"], HC.Badges.Count()))
     local total, nearby = Kin.Counts()
     local metal, accent = Theme.Title(), Theme.Accent()
     for index, value in ipairs({ total, data.meetings, nearby }) do

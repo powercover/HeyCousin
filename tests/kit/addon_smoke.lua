@@ -1381,6 +1381,18 @@ for _, lock in ipairs({ "combat", "encounter", "chatLockdown" }) do
     check(Mock.listed ~= nil, "asked once " .. lock .. " is over")
     Mock.Advance(3)
 end
+-- in a dungeon too, out of combat: the list from before stays, and family chat still goes
+Mock.instance = "party"
+Mock.listed = nil
+Mock.Advance(70)
+check(Mock.listed == nil, "no channel list asked in a dungeon")
+local beforeDungeonChat = #Mock.addonSent
+SlashCmdList.HEYCOUSINFAM("in a dungeon")
+check(#Mock.addonSent > beforeDungeonChat, "family chat still goes, to the list from before")
+Mock.instance = nil
+Mock.Advance(6)
+check(Mock.listed ~= nil, "asked once you're out")
+Mock.Advance(3)
 -- /fam, a post and the map all reach them, and they're heard by whisper
 SlashCmdList.HEYCOUSINFAM("hello")
 check(SentTo("Kit Ashbrook", "^5:C:hello") and SentTo("Lia Ashbrook", "^5:C:hello"), "/fam goes to each")

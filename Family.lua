@@ -115,10 +115,12 @@ function Family.Channel()
 end
 
 -- In combat, a boss fight or a key, the game blocks an addon's channel calls (joining, leaving, who's
--- in it): they wait until it's over.
+-- in it): they wait until it's over. In a dungeon, raid or battleground they wait too, to be safe: the
+-- list from before stays, so family chat still reaches everyone on it.
 local function Blocked()
     return Utils.Call(InCombatLockdown) == true or Utils.Call(IsEncounterInProgress) == true
         or Utils.Call(C_ChatInfo and C_ChatInfo.InChatMessagingLockdown) == true
+        or Utils.Call(IsInInstance) == true
 end
 
 local keepLater = false  -- Keep came while blocked: the next tick does it

@@ -392,8 +392,8 @@ local function Globals()
     -- who's in a channel comes as a chat line; a listener is there unless a test says who is
     Mock.channelMembers = { "*Rowan Ashbrook", "Anyone Ashbrook" }
     function ListChannelByName(name)
-        assert(not Mock.combat and not Mock.encounter and not Mock.chatLockdown,
-            "the game blocks an addon's ListChannelByName in combat, a boss fight or a key")
+        assert(not Mock.combat and not Mock.encounter and not Mock.chatLockdown and not Mock.instance,
+            "the addon asks no channel list in combat, a boss fight, a key or an instance")
         Mock.listed = name
         if not Mock.rosterSilent then
             Mock.Fire("CHAT_MSG_CHANNEL_LIST", table.concat(Mock.channelMembers, ", "), "", "", "7. " .. name, "", "", 0, 7, name)

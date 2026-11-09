@@ -98,7 +98,7 @@ local function Paint()
     if badges > 0 then
         parts[#parts + 1] = string.format(L["%d achievements"], badges)
     end
-    counts:SetText(table.concat(parts, "  ·  "))
+    counts:SetText(table.concat(parts, Theme.Sep()))
     local oldest = Kin.Eldest()
     -- (the crown before it, in gold: the theme's own art)
     local crown = "|T" .. Theme.Icon("Crown") .. ":14:14:0:0:1:1:0:1:0:1:255:209:92|t "

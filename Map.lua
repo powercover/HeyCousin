@@ -360,7 +360,7 @@ local function Tip(pin)
     if member.level and className then
         parts[#parts + 1] = string.format(L["Level %d %s"], member.level, className)
     end
-    GameTooltip:AddLine(table.concat(parts, "  ·  "), C.tip2[1], C.tip2[2], C.tip2[3])
+    GameTooltip:AddLine(table.concat(parts, Theme.Sep()), C.tip2[1], C.tip2[2], C.tip2[3])
     if not spot.madeUp then
         GameTooltip:AddLine(L["Click to open their page"], C.tip3[1], C.tip3[2], C.tip3[3])
     end

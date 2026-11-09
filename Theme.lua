@@ -31,6 +31,17 @@ function Theme.Hex(color)
         math.floor(color[3] * 255 + 0.5))
 end
 
+-- The dot between parts of a line, with room around it. The game's Cyrillic font has no middle dot
+-- (it shows a box), so Russian and Ukrainian, or a Russian or Ukrainian game (its zone names), get a
+-- bullet, which every game font has.
+local CYRILLIC = { ruRU = true, ukUA = true }
+
+function Theme.Sep()
+    local game = type(GetLocale) == "function" and GetLocale() or "enUS"
+    local cyrillic = CYRILLIC[game] or (HC.Locale and CYRILLIC[HC.Locale.Current()])
+    return cyrillic and "  \226\128\162  " or "  \194\183  "
+end
+
 -- `text` in `color`, for chat and tooltips.
 function Theme.Paint(text, color)
     return "|cff" .. Theme.Hex(color) .. tostring(text) .. "|r"

@@ -138,7 +138,7 @@ local function Paint(gathered, note)
     local count = #gathered
     banner.ribbon.text:SetText(count >= RAID and L["A family raid!"] or L["Family reunion!"])
     local line = string.format(L["%d of House %s in one group"], count, surname or "")
-    banner.line:SetText(note and (line .. "  ·  " .. note) or line)
+    banner.line:SetText(note and (line .. Theme.Sep() .. note) or line)
     local shown = math.min(count, FACES)
     local eldest = Kin.Eldest()
     local gap = (WIDTH - 40) / math.max(shown, 1)

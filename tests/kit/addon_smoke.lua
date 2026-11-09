@@ -2774,6 +2774,15 @@ HC.Theme.SetSkin("pixel")
 NoErrors(HC, "family reunion")
 end)()
 
+-- === The dot between words =================================================================
+
+;(function() -- (its own locals: a chunk keeps 200 at most)
+HC = Mock.Boot("forever", { setupDone = true, language = "ruRU" })
+check(HC.Theme.Sep():find(string.char(226, 128, 162), 1, true) ~= nil, "Russian: a bullet, as the Cyrillic font has no middle dot")
+HC = Mock.Boot("forever", { setupDone = true, language = "deDE" })
+check(HC.Theme.Sep():find(string.char(194, 183), 1, true) ~= nil, "German: the middle dot")
+end)()
+
 -- === Broken saved data ========================================================================
 
 HC = Mock.Boot("forever", { skin = "nope", chats = "x", setupDone = true, windows = 5,

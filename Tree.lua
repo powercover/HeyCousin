@@ -95,7 +95,7 @@ local function PaintBox(box, member, word)
     box.name:SetTextColor(color[1], color[2], color[3])
     -- their word, and their level (or "you") when there's room for it
     local after = member.me and L["you"] or member.level and tostring(member.level)
-    box.line:SetText(after and (word .. " · " .. after) or word)
+    box.line:SetText(after and (word .. Theme.Sep() .. after) or word)
     if after and box.line:GetStringWidth() > LINE_W then
         box.line:SetText(word)
     end
@@ -256,7 +256,7 @@ local function PaintCard(member, family)
     elseif member.seen then
         parts[#parts + 1] = LastOnline(member.seen)
     end
-    card.line:SetText(table.concat(parts, "  ·  "))
+    card.line:SetText(table.concat(parts, Theme.Sep()))
     -- nothing to send yourself; a whisper or an invite only reaches someone online
     local other = not member.me
     card.whisper:SetShown(other)
@@ -324,7 +324,7 @@ local function PaintHeader(family, total, online)
     local metal = Theme.Title()
     tree.title:SetTextColor(metal[1], metal[2], metal[3])
     tree.title:SetText(family and family.guild or "")
-    tree.count:SetText(family and (string.format(L["%d in the family"], total) .. "  ·  "
+    tree.count:SetText(family and (string.format(L["%d in the family"], total) .. Theme.Sep()
         .. Theme.Paint(string.format(L["%d online"], online), C.near)) or "")
     local leads = family ~= nil and HC.Guild.Leads()
     tree.setup:SetShown(leads)

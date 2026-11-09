@@ -101,7 +101,7 @@ local function PaintRow(row, item)
     row.name:SetTextColor(color[1], color[2], color[3])
     local where = item.zone or ""
     if Utils.IsUsableString(item.guild) then
-        where = where ~= "" and (where .. "  ·  " .. item.guild) or item.guild
+        where = where ~= "" and (where .. Theme.Sep() .. item.guild) or item.guild
     end
     row.where:SetText(where)
 end

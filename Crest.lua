@@ -213,8 +213,11 @@ local function PaintInitial(self, crest, surname, size, y, enemy, filter)
         self.symbol:Show()
         return
     end
-    -- (the font first, on no words: a new look changes it, and a letter set before can turn to a box)
-    self.letter:SetText("")
+    -- (the font first, on no words: a new look changes it, and a letter set before can turn to a box.
+    -- A letter never given a font has no words to clear: SetText before any font is an error.)
+    if self.letter:GetFontObject() then
+        self.letter:SetText("")
+    end
     self.letter:SetFontObject(Theme.DisplayFont(size * 0.42, size >= 30 and "OUTLINE" or nil))
     self.letter:SetText(initial)
     self.letter:SetTextColor(color[1], color[2], color[3])

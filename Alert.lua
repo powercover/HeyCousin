@@ -270,7 +270,7 @@ local function Paint(item)
     local line = Theme.Paint(full, Utils.ClassColor(relative.class))
     local className = Utils.ClassName(relative.class, relative.sex)
     if relative.level and className then
-        line = line .. Theme.Paint("  ·  " .. string.format(L["Level %d %s"], relative.level, className), C.text2)
+        line = line .. Theme.Paint(Theme.Sep() .. string.format(L["Level %d %s"], relative.level, className), C.text2)
     end
     toast.name:SetText(line)
     local note
@@ -288,7 +288,7 @@ local function Paint(item)
         note = string.format(L["Met %d times"], relative.met)
     end
     -- (after a long time apart, when and where is what counts: the click hint makes room)
-    toast.note:SetText(item.apart and note or (note .. "  ·  " .. L["Click: target · Right-click: family"]))
+    toast.note:SetText(item.apart and note or (note .. Theme.Sep() .. L["Click: target · Right-click: family"]))
 
     local glow = sheep and C.enemy or accent
     toast.glow:SetVertexColor(glow[1], glow[2], glow[3], 0.5)

@@ -247,6 +247,8 @@ end
 function FontString:GetFontObject() return self.font end
 function FontString:SetText(text)
     assert(text == nil or type(text) == "string" or type(text) == "number", "SetText needs text, got " .. type(text))
+    -- (the game's own error: words on a font string that has no font yet)
+    assert(self.font ~= nil, "FontString:SetText(): Font not set")
     self.text = text and tostring(text) or ""
 end
 function FontString:GetText() return self.text end

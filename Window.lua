@@ -448,10 +448,10 @@ local function PaintMeeting(meeting, first)
     local detail = page.detail
     local lasted = Lasted(meeting)
     detail.when:SetText(Utils.When(meeting.at)
-        .. (lasted and Theme.Paint("  ·  " .. string.format(L["%s together"], lasted), C.text3) or ""))
+        .. (lasted and Theme.Paint(Theme.Sep() .. string.format(L["%s together"], lasted), C.text3) or ""))
     local place = Place(meeting)
     if Utils.IsUsableNumber(meeting.x) and Utils.IsUsableNumber(meeting.y) then
-        place = place .. Theme.Paint(string.format("  ·  %.1f, %.1f", meeting.x, meeting.y), C.text3)
+        place = place .. Theme.Paint(Theme.Sep() .. string.format("%.1f, %.1f", meeting.x, meeting.y), C.text3)
     end
     detail.place:SetText(place)
     local how = {}
@@ -469,7 +469,7 @@ local function PaintMeeting(meeting, first)
     if meeting.night == true then
         how[#how + 1] = L["At night"]
     end
-    detail.how:SetText(table.concat(how, "  ·  "))
+    detail.how:SetText(table.concat(how, Theme.Sep()))
     local levels = {}
     if Utils.IsUsableNumber(meeting.level) then
         levels[#levels + 1] = string.format(L["%s: level %d"], first, meeting.level)
@@ -480,7 +480,7 @@ local function PaintMeeting(meeting, first)
     if Utils.IsUsableString(meeting.guild) then
         levels[#levels + 1] = "<" .. meeting.guild .. ">"
     end
-    detail.levels:SetText(table.concat(levels, "  ·  "))
+    detail.levels:SetText(table.concat(levels, Theme.Sep()))
     detail.said:SetText(Utils.IsUsableString(meeting.said) and ("\226\128\156" .. meeting.said .. "\226\128\157") or "")
     PaintGear(detail, meeting)
 end
@@ -614,7 +614,7 @@ local function PaintPage(keep)
     if Utils.IsUsableString(relative.guild) then
         parts[#parts + 1] = "<" .. relative.guild .. ">"
     end
-    page.line:SetText(table.concat(parts, "  ·  "))
+    page.line:SetText(table.concat(parts, Theme.Sep()))
     local met = relative.met or 0
     local notMet = relative.found and L["Not met yet: found by searching"]
         or relative.shared and L["Not met yet: they share their place on the map"] or L["Not met yet: known from the guild"]
@@ -625,9 +625,9 @@ local function PaintPage(keep)
     local layer = HC.Layer and HC.Layer.Status(opened)
     -- (what matters first: on a narrow line, what can wait is what's cut)
     -- their motto first, if their addon told it
-    local motto = Utils.IsUsableString(relative.motto) and ("\226\128\156" .. relative.motto .. "\226\128\157  ·  ") or ""
-    page.met:SetText(motto .. metText .. (relative.usesAddon and ("  ·  " .. L["(uses addon)"]) or "")
-        .. (layer and ("  ·  " .. layer) or "") .. "  ·  " .. string.format(L["first seen: %s"], Utils.When(relative.firstSeen)))
+    local motto = Utils.IsUsableString(relative.motto) and ("\226\128\156" .. relative.motto .. "\226\128\157" .. Theme.Sep()) or ""
+    page.met:SetText(motto .. metText .. (relative.usesAddon and (Theme.Sep() .. L["(uses addon)"]) or "")
+        .. (layer and (Theme.Sep() .. layer) or "") .. Theme.Sep() .. string.format(L["first seen: %s"], Utils.When(relative.firstSeen)))
     -- black sheep play on the other side: no layer of theirs to join
     page.layer:SetShown(not sheep)
     page.layer:SetEnabled(HC.Layer == nil or HC.Layer.CanAsk(opened))
@@ -1043,7 +1043,7 @@ local function PaintHeader()
     local room = WIDTH - PAD * 2 - (HC.TestMode.active and window.badge:GetWidth() + 10 or 0)
         - (showRecruit and window.recruit:GetWidth() + 10 or 0)
     repeat
-        window.footer:SetText(table.concat(parts, Theme.Paint("  ·  ", C.text3)))
+        window.footer:SetText(table.concat(parts, Theme.Paint(Theme.Sep(), C.text3)))
         local fits = #parts <= 1 or window.footer:GetStringWidth() <= room
         if not fits then
             parts[#parts] = nil

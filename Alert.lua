@@ -287,7 +287,8 @@ local function Paint(item)
     else
         note = string.format(L["Met %d times"], relative.met)
     end
-    toast.note:SetText(note .. "  ·  " .. L["Click: target · Right-click: family"])
+    -- (after a long time apart, when and where is what counts: the click hint makes room)
+    toast.note:SetText(item.apart and note or (note .. "  ·  " .. L["Click: target · Right-click: family"]))
 
     local glow = sheep and C.enemy or accent
     toast.glow:SetVertexColor(glow[1], glow[2], glow[3], 0.5)

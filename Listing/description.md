@@ -2,11 +2,11 @@
 
 **WoW Forever gave everyone a surname. Find out who else has yours.**
 
-Hey Cousin! is the family finder for World of Warcraft Forever. One click shows everyone online with your surname. Then talk to them, group up, recruit them to your guild, and see them on your map.
+Hey Cousin! is the surname finder and family finder for World of Warcraft Forever. Your surname is your last name or second name, the one after your first name. One click shows every player online with your surname, your cousins. Then talk to them, group up, recruit them to your guild, and see them on your map.
 
 **At a glance:**
 
-- **One-click family finder:** everyone online with your exact surname, with level, zone and guild
+- **One-click surname finder:** everyone online with your exact surname (last name), with level, zone and guild
 - **Family chat:** `/fam` talks to your cousins, in any guild
 - **Group finder:** post "Deadmines, need a healer" and cousins can ask to join
 - **Family map:** cousins who share show on the world map and minimap

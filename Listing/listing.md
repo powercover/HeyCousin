@@ -6,9 +6,9 @@ What to fill in when creating the project on each site. Nothing in this folder s
 
 | Field | Value |
 | --- | --- |
-| Name | Hey Cousin! |
+| Name | Hey Cousin! Surname & Family Finder |
 | URL slug (CurseForge) | `hey-cousin` |
-| Summary | Family finder for WoW Forever: one click finds everyone online with your surname. Family chat, group finder, map and nameplate crests, guild recruiting. |
+| Summary | Surname finder for WoW Forever: one click finds every player online who shares your surname, your last name or second name. Family chat, group finder, map and nameplate crests, guild recruiting |
 | Description | [description.md](description.md), as Markdown, with the image addresses filled in (see below) |
 | Logo | On CurseForge: [emblem-small.gif](emblem-small.gif), animated, and it works there. Its thumbnails give every frame the first frame's delay, so a logo needs the same delay on all frames. [logo.png](logo.png) and [logo-transparent.png](logo-transparent.png) are the still ones (1024 x 1024) |
 | License | All Rights Reserved |
@@ -19,6 +19,14 @@ What to fill in when creating the project on each site. Nothing in this folder s
 | Source code link | `https://github.com/powercover/HeyCousin` |
 | Issues link | `https://github.com/powercover/HeyCousin/issues` |
 | Donation link | None (your call; keep it out of the addon) |
+
+## Being found
+
+CurseForge's search (2026-11-09) found Hey Cousin! for "family" and "cousin", but not for "surname", "last
+name", "second name" or "family name", though the summary said "surname.". It matches the name best, so the
+name carries "Surname" and "Family", and the summary and the description's first lines say surname, last
+name and second name, each with a space after it (a word right before a period may not count). Change the
+name and summary on both sites by hand; the URL slug stays `hey-cousin`.
 
 ## Images
 

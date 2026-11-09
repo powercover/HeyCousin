@@ -11,6 +11,9 @@ Hey Cousin! is the surname finder and family finder for World of Warcraft Foreve
 - **Crests on nameplates:** spot a cousin in a crowd
 - **Guild recruiting:** invite the cousins who have no guild yet
 - **"A cousin is near!"** A pop-up when you meet, and one click to wave hello
+- **Family reunions:** a banner when cousins are in your group
+- **Family achievements,** quiet ones: no pop-ups, no sounds
+- **Backup:** your whole family as one line of text, safe from a deleted WTF folder
 - **Your own family crest,** three looks, 12 languages, and no other addons needed
 
 It's useful from your first minute, even if nobody else in your family has it yet: the finder, pop-ups, crests, guild recruiting and your family's history all work alone.
@@ -33,7 +36,7 @@ Want to see another family? **Look up any surname** with `/cousin find Surname`.
 
 A pop-up with their face and a sound the first time you meet, or every time if you want. Click it to target them. Click **Hey cousin!** and you wave and say "Hey cousin Mira!" out loud, so everyone around sees it.
 
-A cousin on the other side of the war is the family's **black sheep**, with a pop-up of their own.
+A cousin on the other side of the war is the family's **black sheep**, with a pop-up of their own. Meet a cousin again after two weeks apart, and it says **"Long time no see!"**, with when and where you met last.
 
 ## Spot a cousin in a crowd
 
@@ -58,6 +61,11 @@ When your cousins have the addon too, they're marked **(uses addon)**, you see t
 - **Talk:** `/fam` reaches every cousin online who has it, on your faction, in any guild. Only people with your surname see it: like a guild chat for your family.
 - **Find a group:** say what you're looking for on the **Groups** tab. Cousins click **Join**, you get one Invite button.
 - **Hear the news:** a line in chat when a cousin comes online or reaches a round level.
+- **See their motto:** cousins with the addon see your motto on your page and your tooltip, and you see theirs.
+
+## Family reunions
+
+When two or more of your house are in one group, everyone in it who has the addon gets a banner with your crests side by side, and a crown on the eldest. Five or more, and it's **a family raid**. Once a group, again when another cousin joins, never in a fight. Try it with `/cousin test reunion`.
 
 ## The family race and portrait
 
@@ -67,7 +75,11 @@ Who's the highest level in your family? **The family race** ranks you and your c
 
 ![A family portrait](https://media.forgecdn.net/attachments/2158/178/portrait-png.png)
 
-**The family portrait** puts your house on one card: crest, motto, numbers and the cousins you meet most. Made for a screenshot to share with your family or Discord.
+**The family portrait** puts your house on one card: crest, motto, who's online, the eldest, the highest level and the cousins you meet most. **Take a picture** saves it as a screenshot without the card's buttons, to share with your family or Discord.
+
+## Family achievements
+
+Eleven small things a family does: your first cousin, ten cousins, the black sheep, the eldest, an old friend met ten times, a reunion, a family raid and more. **Quiet on purpose:** no pop-up and no sound, one line in chat when you earn one (one line for several), and a switch turns even that off. They're behind the star on the Stats tab.
 
 ## Build your house
 
@@ -76,6 +88,7 @@ Who's the highest level in your family? **The family race** ranks you and your c
 - **Your crest:** shape, pattern, colors, a symbol and a motto, or roll the dice. It shows at the start of cousins' chat lines, in tooltips and on the minimap.
 - **Your other characters** show in your family, and a crown marks the eldest cousin we know, by a good guess.
 - **Stats:** how many relatives you have, who you meet most, and the surnames you see most.
+- **Other houses:** a player of another house shows how many of it you've met in their tooltip ("House Stone: met 3").
 
 Great for roleplay families, too.
 
@@ -99,6 +112,7 @@ Pixel, Forever (the classic game's parchment) and Smooth. Switch any time.
 - **Open about what it shares:** your addon quietly tells cousins' addons your class, level and crest, and that you run it: nothing `/who` doesn't already show, but that. Where you are stays private until you turn sharing on.
 - **Light:** windows are built only when you open them, and nothing runs in the background unless it has to.
 - **Easy to start:** a two-step setup, or skip it: everything has a good default, and everything is in the settings.
+- **Keep it safe:** **Backup** turns everything the addon keeps into one line of text. Keep it in a note or on Discord, and paste it back after a new computer or a deleted WTF folder. It's read as data, never run as code.
 
 ## Commands
 
@@ -110,14 +124,16 @@ Pixel, Forever (the classic game's parchment) and Smooth. Switch any time.
 - `/cousin tree`: your guild as a family tree
 - `/cousin race`: the family race
 - `/cousin portrait`: your family portrait
+- `/cousin achievements`: your family achievements
+- `/cousin backup`: keep your family safe, or bring it back
 - `/cousin settings`: every choice, by what it's for
 - `/cousin setup`: your crest and the main choices, step by step
-- `/cousin test` and `/cousin test map`: try the pop-up and the map crests
+- `/cousin test`, `/cousin test map` and `/cousin test reunion`: try the pop-up, the map crests and a reunion
 
 12 languages: English, German, French, Italian, Spanish (Spain and Latin America), Brazilian Portuguese, Russian, Ukrainian, Korean, and Chinese (simplified and traditional).
 
 ## Still young
 
-The game is new, and so is this. Family chat and the map are tested between real players. The guild features, groups, and the minimap and nameplate crests have had the least testing in the live game. If something looks wrong, or you try it with your nameplate addon (open the settings' Nameplates page to see), please tell me in the comments or on [GitHub](https://github.com/powercover/HeyCousin/issues).
+The game is new, and so is this. Family chat, the map, the minimap and nameplate crests, achievements and backup are tested in the live game. The guild features, groups and reunions have had the least testing there. If something looks wrong, or you try it with your nameplate addon (open the settings' Nameplates page to see), please tell me in the comments or on [GitHub](https://github.com/powercover/HeyCousin/issues).
 
 The [source code](https://github.com/powercover/HeyCousin) is there too, so you can read exactly what the addon sends. All rights reserved.

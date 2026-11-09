@@ -48,10 +48,12 @@ They aren't game screenshots.
 | `IMAGE_HEY` | [hey.png](hey.png): the pop-up, with its "Hey cousin!" button |
 | `IMAGE_PLATES` | [nameplates.png](nameplates.png): the settings' sample nameplates, friend and black sheep |
 | `IMAGE_RACE` | [race.png](race.png): the family race |
-| `IMAGE_PORTRAIT` | [portrait.png](portrait.png): the family portrait |
+| `IMAGE_PORTRAIT` | [portrait.png](portrait.png): the family portrait (drawn again for 1.1.3: upload it again) |
+| `IMAGE_REUNION` | [reunion.png](reunion.png): a family reunion banner |
+| `IMAGE_ACHIEVEMENTS` | [achievements.png](achievements.png): the family achievements |
 
-The gallery's own order, best first: found, map, hey, groups, nameplates, portrait, page, race, crests, looks,
-tree.
+The gallery's own order, best first: found, map, hey, reunion, groups, nameplates, portrait, achievements, page,
+race, crests, looks, tree.
 
 ### Gallery addresses
 

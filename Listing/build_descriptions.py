@@ -31,6 +31,8 @@ ADDRESSES = {
                   "https://cdn.wago.io/gallery/CyJEzayw9lByi8uQVbm4E8xBmYK1DqQpdqL8PT4E.png"),
     "IMAGE_RACE": ("https://media.forgecdn.net/attachments/2158/180/race-png.png",
                 "https://cdn.wago.io/gallery/1kEGVIcyhDKD59vy2zFtMzDxERhHP1zyq7FkFgBX.png"),
+    "IMAGE_REUNION": (None, None),
+    "IMAGE_ACHIEVEMENTS": (None, None),
     "IMAGE_PORTRAIT": ("https://media.forgecdn.net/attachments/2158/178/portrait-png.png",
                     "https://cdn.wago.io/gallery/u9wPrkYpquori9Bd2Vn3JI7sw8k28dFbJtVffIVM.png"),
 }

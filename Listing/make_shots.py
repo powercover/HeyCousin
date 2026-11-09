@@ -285,7 +285,11 @@ def main():
     window_card("race.png", "2bb-race.png", "THE FAMILY RACE",
                 "You and your cousins with the addon, by level. A line in chat tells you when one passes you.")
     window_card("portrait.png", "2bc-portrait.png", "A FAMILY PORTRAIT",
-                "Your house on one card: crest, motto, numbers and the cousins you meet most. Made for a screenshot.")
+                "Your house on one card: crest, motto, who's online, the highest level and the cousins you meet most. One click takes the picture.")
+    window_card("reunion.png", "3c-reunion.png", "FAMILY REUNION",
+                "Two or more of your house in one group get a banner with your crests side by side. Five or more, a family raid.")
+    window_card("achievements.png", "2bd-achievements.png", "FAMILY ACHIEVEMENTS",
+                "Your first cousin, the black sheep, the eldest, a family raid and more. Quiet on purpose: one line in chat, no pop-ups.")
     window_card("nameplates.png", "5f-settings-plates.png", "SPOT A COUSIN IN A CROWD",
                 "A red crest for a black sheep. Drag it in the settings: while that page is open, the real plates around you show it too.")
     map_card()

@@ -163,7 +163,12 @@ end
 -- A family reunion: you and three cousins in one group
 function Screens.reunion(skin)
     local HC = Boot(skin)
-    HC.Reunion.Preview()
+    local relatives = HC.TestMode.House().relatives
+    local gathered = { { first = "Rowan", class = "WARRIOR", crest = HC.Kin.Crest(), me = true } }
+    for _, first in ipairs({ "Mira", "Thane", "Lia" }) do
+        gathered[#gathered + 1] = { first = first, class = relatives[first] and relatives[first].class, crest = HC.Kin.Crest() }
+    end
+    HC.Reunion.Show(gathered)
     Mock.Tick(30, 0.1)
     return { frames = { HeyCousinReunion } }
 end

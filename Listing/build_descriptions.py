@@ -31,10 +31,12 @@ ADDRESSES = {
                   "https://cdn.wago.io/gallery/CyJEzayw9lByi8uQVbm4E8xBmYK1DqQpdqL8PT4E.png"),
     "IMAGE_RACE": ("https://media.forgecdn.net/attachments/2158/180/race-png.png",
                 "https://cdn.wago.io/gallery/1kEGVIcyhDKD59vy2zFtMzDxERhHP1zyq7FkFgBX.png"),
-    "IMAGE_REUNION": ("https://media.forgecdn.net/attachments/2175/370/reunion-png.png", None),
-    "IMAGE_ACHIEVEMENTS": ("https://media.forgecdn.net/attachments/2175/376/achievements-png.png", None),
+    "IMAGE_REUNION": ("https://media.forgecdn.net/attachments/2175/370/reunion-png.png",
+                  "https://cdn.wago.io/gallery/w72ndh8h3RogfLdDJ1FhU65bnYqY8GtJSwLeBTeM.png"),
+    "IMAGE_ACHIEVEMENTS": ("https://media.forgecdn.net/attachments/2175/376/achievements-png.png",
+                       "https://cdn.wago.io/gallery/r7Pd0vcAUDTsRFCrgOOniSBLLv3xGI9GQCjUVPD7.png"),
     "IMAGE_PORTRAIT": ("https://media.forgecdn.net/attachments/2175/384/portrait-png.png",
-                    "https://cdn.wago.io/gallery/u9wPrkYpquori9Bd2Vn3JI7sw8k28dFbJtVffIVM.png"),
+                    "https://cdn.wago.io/gallery/XL89VMKPxaVHuk4OSKbq70OqYwso4dUaOaU70pgH.png"),
 }
 
 

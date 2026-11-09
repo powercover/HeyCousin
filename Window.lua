@@ -260,11 +260,19 @@ local HOW = {
 local INSTANCES = { party = "In a dungeon", raid = "In a raid", pvp = "In a battleground", arena = "In an arena",
     scenario = "In a scenario" }
 
-local function Whisper(full)
+-- A whisper to `full` in your chat box; `words` wait there, yours to send with Enter or to change.
+local function Whisper(full, words)
     local send = (ChatFrameUtil and ChatFrameUtil.SendTell) or ChatFrame_SendTell
     if type(send) == "function" then
         -- the default chat frame given: the game's own way, no temporary window
         send(full, DEFAULT_CHAT_FRAME)
+    end
+    if words then
+        local active = (ChatFrameUtil and ChatFrameUtil.GetActiveWindow) or ChatEdit_GetActiveWindow
+        local box = type(active) == "function" and Utils.Call(active)
+        if box and type(box.Insert) == "function" then
+            pcall(box.Insert, box, words)
+        end
     end
 end
 
@@ -538,7 +546,15 @@ local function BuildPage()
         end
     end
     Theme.OnClick(page.whisper, "whisper", Act(function(first, surname)
-        Whisper(Names.Full(first, surname))
+        -- the first whisper to a cousin starts with a hello
+        local house = Kin.House()
+        local relative = house and house.relatives[first]
+        local words
+        if relative and not relative.greeted then
+            relative.greeted = true
+            words = string.format(L["Hi cousin! We share the %s name :)"], surname)
+        end
+        Whisper(Names.Full(first, surname), words)
     end))
     Theme.OnClick(page.invite, "invite", Act(function(first, surname)
         Invite(Names.Full(first, surname))

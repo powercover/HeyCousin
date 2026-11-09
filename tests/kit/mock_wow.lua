@@ -413,6 +413,10 @@ local function Globals()
             table.insert(Mock.filters[event], fn)
         end,
         SendTell = function(name) table.insert(Mock.tells, name) end,
+        -- the chat box open now: what the addon puts in it goes to Mock.typed
+        GetActiveWindow = function()
+            return { Insert = function(_, text) Mock.typed = (Mock.typed or "") .. text end }
+        end,
         OpenChat = function(text) table.insert(Mock.opened, text) end,
     }
     C_ChatInfo = {

@@ -20,6 +20,7 @@ CanInspect
 ChatFrameUtil
 ChatFrame_AddMessageEventFilter
 ChatFrame_OpenChat
+ChatEdit_GetActiveWindow
 ChatFrame_SendTell
 CheckInteractDistance
 ClearInspectPlayer

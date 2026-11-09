@@ -483,8 +483,13 @@ local mira = All(window, function(f) return f.item and f.item.first == "Mira" an
 check(mira ~= nil, "Mira is in the list")
 mira:Click()
 Settle()
+Mock.typed = nil
 ButtonWith(window, "Whisper"):Click()
 check(Mock.tells[#Mock.tells] == "Mira Ashbrook", "Whisper opens a whisper to their whole name")
+check(Mock.typed == "Hi cousin! We share the Ashbrook name :)", "the first one starts with a hello: " .. tostring(Mock.typed))
+Mock.typed = nil
+ButtonWith(window, "Whisper"):Click()
+check(Mock.typed == nil, "the next ones start empty")
 ButtonWith(window, "Invite"):Click()
 check(Mock.invites[#Mock.invites] == "Mira Ashbrook", "Invite invites them")
 SlashCmdList.HEYCOUSIN("status")

@@ -1,4 +1,19 @@
-# Hey Cousin! 1.1.2
+# Hey Cousin! 1.1.3
+
+- **Family achievements.** Eleven small things a family does: your first cousin, ten cousins, the black
+  sheep, the eldest, a reunion, a family raid and more. Quiet on purpose: no pop-up and no sound, one line in
+  chat when you earn one (one line for several, and a setting turns it off), and what you'd already done
+  counts without a word. The star on the Stats tab, or `/cousin achievements`.
+- **Backup and restore.** Your whole family (cousins, meetings, crest, motto, achievements, settings) as one
+  line of text to keep anywhere, and back after a new computer or a deleted WTF folder. The settings' About
+  page, or `/cousin backup`. It's read as data, never run as code.
+- **Long time no see!** A pop-up when you meet a cousin again after two weeks apart, with how long and where
+  you met last.
+- **A hello in your first whisper.** "Hi cousin! We share the Ashbrook name :)" waits in your chat box,
+  yours to send or change.
+- **Safer in dungeons and raids:** the family channel waits there, out of combat too.
+
+## 1.1.2
 
 - **Family reunions.** When two or more of your house are in one group, everyone in it who has the addon
   gets a banner with your crests side by side; five or more, a family raid. Once a group, again when

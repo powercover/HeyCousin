@@ -41,12 +41,11 @@ local bridge
 -- What's new in this version: the version number's tooltip.
 local function News()
     return {
-        L["Family reunions: a banner when cousins are in your group. Try /cousin test reunion."],
-        L["The family portrait shows who's online and the highest level, with a Take a picture button."],
-        L["Mottos travel: cousins with the addon see yours, and you see theirs."],
-        L["Tooltips show other houses: how many of each you've met."],
-        L["Look up a family also finds players from other realms in your group."],
-        L["Fixed: an error in dungeon fights, and surnames counted again after each login."],
+        L["Family achievements: eleven quiet ones, behind the star on the Stats tab."],
+        L["Backup: your whole family as one line of text to keep safe. In About, or /cousin backup."],
+        L["Long time no see: a pop-up when you meet a cousin again after two weeks."],
+        L["Your first whisper to a cousin starts with a hello."],
+        L["In dungeons and raids the family channel waits, so it makes no errors there."],
     }
 end
 

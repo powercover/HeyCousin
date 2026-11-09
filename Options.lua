@@ -504,6 +504,12 @@ local function BuildAbout()
     p.y = p.y + 2
     local setup = Action(p, L["Open the setup"], OpenSetup())
     setup:SetPoint("TOPLEFT", 0, p.y)
+    -- everything the addon keeps, as a line of text to keep safe
+    local backup = Action(p, L["Backup"], function()
+        window:Hide()
+        HC.Backup.Show()
+    end)
+    backup:SetPoint("LEFT", setup, "RIGHT", 6, 0)
     p.y = p.y - 34
     Heading(p, L["Chat commands"])
     for _, command in ipairs(HC.Commands()) do
@@ -511,7 +517,7 @@ local function BuildAbout()
         line:SetPoint("TOPLEFT", 0, p.y)
         line:SetPoint("RIGHT", p, "RIGHT", 0, 0)
         line:SetText(command)
-        p.y = p.y - 17
+        p.y = p.y - 15
     end
     return p
 end

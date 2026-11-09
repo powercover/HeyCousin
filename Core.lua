@@ -105,6 +105,7 @@ function HC.Commands()
         "/cousin race - " .. L["the family race, by level"],
         "/cousin portrait - " .. L["your house on one card, for a screenshot"],
         "/cousin achievements - " .. L["your family achievements"],
+        "/cousin backup - " .. L["keep your family safe, or bring it back"],
         "/cousin find Surname - " .. L["who's online with any surname"],
         "/cousin settings - " .. L["every choice, by what it's for"],
         "/cousin setup - " .. L["your crest and the main choices"],
@@ -155,6 +156,8 @@ local function HandleSlash(message)
         HC.Portrait.Toggle()
     elseif command == "achievements" then
         HC.Badges.Toggle()
+    elseif command == "backup" or command == "restore" then
+        HC.Backup.Show()
     elseif command == "race" then
         HC.Window.Show("stats")
         HC.Window.Race(true)

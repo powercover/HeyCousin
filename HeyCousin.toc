@@ -51,6 +51,7 @@ Groups.lua
 Race.lua
 Portrait.lua
 Badges.lua
+Backup.lua
 Lookup.lua
 Window.lua
 Tooltip.lua

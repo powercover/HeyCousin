@@ -17,10 +17,10 @@ C_Texture
 C_Timer
 CanGuildInvite
 CanInspect
+ChatEdit_GetActiveWindow
 ChatFrameUtil
 ChatFrame_AddMessageEventFilter
 ChatFrame_OpenChat
-ChatEdit_GetActiveWindow
 ChatFrame_SendTell
 CheckInteractDistance
 ClearInspectPlayer
@@ -112,6 +112,7 @@ UnitFullName
 UnitGUID
 UnitInParty
 UnitInRaid
+UnitIsFriend
 UnitIsPlayer
 UnitIsSameServer
 UnitIsUnit
@@ -129,6 +130,7 @@ WOW_PROJECT_MAINLINE
 WorldMapFrame
 _G
 date
+error
 ipairs
 issecretvalue
 math
@@ -145,4 +147,3 @@ tonumber
 tostring
 type
 unpack
-UnitIsFriend

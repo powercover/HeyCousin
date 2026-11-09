@@ -2511,6 +2511,7 @@ NoErrors(HC, "a new player who closed the setup")
 
 -- === Long time no see =========================================================================
 
+;(function() -- (its own locals: a chunk keeps 200 at most)
 HC = Mock.Boot("forever", { setupDone = true, houses = { Ashbrook = { relatives = {
     Pip = { met = 1, firstSeen = 1700000000 - 40 * 86400, lastSeen = 1700000000 - 20 * 86400, class = "MAGE",
         meetings = { { at = 1700000000 - 21 * 86400, last = 1700000000 - 20 * 86400, zone = "Duskwood" } } },
@@ -2537,9 +2538,72 @@ Mock.Fire("PLAYER_TARGET_CHANGED")
 Settle()
 check(not apartToast:IsShown(), "two days apart: no pop-up (first time only, by default)")
 NoErrors(HC, "long time no see")
+end)()
+
+-- === Backup and restore =======================================================================
+
+;(function() -- (its own locals: a chunk keeps 200 at most)
+local function Same(a, b, path)
+    if type(a) ~= type(b) then return false, path end
+    if type(a) ~= "table" then return a == b, path end
+    for k, v in pairs(a) do
+        local ok, where = Same(v, b[k], path .. "." .. tostring(k))
+        if not ok then return false, where end
+    end
+    for k in pairs(b) do
+        if a[k] == nil then return false, path .. "." .. tostring(k) end
+    end
+    return true
+end
+local odd = 'He said "hi" | back\\slash' .. string.char(10) .. "and Ünïcödé, Кузен, 表亲"
+HC = Mock.Boot("forever", { setupDone = true, skin = "smooth", plateX = 1.25, houses = { Ashbrook = {
+    motto = odd, relatives = { Mira = { met = 3, level = 23, meetings = { { at = 1700000000, zone = "Duskwood" } } } },
+    badges = { first = 1700000000 } } }, probe = { secret = "x" } })
+local line = HC.Backup.Make()
+check(not line:find("|", 1, true) and not line:find(string.char(10), 1, true), "one line, with no | for the chat box")
+local back = HC.Backup.Read(line)
+local expected = {}
+for k, v in pairs(HeyCousinDB) do if k ~= "probe" and k ~= "debug" and k ~= "whoFrames" then expected[k] = v end end
+local same, where = Same(expected, back or {}, "db")
+check(back and same, "read back, everything is as it was: " .. tostring(where))
+check(back and back.houses.Ashbrook.motto == odd, "quotes, |, backslashes, new lines and any letters come back")
+check(back and back.probe == nil, "what /cousin probe gathered isn't kept")
+local _, why = HC.Backup.Read(line:sub(1, -20))
+check(why == "cut", "only part of a line: it says so")
+_, why = HC.Backup.Read("hello")
+check(why == "not", "not a backup: it says so")
+local function Lined(body)
+    return HC.Backup.Read("HeyCousin1:" .. #body .. ":0:" .. body)
+end
+check(Lined("os.exit()") == nil and Lined(string.rep("{", 100)) == nil, "anything else, or too deep: nothing")
+-- the window: make, then restore with two clicks
+SlashCmdList.HEYCOUSIN("backup")
+local backupWindow = _G.HeyCousinBackup
+check(backupWindow and backupWindow:IsShown(), "/cousin backup opens it")
+ButtonWith(backupWindow, "Make a backup"):Click()
+local backupBox = All(backupWindow, function(f) return f.kind == "EditBox" end)[1]
+check(HC.Backup.Read(backupBox:GetText()) ~= nil, "Make a backup puts a whole line in the box")
+backupBox:SetText("")
+HeyCousinDB.houses.Ashbrook.motto = "changed"
+HeyCousinDB.newThing = true
+backupBox:SetText(line)
+local reloadsBefore = Mock.reloads or 0
+ButtonWith(backupWindow, "Restore"):Click()
+check((Mock.reloads or 0) == reloadsBefore and HeyCousinDB.newThing == true, "the first click only asks")
+ButtonWith(backupWindow, "Click again to restore"):Click()
+check(Mock.reloads == reloadsBefore + 1 and HeyCousinDB.houses.Ashbrook.motto == odd and HeyCousinDB.newThing == nil
+    and HeyCousinDB.probe ~= nil, "the second restores it, keeps the probe's, and reloads")
+backupBox:SetText("nonsense")
+local restoreAgain = ButtonWith(backupWindow, "Restore") or ButtonWith(backupWindow, "Click again to restore")
+restoreAgain:Click()
+check(Mock.reloads == reloadsBefore + 1, "nonsense restores nothing")
+backupWindow:Hide()
+NoErrors(HC, "backup and restore")
+end)()
 
 -- === Family achievements ======================================================================
 
+;(function() -- (its own locals: a chunk keeps 200 at most)
 local twelve = {}
 for i = 1, 12 do
     twelve["Kin" .. i] = { met = 1, firstSeen = 1700000000 - 86400, lastSeen = 1700000000 - 86400, class = "MAGE" }
@@ -2604,9 +2668,11 @@ HC = Mock.Boot("retail", { setupDone = true })
 HC.Badges.Earn("hey")
 check(not (HC.TestMode.House().badges or {}).hey, "test mode: nothing earned")
 NoErrors(HC, "family achievements")
+end)()
 
 -- === The surnames you meet ====================================================================
 
+;(function() -- (its own locals: a chunk keeps 200 at most)
 -- each player counts once: not again after a reload
 local bob = { name = "Bob", surname = "Stone", guid = "Player-1-BOB", class = "ROGUE", faction = "Alliance" }
 HC = Mock.Boot("forever", { setupDone = true })
@@ -2627,9 +2693,11 @@ Mock.units.mouseover = bob
 Mock.Fire("UPDATE_MOUSEOVER_UNIT")
 check(HeyCousinDB.surnames.Stone == 1, "and count again, one a player")
 NoErrors(HC, "the surnames you meet")
+end)()
 
 -- === Family reunion ===========================================================================
 
+;(function() -- (its own locals: a chunk keeps 200 at most)
 local function Says(root, words)
     for _, region in ipairs(root.regions or {}) do
         if type(region.text) == "string" and region.text:find(words, 1, true) and region:IsVisible() then return region end
@@ -2704,6 +2772,7 @@ SlashCmdList.HEYCOUSIN("test reunion")
 check(_G.HeyCousinReunion:IsShown(), "and shows in it")
 HC.Theme.SetSkin("pixel")
 NoErrors(HC, "family reunion")
+end)()
 
 -- === Broken saved data ========================================================================
 

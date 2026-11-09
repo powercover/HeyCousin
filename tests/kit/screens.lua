@@ -145,6 +145,14 @@ function Screens.badges(skin)
     return { frames = { HeyCousinBadges } }
 end
 
+-- Backup: a line made, ready to copy
+function Screens.backup(skin)
+    local HC = Boot(skin)
+    HC.Backup.Show()
+    ButtonWith(HeyCousinBackup, "Make a backup"):Click()
+    return { frames = { HeyCousinBackup } }
+end
+
 -- The family portrait
 function Screens.portrait(skin)
     local HC = Boot(skin)

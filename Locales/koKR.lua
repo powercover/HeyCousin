@@ -471,6 +471,8 @@ HC.Locale.Register("koKR", {
     ["%s isn't one of your other characters."] = "%s: 내 다른 캐릭터가 아니에요.",
     ["take a cousin off your list"] = "사촌을 목록에서 빼기",
     ["%s isn't in your family."] = "%s: 내 가족에 없어요.",
+    ["Fixed: an error when you change the look without a reload."] = "수정: UI를 다시 불러오지 않고 모양을 바꿀 때 나던 오류.",
+    ["Fixed: boxes instead of dots between words in Russian and Ukrainian."] = "수정: 러시아어와 우크라이나어에서 단어 사이 점 대신 네모가 보이던 문제.",
     ["Family achievements: eleven quiet ones, behind the star on the Stats tab."] = "가족 업적: 조용한 업적 11개, 통계 탭의 별 아래에.",
     ["Backup: your whole family as one line of text to keep safe. In About, or /cousin backup."] = "백업: 가족 전체를 한 줄의 텍스트로 보관. 정보 페이지 또는 /cousin backup.",
     ["Long time no see: a pop-up when you meet a cousin again after two weeks."] = "오랜만이야: 2주 만에 사촌을 다시 만나면 창이 떠요.",

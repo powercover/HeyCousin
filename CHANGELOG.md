@@ -1,4 +1,11 @@
-# Hey Cousin! 1.1.3
+# Hey Cousin! 1.1.4
+
+- **Fixed:** an error when you changed the look without a reload: a crest's letter was cleared before it
+  had a font.
+- **Fixed:** in Russian and Ukrainian, boxes showed instead of the dots between parts of a line (the game's
+  Cyrillic font has no middle dot). They're bullets there now.
+
+## 1.1.3
 
 - **Family achievements.** Eleven small things a family does: your first cousin, ten cousins, the black
   sheep, the eldest, a reunion, a family raid and more. Quiet on purpose: no pop-up and no sound, one line in

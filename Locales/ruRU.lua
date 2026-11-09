@@ -465,6 +465,8 @@ HC.Locale.Register("ruRU", {
     ["%s isn't one of your other characters."] = "%s — не твой другой персонаж.",
     ["take a cousin off your list"] = "убрать кузена из списка",
     ["%s isn't in your family."] = "%s нет в твоей семье.",
+    ["Fixed: an error when you change the look without a reload."] = "Исправлено: ошибка при смене вида без перезагрузки интерфейса.",
+    ["Fixed: boxes instead of dots between words in Russian and Ukrainian."] = "Исправлено: квадратики вместо точек между словами на русском и украинском.",
     ["Family achievements: eleven quiet ones, behind the star on the Stats tab."] = "Семейные достижения: одиннадцать тихих, за звёздочкой на вкладке «Цифры».",
     ["Backup: your whole family as one line of text to keep safe. In About, or /cousin backup."] = "Резервная копия: вся твоя семья одной строкой текста. В разделе «Об аддоне» или /cousin backup.",
     ["Long time no see: a pop-up when you meet a cousin again after two weeks."] = "Сколько лет, сколько зим: окно, когда снова встречаешь кузена через две недели.",

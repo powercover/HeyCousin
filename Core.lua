@@ -1,6 +1,6 @@
 local addonName, HC = ...
 
-HC.VERSION = "1.1.3"
+HC.VERSION = "1.1.4"
 HC.AUTHOR = "powercover"
 
 local Utils = HC.Utils

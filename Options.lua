@@ -46,6 +46,8 @@ local function News()
         L["Long time no see: a pop-up when you meet a cousin again after two weeks."],
         L["Your first whisper to a cousin starts with a hello."],
         L["In dungeons and raids the family channel waits, so it makes no errors there."],
+        L["Fixed: an error when you change the look without a reload."],
+        L["Fixed: boxes instead of dots between words in Russian and Ukrainian."],
     }
 end
 

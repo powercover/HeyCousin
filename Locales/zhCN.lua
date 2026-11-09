@@ -469,6 +469,8 @@ HC.Locale.Register("zhCN", {
     ["%s isn't one of your other characters."] = "%s 不是你的其他角色。",
     ["take a cousin off your list"] = "把表亲从列表中移除",
     ["%s isn't in your family."] = "%s 不在你的家族中。",
+    ["Fixed: an error when you change the look without a reload."] = "修复：不重新载入就切换外观时出现的错误。",
+    ["Fixed: boxes instead of dots between words in Russian and Ukrainian."] = "修复：俄语和乌克兰语中词与词之间的点显示为方框。",
     ["Family achievements: eleven quiet ones, behind the star on the Stats tab."] = "家族成就：十一项安静的成就，在“统计”标签的星星里。",
     ["Backup: your whole family as one line of text to keep safe. In About, or /cousin backup."] = "备份：把整个家族存成一行文字。在“关于”页面，或 /cousin backup。",
     ["Long time no see: a pop-up when you meet a cousin again after two weeks."] = "好久不见：隔两周再遇到本家时弹出窗口。",

@@ -472,6 +472,8 @@ HC.Locale.Register("ptBR", {
     ["%s isn't one of your other characters."] = "%s não é um dos seus outros personagens.",
     ["take a cousin off your list"] = "tirar um primo da sua lista",
     ["%s isn't in your family."] = "%s não está na sua família.",
+    ["Fixed: an error when you change the look without a reload."] = "Corrigido: um erro ao trocar a aparência sem recarregar.",
+    ["Fixed: boxes instead of dots between words in Russian and Ukrainian."] = "Corrigido: quadrados no lugar dos pontos entre palavras em russo e ucraniano.",
     ["Family achievements: eleven quiet ones, behind the star on the Stats tab."] = "Conquistas da família: onze, discretas, atrás da estrela da aba Números.",
     ["Backup: your whole family as one line of text to keep safe. In About, or /cousin backup."] = "Backup: sua família inteira em uma linha de texto para guardar. Em Sobre, ou /cousin backup.",
     ["Long time no see: a pop-up when you meet a cousin again after two weeks."] = "Quanto tempo!: uma janela quando você revê um primo depois de duas semanas.",

@@ -471,6 +471,8 @@ HC.Locale.Register("ukUA", {
     ["%s isn't one of your other characters."] = "%s — не твій інший персонаж.",
     ["take a cousin off your list"] = "прибрати кузена зі списку",
     ["%s isn't in your family."] = "%s немає у твоїй родині.",
+    ["Fixed: an error when you change the look without a reload."] = "Виправлено: помилка під час зміни вигляду без перезавантаження інтерфейсу.",
+    ["Fixed: boxes instead of dots between words in Russian and Ukrainian."] = "Виправлено: квадратики замість крапок між словами українською та російською.",
     ["Family achievements: eleven quiet ones, behind the star on the Stats tab."] = "Родинні досягнення: одинадцять тихих, за зірочкою на вкладці «Цифри».",
     ["Backup: your whole family as one line of text to keep safe. In About, or /cousin backup."] = "Резервна копія: уся твоя родина одним рядком тексту. У розділі «Про аддон» або /cousin backup.",
     ["Long time no see: a pop-up when you meet a cousin again after two weeks."] = "Скільки літ, скільки зим: вікно, коли знову зустрічаєш кузена через два тижні.",

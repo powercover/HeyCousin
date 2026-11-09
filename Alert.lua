@@ -22,6 +22,8 @@ Alert.SOUNDS = {
     bell = Theme.MEDIA .. "Sounds\\Bell.ogg",
 }
 local FACTIONS = { Horde = "FACTION_HORDE", Alliance = "FACTION_ALLIANCE" }
+-- met again after this long apart: "Long time no see!", even when pop-ups are for the first time only
+local LONG_APART = 14 * 86400
 
 local toast, stale
 local queue = {}
@@ -245,6 +247,9 @@ local function Paint(item)
         toast.title:SetTextColor(C.enemy[1], C.enemy[2], C.enemy[3])
         Theme.SetArt(toast.mark, Theme.Icon("Sheep"))
         toast.mark:SetVertexColor(C.text[1], C.text[2], C.text[3])
+    elseif item.apart then
+        toast.title:SetText(L["Long time no see!"])
+        toast.title:SetTextColor(metal[1], metal[2], metal[3])
     elseif item.new then
         toast.title:SetText(L["A new cousin!"])
         toast.title:SetTextColor(metal[1], metal[2], metal[3])
@@ -273,6 +278,10 @@ local function Paint(item)
         note = L["Preview: a cousin shows like this"]
     elseif item.test then
         note = L["Test mode: a made-up cousin"]
+    elseif item.apart then
+        local ago = Utils.Ago(time() - item.apart)
+        note = item.where and string.format(L["Last met %s ago, in %s"], ago, item.where)
+            or string.format(L["Last met %s ago"], ago)
     elseif item.new or (relative.met or 0) <= 1 then
         note = L["The first time you meet"]
     else
@@ -369,14 +378,33 @@ function Alert.Show(item)
     Alert.Next()
 end
 
+-- How long it was from the meeting before this one to this one, and where that was: only when it's
+-- been LONG_APART or more.
+local function Apart(relative)
+    local meetings = relative.meetings
+    local count = type(meetings) == "table" and #meetings or 0
+    if count < 2 then
+        return nil
+    end
+    local now, before = meetings[count], meetings[count - 1]
+    local gap = (now.at or 0) - (before.last or before.at or 0)
+    if gap >= LONG_APART then
+        return gap, Utils.IsUsableString(before.zone) and before.zone or nil
+    end
+end
+
 -- The rules for a relative the radar just saw: pop-ups on, the first time you meet (or every time,
--- if you want that), not one for them lately, black sheep only when wanted.
+-- if you want that, or after a long time apart), not one for them lately, black sheep only when wanted.
 function Alert.Cousin(first, relative, new, unit)
     local settings = Settings()
     if settings.popup == false then
         return
     end
-    if settings.popupEvery ~= true and (relative.met or 0) > 1 then
+    local apart, where
+    if not new then
+        apart, where = Apart(relative)
+    end
+    if settings.popupEvery ~= true and (relative.met or 0) > 1 and not apart then
         return
     end
     if Kin.IsBlackSheep(relative) and settings.enemyAlerts == false then
@@ -387,7 +415,10 @@ function Alert.Cousin(first, relative, new, unit)
         return
     end
     relative.alerted = time()
-    Alert.Show({ first = first, relative = relative, new = new, unit = unit })
+    if apart and HC.Badges then
+        HC.Badges.Earn("apart")
+    end
+    Alert.Show({ first = first, relative = relative, new = new, unit = unit, apart = apart, where = where })
 end
 
 -- How a cousin will look, with you as the cousin (after the setup, and /cousin test on Forever).

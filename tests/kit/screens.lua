@@ -321,6 +321,15 @@ function Screens.near(skin) return Pop(skin, "Mira", false) end
 function Screens.new(skin) return Pop(skin, "Tamsin", true) end
 function Screens.sheep(skin) return Pop(skin, "Bru", false) end
 
+-- a cousin met again after three weeks apart
+function Screens.apart(skin)
+    local HC = Boot(skin)
+    HC.Kin.MarkNear("Mira")
+    HC.Alert.Show({ first = "Mira", relative = HC.TestMode.House().relatives.Mira, new = false, unit = "player",
+        apart = 21 * 86400, where = "Duskwood" })
+    return { frames = { HeyCousinAlert } }
+end
+
 -- a black sheep who joined the Alliance (you're Horde): the longer faction name
 function Screens.alliance(skin)
     local HC = Boot(skin, nil, nil, { name = "Rowan", class = "WARRIOR", race = "Orc", level = 20, sex = 2,

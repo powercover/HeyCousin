@@ -2504,6 +2504,35 @@ Settle()
 check(HC.Kin.House().relatives.Fern ~= nil and _G.HeyCousinAlert and _G.HeyCousinAlert:IsShown(), "a cousin near you: known, with a pop-up")
 NoErrors(HC, "a new player who closed the setup")
 
+-- === Long time no see =========================================================================
+
+HC = Mock.Boot("forever", { setupDone = true, houses = { Ashbrook = { relatives = {
+    Pip = { met = 1, firstSeen = 1700000000 - 40 * 86400, lastSeen = 1700000000 - 20 * 86400, class = "MAGE",
+        meetings = { { at = 1700000000 - 21 * 86400, last = 1700000000 - 20 * 86400, zone = "Duskwood" } } },
+    Wes = { met = 1, firstSeen = 1700000000 - 3 * 86400, lastSeen = 1700000000 - 2 * 86400, class = "MAGE",
+        meetings = { { at = 1700000000 - 3 * 86400, last = 1700000000 - 2 * 86400, zone = "Duskwood" } } },
+} } } })
+Mock.units.target = { name = "Pip", surname = "Ashbrook", guid = "Player-1-PIP", class = "MAGE", level = 30,
+    faction = "Alliance" }
+Mock.Fire("PLAYER_TARGET_CHANGED")
+Settle()
+local apartToast = _G.HeyCousinAlert
+local function ToastSays(words)
+    for _, region in ipairs(apartToast.regions or {}) do
+        if type(region.text) == "string" and region.text:find(words, 1, true) and region:IsVisible() then return true end
+    end
+end
+check(apartToast and apartToast:IsShown() and ToastSays("Long time no see!"), "met again after 20 days: a pop-up says so")
+check(ToastSays("Last met 20 days ago, in Duskwood"), "with how long and where")
+HC.Alert.Dismiss()
+Mock.Tick(60, 0.25)
+Mock.units.target = { name = "Wes", surname = "Ashbrook", guid = "Player-1-WES", class = "MAGE", level = 30,
+    faction = "Alliance" }
+Mock.Fire("PLAYER_TARGET_CHANGED")
+Settle()
+check(not apartToast:IsShown(), "two days apart: no pop-up (first time only, by default)")
+NoErrors(HC, "long time no see")
+
 -- === The surnames you meet ====================================================================
 
 -- each player counts once: not again after a reload

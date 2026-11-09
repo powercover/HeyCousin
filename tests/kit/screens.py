@@ -852,7 +852,7 @@ def main():
     pair("2bb-race.png", "race")
     pair("2bc-portrait.png", "portrait")
     pair("2c-tree.png", "tree")
-    rows = [[shot(scene, skin)[0] for skin in SKINS] for scene in ("near", "new", "sheep", "alliance", "ask")]
+    rows = [[shot(scene, skin)[0] for skin in SKINS] for scene in ("near", "new", "apart", "sheep", "alliance", "ask")]
     sheet(rows, SKINS).save(os.path.join(out, "3-pop-ups.png"))
     print("drew 3-pop-ups.png")
     pair("4-setup-crest.png", "crest")

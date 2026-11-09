@@ -65,6 +65,8 @@ When your cousins have the addon too, they're marked **(uses addon)**, you see t
 
 ## Family reunions
 
+![Family reunion!](https://media.forgecdn.net/attachments/2175/370/reunion-png.png)
+
 When two or more of your house are in one group, everyone in it who has the addon gets a banner with your crests side by side, and a crown on the eldest. Five or more, and it's **a family raid**. Once a group, again when another cousin joins, never in a fight. Try it with `/cousin test reunion`.
 
 ## The family race and portrait
@@ -73,11 +75,13 @@ When two or more of your house are in one group, everyone in it who has the addo
 
 Who's the highest level in your family? **The family race** ranks you and your cousins with the addon, and tells you when one passes you.
 
-![A family portrait](https://media.forgecdn.net/attachments/2158/178/portrait-png.png)
+![A family portrait](https://media.forgecdn.net/attachments/2175/384/portrait-png.png)
 
 **The family portrait** puts your house on one card: crest, motto, who's online, the eldest, the highest level and the cousins you meet most. **Take a picture** saves it as a screenshot without the card's buttons, to share with your family or Discord.
 
 ## Family achievements
+
+![Family achievements](https://media.forgecdn.net/attachments/2175/376/achievements-png.png)
 
 Eleven small things a family does: your first cousin, ten cousins, the black sheep, the eldest, an old friend met ten times, a reunion, a family raid and more. **Quiet on purpose:** no pop-up and no sound, one line in chat when you earn one (one line for several), and a switch turns even that off. They're behind the star on the Stats tab.
 

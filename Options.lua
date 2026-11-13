@@ -273,7 +273,7 @@ local function BuildTogether()
             HC.Share.Changed()
         end
     end
-    Note(p, L["Only cousins on your family list, who have the addon, get these. Never in a fight or a dungeon."])
+    Note(p, L["Only cousins on your family list who have the addon get these."])
     return p
 end
 

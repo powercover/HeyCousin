@@ -504,6 +504,8 @@ local function Globals()
             local m = Mock.maps[map]
             if m then return 0, CreateVector2D(m[1] + at.x * m[3], m[2] + at.y * m[4]) end
         end,
+        GetMapInfo = function(map) return map == 1429 and { name = "Elwynn Forest" } or nil end,
+        SetUserWaypoint = function(point) Mock.waypoint = point end,
         GetMapPosFromWorldPos = function(continent, world, map)
             local m = Mock.maps[map]
             if m and continent == 0 then return map, CreateVector2D((world.x - m[1]) / m[3], (world.y - m[2]) / m[4]) end
@@ -590,7 +592,42 @@ local function Globals()
     function ClearInspectPlayer() Mock.cleared = (Mock.cleared or 0) + 1 end
     function GetInventoryItemID(unit, slot) local u = U(unit); return u and u.gear and u.gear[slot] end
     C_PaperDollInfo = { GetInspectItemLevel = function(unit) local u = U(unit); return u and u.ilvl end }
-    C_Item = { GetItemIconByID = function(id) return 130000 + id end }
+    -- your items: Mock.items[id] = { name =, bags =, bank = }
+    Mock.items = {}
+    C_Item = {
+        GetItemIconByID = function(id) return 130000 + id end,
+        GetItemCount = function(id, bank)
+            local item = Mock.items[id]
+            return item and ((item.bags or 0) + (bank and (item.bank or 0) or 0)) or 0
+        end,
+        GetItemInfoInstant = function(item)
+            if type(item) == "number" then return Mock.items[item] and item end
+            for id, known in pairs(Mock.items) do if known.name == item then return id end end
+        end,
+        GetItemNameByID = function(id) return Mock.items[id] and Mock.items[id].name end,
+    }
+    -- your professions: Mock.professions[i] = { name, rank, line }, as GetProfessions numbers them
+    Mock.professions = {}
+    function GetProfessions()
+        local p = Mock.professions
+        return p[1] and 1 or nil, p[2] and 2 or nil, nil, p[4] and 4 or nil, p[5] and 5 or nil
+    end
+    function GetProfessionInfo(index)
+        local p = Mock.professions[index]
+        if p then return p.name, 136000 + index, p.rank, 300, 0, 0, p.line end
+    end
+    -- your quest log: Mock.quests = { { id, title } }, under one header
+    Mock.quests = {}
+    C_QuestLog = {
+        GetNumQuestLogEntries = function() return #Mock.quests + 1 end,
+        GetInfo = function(index)
+            if index == 1 then return { isHeader = true, title = "Elwynn Forest" } end
+            local q = Mock.quests[index - 1]
+            if q then return { questID = q.id, title = q.title, isHeader = false } end
+        end,
+    }
+    UiMapPoint = { CreateFromCoordinates = function(map, x, y) return { map = map, x = x, y = y } end }
+    C_SuperTrack = { SetSuperTrackedUserWaypoint = function(on) Mock.tracking = on end }
     function UnitIsVisible(unit) local u = U(unit); return u ~= nil and u.visible ~= false end
     function UnitTokenFromGUID(guid)
         for token, u in pairs(Mock.units) do if u.guid == guid and token ~= "player" then return token end end

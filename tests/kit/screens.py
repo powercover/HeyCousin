@@ -847,6 +847,8 @@ def main():
     pair("1dd-recruit-copy.png", "recruitcopy")
     pair("1e-groups.png", "groups")
     pair("1f-lookup.png", "lookup")
+    pair("1g-together-crafts.png", "togethercrafts")
+    pair("1h-together-help.png", "togetherhelp")
     pair("2-cousin.png", "cousin")
     pair("2b-stats.png", "stats")
     pair("2bb-race.png", "race")
@@ -865,7 +867,7 @@ def main():
     pair("5f-settings-plates.png", "settingsplates")
     pair("3b-hey.png", "heypop")
     pair("3c-reunion.png", "reunion")
-    rows = [[shot("settings" + page, skin)[0] for skin in SKINS] for page in ("alerts", "family", "map")]
+    rows = [[shot("settings" + page, skin)[0] for skin in SKINS] for page in ("alerts", "family", "together", "map")]
     sheet(rows, SKINS).save(os.path.join(out, "5d-settings-1.png"))
     rows = [[shot("settings" + page, skin)[0] for skin in SKINS] for page in ("plates", "game", "look", "about")]
     sheet(rows, SKINS).save(os.path.join(out, "5e-settings-2.png"))

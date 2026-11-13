@@ -624,6 +624,11 @@ local function PaintPage(keep)
     end
     local layer = HC.Layer and HC.Layer.Status(opened)
     -- (what matters first: on a narrow line, what can wait is what's cut)
+    -- the quests you're both on, when their addon says which
+    local same = #HC.Share.SameQuests(relative)
+    if same > 0 then
+        metText = metText .. Theme.Sep() .. string.format(L["%d same quests"], same)
+    end
     -- their motto first, if their addon told it
     local motto = Utils.IsUsableString(relative.motto) and ("\226\128\156" .. relative.motto .. "\226\128\157" .. Theme.Sep()) or ""
     page.met:SetText(motto .. metText .. (relative.usesAddon and (Theme.Sep() .. L["(uses addon)"]) or "")
@@ -898,12 +903,12 @@ local function Build()
     window.lookup = lookup
 
     tabs = Theme.Tabs(window, { { key = "family", label = L["Family"] }, { key = "tree", label = L["Tree"] },
-        { key = "groups", label = L["Groups"] }, { key = "stats", label = L["Stats"] } }, function()
+        { key = "groups", label = L["Together"] }, { key = "stats", label = L["Stats"] } }, function()
             recruiting, racing = false, false
             Window.Refresh()
-        end, 340, 30)
+        end, 358, 30)
     tabs:SetPoint("TOPLEFT", PAD, -96)
-    search = Theme.EditBox(window, 118, L["Search"], "Search", 24)
+    search = Theme.EditBox(window, 100, L["Search"], "Search", 24)
     search:SetPoint("TOPRIGHT", -PAD, -96)
     search.onChange = function(text)
         query = Utils.Trim(text)
@@ -948,7 +953,7 @@ local function Build()
     BuildStats()
     tree = HC.Tree.Build(window, PAD, LIST_TOP - 28, 42)
     recruitPanel = HC.Recruit.Build(window, PAD, LIST_TOP - 28, 42)
-    groupsPanel = HC.Groups.Build(window, PAD, LIST_TOP - 28, 42)
+    groupsPanel = HC.Together.Build(window, PAD, LIST_TOP - 28, 42)
     racePanel = HC.Race.Build(window, PAD, LIST_TOP - 28, 42)
 
     -- the line along the bottom
@@ -984,7 +989,7 @@ local function Build()
             ticker = nil
         end
         search.edit:ClearFocus()
-        HC.Groups.Blur()
+        HC.Together.Blur()
         -- a model drops while hidden: load it again next time
         page.modelFor = nil
         window:SetFrameStrata("HIGH")
@@ -1083,7 +1088,7 @@ function Window.Refresh(keep)
     local onGroups = tabs.selected == "groups"
     groupsPanel:SetShown(onGroups)
     if onGroups then
-        HC.Groups.Paint(keep)
+        HC.Together.Paint(keep)
     end
     local onRace = onStats and racing
     racePanel:SetShown(onRace)

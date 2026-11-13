@@ -118,6 +118,27 @@ function Screens.groups(skin)
     return { frames = { HeyCousinWindow } }
 end
 
+-- The Together tab: who crafts what, and a cousin's call for help
+local function Together(skin, key)
+    local HC = Boot(skin)
+    local relatives = HC.TestMode.House().relatives
+    local crafts = { Mira = { "Tailoring", 150 }, Thane = { "Blacksmithing", 120 }, Lia = { "Alchemy", 95 },
+        Isla = { "Tailoring", 60 } }
+    for first, craft in pairs(crafts) do
+        if relatives[first] then
+            relatives[first].crafts = { { line = 1, name = craft[1], rank = craft[2] } }
+        end
+    end
+    HC.Help.Heard("H", "1429:300:200:Elite boar by the mill, need one more", { first = "Thane", full = "Thane Ashbrook" })
+    HC.Help.Heard("H", ":::Stuck on Hogger, anyone?", { first = "Lia", full = "Lia Ashbrook" })
+    HC.Window.Show("groups")
+    HC.Together.Open(key)
+    HeyCousinWindow.badge:Hide()
+    return { frames = { HeyCousinWindow } }
+end
+function Screens.togethercrafts(skin) return Together(skin, "crafts") end
+function Screens.togetherhelp(skin) return Together(skin, "help") end
+
 -- Look up a family: a made-up house, online now
 function Screens.lookup(skin)
     local HC = Boot(skin)
@@ -293,7 +314,7 @@ local function SettingsPage(skin, page)
     HC.Options.Show(page)
     return { frames = { HeyCousinOptions } }
 end
-for _, page in ipairs({ "alerts", "family", "map", "plates", "game", "look", "about" }) do
+for _, page in ipairs({ "alerts", "family", "together", "map", "plates", "game", "look", "about" }) do
     Screens["settings" .. page] = function(skin)
         return SettingsPage(skin, page)
     end

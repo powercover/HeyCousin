@@ -21,7 +21,7 @@ local NAV_W = 170
 local PAGE_X = PAD + NAV_W + 22
 local PAGE_W = WIDTH - PAGE_X - PAD
 local TOP = 62
-local ORDER = { "alerts", "family", "map", "plates", "game", "look", "about" }
+local ORDER = { "alerts", "family", "together", "map", "plates", "game", "look", "about" }
 -- the sample nameplates are drawn this many times bigger, to place the crest with care, and each has
 -- this much room: as far as a crest can go from the plate, up and down
 local PLATE_ZOOM = 1.5
@@ -69,6 +69,7 @@ local function Heading(p, text)
     heading:SetPoint("TOPLEFT", 0, p.y)
     heading:SetText(text)
     p.y = p.y - 24
+    return heading
 end
 
 local function Toggle(p, label, note, key, default)
@@ -252,6 +253,27 @@ local function BuildFamily()
     end
     all.toggle.onChange = PaintRows
     p.parts[#p.parts + 1] = { Refresh = PaintRows }
+    return p
+end
+
+-- Playing together: what your addon tells cousins' addons so you can play together, and the calls for
+-- help. Each that's off leaves cousins' lists.
+local function BuildTogether()
+    local p = NewPage()
+    Heading(p, L["Playing together"])
+    Toggle(p, L["Calls for help"], L["A line in chat when a cousin asks for help."], "familyHelp", true)
+    local shared = {
+        Toggle(p, L["Share your professions"], L["Cousins with the addon see what you can craft."], "shareCrafts", true),
+        Toggle(p, L["Share your quests"], L["Cousins with the addon see which quests you're both on."], "shareQuests", true),
+        Toggle(p, L["Answer item searches"], L["How many you have of the one item a cousin asks about. Nothing else."],
+            "answerItems", true),
+    }
+    for _, row in ipairs(shared) do
+        row.toggle.onChange = function()
+            HC.Share.Changed()
+        end
+    end
+    Note(p, L["Only cousins on your family list, who have the addon, get these. Never in a fight or a dungeon."])
     return p
 end
 
@@ -759,7 +781,7 @@ local function Build()
     heading:SetText(L["Settings"])
     local title = Theme.Title()
     heading:SetTextColor(title[1], title[2], title[3])
-    local labels = { alerts = L["Alerts"], family = L["Family"], map = L["Map"], plates = L["Nameplates"], game = L["In the game"],
+    local labels = { alerts = L["Alerts"], family = L["Family"], together = L["Together"], map = L["Map"], plates = L["Nameplates"], game = L["In the game"],
         look = L["Look & language"], about = L["About"] }
     nav = {}
     for index, key in ipairs(ORDER) do
@@ -772,7 +794,7 @@ local function Build()
     end
     local link = VersionLink(main)
     link:SetPoint("BOTTOMLEFT", PAD, 18)
-    pages = { alerts = BuildAlerts(), family = BuildFamily(), map = BuildMap(), plates = BuildPlates(), game = BuildGame(), look = BuildLook(),
+    pages = { alerts = BuildAlerts(), family = BuildFamily(), together = BuildTogether(), map = BuildMap(), plates = BuildPlates(), game = BuildGame(), look = BuildLook(),
         about = BuildAbout() }
     window:HookScript("OnHide", function()
         GameTooltip:Hide()
@@ -787,7 +809,7 @@ local function Build()
     end)
 end
 
--- Opens the settings on page `key` ("alerts", "family", "map", "plates", "game", "look", "about"), on your crest
+-- Opens the settings on page `key` ("alerts", "family", "together", "map", "plates", "game", "look", "about"), on your crest
 -- ("crest") or on your guild's family ("guild", if you lead it), else on the one you left.
 function Options.Show(key)
     -- (both show the same settings: one at a time)

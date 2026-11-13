@@ -29,6 +29,11 @@ local DEFAULTS = {
     reunion = true,
     -- a quiet line in chat for a new family achievement
     badgeLines = true,
+    -- playing together: a line for a cousin's call for help, and what your addon tells cousins' addons
+    familyHelp = true,
+    shareCrafts = true,
+    shareQuests = true,
+    answerItems = true,
     showMinimap = true,
     minimapAngle = 200,
     lockMinimap = false,

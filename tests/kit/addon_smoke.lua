@@ -1031,7 +1031,7 @@ check(#Mock.chat == chatBefore + 1 and Mock.chat[#Mock.chat]:find("Kit Ashbrook"
 Mock.Advance(7)
 local answer
 for i = sentBefore + 1, #Mock.addonSent do
-    if Mock.addonSent[i].channel == "WHISPER" then answer = Mock.addonSent[i] end
+    if not answer and Mock.addonSent[i].channel == "WHISPER" then answer = Mock.addonSent[i] end
 end
 check(answer and answer.target == "Kit Ashbrook" and answer.text:find("^4:A:"), "and your addon answers them, by itself")
 -- not again while they're online, and not for a word from them
@@ -1899,7 +1899,7 @@ check(Mock.Said("made-up cousins can't hear you"), "and neither does a Join")
 -- a new look with the tab open
 HC.Theme.SetSkin("smooth")
 Settle()
-check(ButtonWith(_G.HeyCousinWindow, "Groups") ~= nil, "a new look builds the tab again")
+check(ButtonWith(_G.HeyCousinWindow, "Together") ~= nil, "a new look builds the tab again")
 HC.Theme.SetSkin("pixel")
 _G.HeyCousinWindow:Hide()
 NoErrors(HC, "family groups in test mode")
@@ -2797,6 +2797,126 @@ SlashCmdList.HEYCOUSIN("test reunion")
 check(_G.HeyCousinReunion:IsShown(), "and shows in it")
 HC.Theme.SetSkin("pixel")
 NoErrors(HC, "family reunion")
+end)()
+
+-- === Playing together =======================================================================
+
+;(function() -- (its own locals: a chunk keeps 200 at most)
+HC = Mock.Boot("forever", { setupDone = true })
+Mock.professions = { { name = "Tailoring", rank = 150, line = 197 }, { name = "Mining", rank = 90, line = 186 } }
+Mock.quests = { { id = 101, title = "The Fargodeep Mine" }, { id = 102, title = "Hogger" } }
+Mock.items[2589] = { name = "Linen Cloth", bags = 12, bank = 8 }
+Mock.channelMembers = { "*Rowan Ashbrook", "Kit Ashbrook", "@Lia Ashbrook" }
+Mock.Fire("PLAYER_ENTERING_WORLD")
+Mock.Advance(25)
+local function SentTo(target, pattern)
+    for _, line in ipairs(Mock.addonSent) do
+        if line.channel == "WHISPER" and line.target == target and line.text:find(pattern) then return line end
+    end
+end
+local function Says(root, words)
+    local found = false
+    Walk(root, function(f)
+        for _, region in ipairs(f.regions or {}) do
+            if type(region.text) == "string" and region.text:find(words, 1, true) and region:IsVisible() then found = true end
+        end
+    end)
+    return found
+end
+-- after your hello: your professions and quests, to each cousin
+check(SentTo("Kit Ashbrook", "^6:P:197,150,Tailoring;186,90,Mining$"), "your professions go after your hello")
+check(SentTo("Lia Ashbrook", "^6:U:101,102$"), "and the numbers of your quests")
+-- theirs come back
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:P:171,120,Alchemy", "WHISPER", "Kit Ashbrook")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:U:102,555", "WHISPER", "Kit Ashbrook")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:P:171,999,Alchemy", "WHISPER", "Sly Stranger")
+Settle()
+local kit = HC.Kin.House().relatives.Kit
+check(kit and kit.crafts and kit.crafts[1].name == "Alchemy" and kit.crafts[1].rank == 120, "a cousin's professions are kept")
+check(HC.Kin.House().relatives.Sly == nil, "a stranger's: nothing")
+local same = HC.Share.SameQuests(kit)
+check(#same == 1 and same[1].title == "Hogger", "the quests you're both on")
+-- the Together tab: crafters and quest buddies
+kit.level = (UnitLevel("player") or 20) + 2
+kit.zone = "Elwynn Forest"
+HC.Window.Show("groups")
+Settle()
+local window = _G.HeyCousinWindow
+check(ButtonWith(window, "Together") ~= nil and ButtonWith(window, "Crafters") ~= nil, "the Together tab, with its pages")
+ButtonWith(window, "Crafters"):Click()
+check(Says(window, "Alchemy  120"), "Crafters: who makes what")
+ButtonWith(window, "Quest buddies"):Click()
+check(Says(window, "1 same quests") and ButtonWith(window, "Invite") ~= nil, "quest buddies: near your level, with the same quests")
+-- who has it: one count, asked once, answered once
+ButtonWith(window, "Who has it?"):Click()
+local itemBox = All(window, function(f) return f.kind == "EditBox" and f:IsVisible() end)[1]
+itemBox:SetText("Linen Cloth")
+local sentBefore = #Mock.addonSent
+ButtonWith(window, "Search"):Click()
+local question
+for i = sentBefore + 1, #Mock.addonSent do
+    if Mock.addonSent[i].text:find("^6:Q:") then question = Mock.addonSent[i].text end
+end
+check(question and question:find(":2589$"), "a search goes as the item's number: " .. tostring(question))
+local query = question and question:match("^6:Q:(%d+):")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:R:" .. tostring(query) .. ":2589:20", "WHISPER", "Kit Ashbrook")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:R:1:2589:99", "WHISPER", "Lia Ashbrook")
+Settle()
+check(Says(window, "Has 20") and not Says(window, "Has 99"), "their answer shows, one to another search doesn't")
+ButtonWith(window, "Search"):Click()
+check(Says(window, "One search at a time"), "a second search waits")
+Mock.Advance(6)
+check(Says(window, "Linen Cloth: 1 cousins have it"), "then says how many have it")
+itemBox:SetText("Nothing Real")
+ButtonWith(window, "Search"):Click()
+check(Says(window, "doesn't know that item"), "an item the game doesn't know: it says so")
+-- answering: one count, and never more than the limits
+sentBefore = #Mock.addonSent
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:Q:42:2589", "WHISPER", "Kit Ashbrook")
+local reply = Mock.addonSent[#Mock.addonSent]
+check(#Mock.addonSent == sentBefore + 1 and reply.text == "6:R:42:2589:20" and reply.target == "Kit Ashbrook",
+    "a cousin asks: one answer, bags and bank: " .. tostring(reply.text))
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:Q:43:2589", "WHISPER", "Kit Ashbrook")
+check(#Mock.addonSent == sentBefore + 1, "the same cousin again at once: no answer")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:Q:44:777", "WHISPER", "Lia Ashbrook")
+check(#Mock.addonSent == sentBefore + 1, "nothing of it: no answer at all")
+for i = 1, 10 do
+    Mock.Advance(11)
+    Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:Q:" .. (50 + i) .. ":2589", "WHISPER", "Kit Ashbrook")
+end
+check(#Mock.addonSent <= sentBefore + 1 + 12, "a cousin asking again and again gets a few answers a minute, no more")
+HeyCousinDB.answerItems = false
+sentBefore = #Mock.addonSent
+Mock.Advance(70)
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:Q:99:2589", "WHISPER", "Lia Ashbrook")
+check(#Mock.addonSent == sentBefore, "answers off: none")
+HeyCousinDB.answerItems = nil
+-- a call for help: it goes with where you are; theirs show with a waypoint
+ButtonWith(window, "Help"):Click()
+Mock.map, Mock.x, Mock.y = 1429, 0.42, 0.65
+local helpBox = All(window, function(f) return f.kind == "EditBox" and f:IsVisible() end)[1]
+helpBox:SetText("Hogger, need one more")
+ButtonWith(window, "Ask for help"):Click()
+check(SentTo("Kit Ashbrook", "^6:H:1429:420:650:Hogger, need one more$"), "a call for help goes with where you are")
+helpBox:SetText("again")
+ButtonWith(window, "Ask for help"):Click()
+check(Mock.Said("Wait a little"), "one call every few minutes")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:H:1429:300:200:Elite boar, help!", "WHISPER", "Lia Ashbrook")
+Settle()
+check(Mock.Said("needs help: Elite boar, help! (Elwynn Forest)"), "a cousin's call: a line in chat, with the zone")
+check(Says(window, "Elite boar, help!"), "and on the Help page")
+ButtonWith(window, "Waypoint"):Click()
+check(Mock.waypoint and Mock.waypoint.map == 1429 and math.abs(Mock.waypoint.x - 0.3) < 0.001 and Mock.tracking == true,
+    "Waypoint puts the game's arrow on them")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:Y", "WHISPER", "Lia Ashbrook")
+Settle()
+check(not Says(window, "Elite boar, help!"), "their call comes down")
+-- sharing off: what you share leaves, as nothing
+HeyCousinDB.shareQuests = false
+HC.Share.Changed()
+check(SentTo("Kit Ashbrook", "^6:U:$"), "quests off: an empty line, so cousins forget them")
+window:Hide()
+NoErrors(HC, "playing together")
 end)()
 
 -- === The dot between words =================================================================

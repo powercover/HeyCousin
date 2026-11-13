@@ -385,6 +385,22 @@ local function MottoLine()
     return words ~= "" and ("4:M:" .. words) or nil
 end
 
+-- What else goes after your hello: fn(target) sends it, to everyone (no target: Family.Send) or to the
+-- cousin whose hello you answer.
+local helloHooks = {}
+function Family.OnHello(fn)
+    helloHooks[#helloHooks + 1] = fn
+end
+
+local function AfterHello(target)
+    for _, fn in ipairs(helloHooks) do
+        local ok, problem = pcall(fn, target)
+        if not ok then
+            Utils.NoteError("family hello", problem)
+        end
+    end
+end
+
 -- Your motto changed: cousins online hear it now.
 function Family.ShareMotto()
     local line = MottoLine()
@@ -411,6 +427,7 @@ local function Tick()
             if motto then
                 Family.Send(motto)
             end
+            AfterHello(nil)
             Family.quietCount = 0
             Utils.After(QUIET, "family hello", function()
                 if (Family.quietCount or 0) > 0 and Family.On() then
@@ -501,6 +518,7 @@ local function Heard(text, sender)
             if motto then
                 Family.Whisper(motto, member.full)
             end
+            AfterHello(member.full)
             HC.Groups.Greet(member.full)
         end)
     end
@@ -560,7 +578,7 @@ frame:SetScript("OnEvent", Utils.Protect("family", function(_, event, ...)
     if event == "CHAT_MSG_ADDON" then
         local prefix, text, channel, sender, _, _, localID, channelName = ...
         if prefix == PREFIX and Utils.IsUsableString(text) then
-            local talker = channel == "WHISPER" and text:find("^[345]:") and Family.Cousin(sender)
+            local talker = channel == "WHISPER" and text:find("^[3456]:") and Family.Cousin(sender)
             if talker then
                 AddMember(talker.full)
             end
@@ -573,7 +591,7 @@ frame:SetScript("OnEvent", Utils.Protect("family", function(_, event, ...)
                 heard[HEARD_KEEP + 1] = nil
             end
         end
-        if prefix ~= PREFIX or not Utils.IsUsableString(text) or not text:find("^[45]:") then
+        if prefix ~= PREFIX or not Utils.IsUsableString(text) or not text:find("^[456]:") then
             return
         end
         local mine = channel == "WHISPER"
@@ -584,6 +602,11 @@ frame:SetScript("OnEvent", Utils.Protect("family", function(_, event, ...)
         end
         if mine and text:find("^4:") then
             Heard(text, sender)
+        elseif mine and text:find("^6:") then
+            -- (playing together: Share.lua, who has it, calls for help)
+            if Family.Messages() then
+                HC.Share.Heard(text, sender)
+            end
         elseif mine then
             HeardWords(text, sender)
         end

@@ -48,6 +48,10 @@ Layer.lua
 Tree.lua
 Recruit.lua
 Groups.lua
+Share.lua
+Stock.lua
+Help.lua
+Together.lua
 Race.lua
 Portrait.lua
 Badges.lua

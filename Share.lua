@@ -137,7 +137,7 @@ function Share.Heard(text, sender)
             local crafts = {}
             for entry in rest:gmatch("[^;]+") do
                 local line, rank, name = entry:match("^(%d+),(%d+),(.*)$")
-                name = name and HC.Guild.Plain(name, 24)
+                name = name and HC.Words.Clean(HC.Guild.Plain(name, 24))
                 if line and name and name ~= "" and #crafts < CRAFTS_MAX then
                     crafts[#crafts + 1] = { line = tonumber(line), rank = tonumber(rank), name = name }
                 end

@@ -27,6 +27,7 @@ Locales\ukUA.lua
 Locales\zhCN.lua
 Locales\zhTW.lua
 Utils.lua
+Words.lua
 Theme.lua
 Skins\Pixel.lua
 Skins\Forever.lua

@@ -55,9 +55,13 @@ for path in sorted(glob.glob(os.path.join(ROOT, "Locales", "*.lua"))):
         continue
     report(code, strings(path), LANGUAGE_FONTS.get(code, ["latin"]))
 
-# The English text: every quoted string in the addon's Lua files.
+# The English text: every quoted string in the addon's Lua files (but Words.lua's bad words, which are
+# only matched against what cousins send, never shown).
 english = []
+NEVER_SHOWN = {"Words.lua"}
 for path in glob.glob(os.path.join(ROOT, "*.lua")) + glob.glob(os.path.join(ROOT, "Skins", "*.lua")):
+    if os.path.basename(path) in NEVER_SHOWN:
+        continue
     english += re.findall(r'"((?:[^"\\]|\\.)*)"', open(path, encoding="utf-8").read())
 report("English (source)", english, ["latin"])
 

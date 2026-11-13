@@ -122,7 +122,7 @@ function Groups.Heard(kind, rest, member)
     if not HC.Family.Messages() then
         return
     elseif kind == "G" then
-        local words = HC.Guild.Plain(rest, WORDS_MAX)
+        local words = HC.Words.Clean(HC.Guild.Plain(rest, WORDS_MAX))
         if words == "" then
             return
         end

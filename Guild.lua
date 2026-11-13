@@ -185,7 +185,7 @@ local function Clean(given)
     local family = { stamp = given.stamp, words = {}, welcomed = given.welcomed == true, off = given.off == true }
     local surname = Plain(given.surname, Guild.NAME_MAX)
     family.surname = surname ~= "" and surname or nil
-    family.welcome = Plain(given.welcome, Guild.WELCOME_MAX)
+    family.welcome = HC.Words.Clean(Plain(given.welcome, Guild.WELCOME_MAX))
     family.crest = type(given.crest) == "table" and Crest.Normalize(given.crest) or nil
     for index = 1, RANKS do
         family.words[index] = Plain(type(given.words) == "table" and given.words[index], Guild.WORD_MAX)

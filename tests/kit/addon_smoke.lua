@@ -2919,6 +2919,55 @@ window:Hide()
 NoErrors(HC, "playing together")
 end)()
 
+-- === Bad words, floods and nonsense ==========================================================
+
+;(function() -- (its own locals: a chunk keeps 200 at most)
+HC = Mock.Boot("forever", { setupDone = true })
+local Clean = HC.Words.Clean
+check(Clean("you fucking idiot") == "you f****** idiot", "a bad word goes whole: " .. Clean("you fucking idiot"))
+check(Clean("bullshit") == "b*******" and Clean("PUTA") == "P***", "inside a word or in capitals too")
+check(Clean("una disputa en Scunthorpe") == "una disputa en Scunthorpe", "an innocent word that holds a short one stays")
+check(Clean("ты сука") == "ты с***" and Clean("Хуйня") == "Х****", "Russian: " .. Clean("ты сука") .. " / " .. Clean("Хуйня"))
+check(Clean("你傻逼吗") == "你傻*吗", "Chinese: only the bad part: " .. Clean("你傻逼吗"))
+check(Clean("Deadmines, need a healer") == "Deadmines, need a healer", "a clean line stays as it is")
+Mock.cvars = { profanityFilter = "0" }
+check(Clean("bullshit") == "bullshit", "the game's language filter off: nothing masked")
+Mock.cvars = nil
+-- what cousins send comes masked
+Mock.channelMembers = { "*Rowan Ashbrook", "Kit Ashbrook" }
+Mock.Fire("PLAYER_ENTERING_WORLD")
+Mock.Advance(25)
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:what the fuck", "WHISPER", "Kit Ashbrook")
+check(Mock.Said("what the f***") and not Mock.Said("fuck"), "family chat comes masked")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:M:Shit happens", "WHISPER", "Kit Ashbrook")
+Settle()
+check(HC.Kin.House().relatives.Kit.motto == "S*** happens", "and a motto")
+-- a flood of calls for help: one line, the rest let go by
+local linesBefore = #Mock.chat
+for i = 1, 50 do
+    Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:H:1429:99999::help " .. i, "WHISPER", "Kit Ashbrook")
+end
+Settle()
+check(#Mock.chat - linesBefore <= 1, "fifty calls at once: one line in chat")
+local call = HC.Help.List()[1]
+check(call and call.x == 1000 and call.y == nil, "a spot off the map is kept on it, or left out")
+-- floods and nonsense of every kind: no error
+for i = 1, 200 do
+    Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:P:" .. string.rep("1,2,Craft;", 30), "WHISPER", "Kit Ashbrook")
+    Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:U:" .. string.rep("9", 300), "WHISPER", "Kit Ashbrook")
+end
+local flooded = HC.Kin.House().relatives.Kit
+check(#flooded.crafts == 6 and #flooded.quests <= 35, "a flood keeps the lists short: " .. #flooded.crafts)
+for _, junk in ipairs({ "6:", "6:Q", "6:Q:x:y", "6:Q:1:99999999999999999999", "6:R:1:2:99999999999999", "6:H",
+    "6:H:::", "6:P:,,", "6:U:,,,", "6:Z:what", "6:" .. string.rep("{", 200) }) do
+    Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", junk, "WHISPER", "Kit Ashbrook")
+end
+Settle()
+local kit = HC.Kin.House().relatives.Kit
+check((kit.crafts == nil or #kit.crafts <= 6) and (kit.quests == nil or #kit.quests <= 35), "a flood keeps the lists short")
+NoErrors(HC, "bad words, floods and nonsense")
+end)()
+
 -- === The dot between words =================================================================
 
 ;(function() -- (its own locals: a chunk keeps 200 at most)

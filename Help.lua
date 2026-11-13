@@ -13,6 +13,8 @@ local L = HC.L
 
 local LIVE = 10 * 60
 local REST = 3 * 60
+-- a cousin's addon that sends calls faster than this is let go by (a changed addon could)
+local HEAR_GAP = 30
 local WORDS_MAX = 50
 
 local calls = {}  -- [first name] = { first, full, words, map, x, y, zone, at }
@@ -23,9 +25,10 @@ function Help.On()
     return HC.Family.Messages() and (type(HeyCousinDB) ~= "table" or HeyCousinDB.familyHelp ~= false)
 end
 
-local function Changed()
+-- (a burst of lines paints the window once)
+local Changed = Utils.Debounce(0.3, "help", function()
     HC.Window.Refresh(true)
-end
+end)
 
 local function Alive(call)
     return GetTime() - call.at < LIVE
@@ -131,15 +134,18 @@ function Help.Heard(kind, rest, member)
         Changed()
         return
     end
+    local old = calls[member.first]
+    if old and GetTime() - old.at < HEAR_GAP then
+        return
+    end
     local map, x, y, said = rest:match("^(%d*):(%d*):(%d*):(.*)$")
-    local words = said and HC.Guild.Plain(said, WORDS_MAX) or ""
+    local words = said and HC.Words.Clean(HC.Guild.Plain(said, WORDS_MAX)) or ""
     if words == "" then
         return
     end
     map, x, y = tonumber(map), tonumber(x), tonumber(y)
     local info = map and C_Map and Utils.Call(C_Map.GetMapInfo, map)
     local zone = type(info) == "table" and Utils.IsUsableString(info.name) and info.name or nil
-    local old = calls[member.first]
     calls[member.first] = { first = member.first, full = member.full, words = words, map = map,
         x = x and math.min(x, 1000), y = y and math.min(y, 1000), zone = zone, at = GetTime() }
     local relative = Kin.Seen({ first = member.first, faction = Utils.Call(UnitFactionGroup, "player"), quiet = true,

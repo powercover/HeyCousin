@@ -28,6 +28,7 @@ end
 local function Changed()
     HC.Window.Refresh(true)
 end
+local refreshSoon = Utils.Debounce(0.3, "who has it", Changed)
 
 -- An item from what you typed: its number, from a link, a number, or a name the game knows.
 function Stock.Resolve(text)
@@ -139,7 +140,8 @@ function Stock.Heard(kind, rest, member)
         local query, id, count = rest:match("^(%d+):(%d+):(%d+)$")
         if asking and query and tonumber(query) == asking.id and tonumber(id) == asking.item then
             asking.answers[member.first] = math.min(tonumber(count), 99999)
-            Changed()
+            -- (many answers at once paint the window once)
+            refreshSoon()
         end
     end
 end

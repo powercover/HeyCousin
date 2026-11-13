@@ -455,7 +455,7 @@ local function HeardMotto(said, sender)
     local relative = Kin.Seen({ first = member.first, faction = Utils.Call(UnitFactionGroup, "player"), quiet = true,
         online = true, usesAddon = true })
     if relative then
-        local words = HC.Guild.Plain(said, MOTTO_MAX)
+        local words = HC.Words.Clean(HC.Guild.Plain(said, MOTTO_MAX))
         relative.motto = words ~= "" and words or nil
         Kin.Changed()
     end
@@ -563,7 +563,7 @@ local function HeardWords(text, sender)
     elseif not Family.ChatOn() then
         return
     end
-    local words = HC.Guild.Plain(rest, WORDS_MAX)
+    local words = HC.Words.Clean(HC.Guild.Plain(rest, WORDS_MAX))
     local now = GetTime()
     if words == "" or (spoke[member.first] and now - spoke[member.first] < WORDS_GAP) then
         return

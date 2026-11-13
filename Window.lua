@@ -563,6 +563,20 @@ local function BuildPage()
         HC.Layer.Ask(first, surname)
         Window.Refresh(true)
     end))
+    -- mute: nothing of theirs shows in the addon (their chat, posts, calls, motto, pop-ups, map), and
+    -- yours doesn't go to them; again to unmute
+    page.mute = Theme.IconButton(page, "Sound", 26)
+    page.mute:SetPoint("TOPRIGHT", 0, -2)
+    page.name:SetPoint("RIGHT", page.mute, "LEFT", -6, 0)
+    Theme.Tip(page.mute, function()
+        return page.first and Kin.IsMuted(page.first) and L["Unmute"] or L["Mute"]
+    end, L["Hides their family chat, posts, calls for help, motto, pop-ups and map crest, and your addon stops sending them yours. Click again to unmute."])
+    Theme.OnClick(page.mute, "mute", function()
+        if page.first then
+            Kin.SetMuted(page.first, not Kin.IsMuted(page.first))
+            Window.Refresh(true)
+        end
+    end)
     -- wave and say hello, while they're near enough to hear it
     page.hey = Theme.Button(page, L["Hey cousin!"], "secondary", 100, 26)
     page.hey:SetPoint("TOPRIGHT", 0, -112)
@@ -624,6 +638,9 @@ local function PaintPage(keep)
     end
     local layer = HC.Layer and HC.Layer.Status(opened)
     -- (what matters first: on a narrow line, what can wait is what's cut)
+    if relative.muted then
+        metText = Theme.Paint(L["Muted"], C.enemy) .. Theme.Sep() .. metText
+    end
     -- the quests you're both on, when their addon says which
     local same = #HC.Share.SameQuests(relative)
     if same > 0 then
@@ -636,6 +653,9 @@ local function PaintPage(keep)
     -- black sheep play on the other side: no layer of theirs to join
     page.layer:SetShown(not sheep)
     page.layer:SetEnabled(HC.Layer == nil or HC.Layer.CanAsk(opened))
+    -- (the sound icon in red while they're muted)
+    local tint = relative.muted and C.enemy or C.text2
+    page.mute.icon:SetVertexColor(tint[1], tint[2], tint[3])
     -- their face when the game can show them (near you), else the crest. The model loads once
     -- per relative: a refresh doesn't reload it.
     local unit = relative.guid and type(UnitTokenFromGUID) == "function" and Utils.Call(UnitTokenFromGUID, relative.guid)

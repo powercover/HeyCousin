@@ -265,7 +265,7 @@ function Family.Cousin(sender)
         return nil
     end
     local full = Names.Full(first, surname)
-    if Utils.Call(C_FriendList and C_FriendList.IsIgnored, full) == true then
+    if Utils.Call(C_FriendList and C_FriendList.IsIgnored, full) == true or Kin.IsMuted(first) then
         return nil
     end
     return { first = first, surname = surname, full = full }

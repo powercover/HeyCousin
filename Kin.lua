@@ -147,6 +147,23 @@ function Kin.IsBlackSheep(relative)
         and relative.faction ~= "Neutral"
 end
 
+-- A cousin you muted: the addon shows nothing of theirs (Window.lua's Mute on their page).
+function Kin.IsMuted(first)
+    local house = Kin.House()
+    local relative = house and Utils.IsUsableString(first) and house.relatives[first]
+    return type(relative) == "table" and relative.muted == true
+end
+
+-- Mutes a cousin, or unmutes them (`muted` false).
+function Kin.SetMuted(first, muted)
+    local house = Kin.House()
+    local relative = house and house.relatives[first]
+    if relative then
+        relative.muted = muted == true or nil
+        Kin.Changed()
+    end
+end
+
 function Kin.IsNear(first)
     local at = near[first]
     return at ~= nil and GetTime() - at < NEAR_FOR

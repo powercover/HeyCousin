@@ -2968,6 +2968,53 @@ check((kit.crafts == nil or #kit.crafts <= 6) and (kit.quests == nil or #kit.que
 NoErrors(HC, "bad words, floods and nonsense")
 end)()
 
+-- === Muting a cousin ===========================================================================
+
+;(function() -- (its own locals: a chunk keeps 200 at most)
+HC = Mock.Boot("forever", { setupDone = true })
+Mock.channelMembers = { "*Rowan Ashbrook", "Kit Ashbrook", "Lia Ashbrook" }
+Mock.Fire("PLAYER_ENTERING_WORLD")
+Mock.Advance(25)
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:hi from Kit", "WHISPER", "Kit Ashbrook")
+Settle()
+check(Mock.Said("hi from Kit"), "before: Kit's words show")
+HC.Window.ShowRelative("Kit")
+Settle()
+local window = _G.HeyCousinWindow
+local muteButton = All(window, function(f) return f.icon ~= nil and f.icon.file and tostring(f.icon.file):find("Sound") and f:IsVisible() end)[1]
+muteButton:Click()
+check(HC.Kin.IsMuted("Kit"), "the sound button on their page mutes them")
+local linesBefore = #Mock.chat
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:still here", "WHISPER", "Kit Ashbrook")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:H:1429:1:1:help me", "WHISPER", "Kit Ashbrook")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:G:Deadmines", "WHISPER", "Kit Ashbrook")
+Settle()
+check(not Mock.Said("still here") and not Mock.Said("help me") and #HC.Help.List() == 0 and #HC.Groups.List() == 0,
+    "muted: nothing of theirs shows")
+-- and yours doesn't go to them
+HC.Family.AskRoster()
+Mock.Advance(3)
+local sentBefore = #Mock.addonSent
+SlashCmdList.HEYCOUSINFAM("hello all")
+local toKit = false
+for i = sentBefore + 1, #Mock.addonSent do
+    if Mock.addonSent[i].target == "Kit Ashbrook" then toKit = true end
+end
+check(not toKit, "and your family chat doesn't go to them")
+-- no pop-up for them either
+Mock.units.target = { name = "Kit", surname = "Ashbrook", guid = "Player-1-KIT", class = "MAGE", level = 20, faction = "Alliance" }
+HeyCousinDB.popupEvery = true
+Mock.Fire("PLAYER_TARGET_CHANGED")
+Settle()
+check(not (_G.HeyCousinAlert and _G.HeyCousinAlert:IsShown()), "and no pop-up when you meet")
+muteButton:Click()
+check(not HC.Kin.IsMuted("Kit"), "Unmute brings them back")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "5:C:back again", "WHISPER", "Kit Ashbrook")
+check(Mock.Said("back again"), "and their words show again")
+window:Hide()
+NoErrors(HC, "muting a cousin")
+end)()
+
 -- === The dot between words =================================================================
 
 ;(function() -- (its own locals: a chunk keeps 200 at most)

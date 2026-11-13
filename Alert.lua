@@ -398,7 +398,7 @@ end
 -- if you want that, or after a long time apart), not one for them lately, black sheep only when wanted.
 function Alert.Cousin(first, relative, new, unit)
     local settings = Settings()
-    if settings.popup == false then
+    if settings.popup == false or relative.muted then
         return
     end
     local apart, where

@@ -157,7 +157,7 @@ local function Heard(text, sender, onChannel)
     local kind, rest = text:match("^3:(%a)(.*)$")
     -- only your guild's members or your family (and not your own, coming back)
     local member = kind and (onChannel and HC.Family.Cousin(sender) or not onChannel and HC.Guild.Sender(sender))
-    if not member or member.me then
+    if not member or member.me or HC.Kin.IsMuted(member.first) then
         return
     end
     if kind == "P" then

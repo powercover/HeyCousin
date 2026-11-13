@@ -117,12 +117,33 @@ local Say = Utils.Debounce(SAY_AFTER, "achievements", function()
     end
 end)
 
+-- How far your crest has grown: 3, 6 and 9 achievements.
+function Badges.Tier()
+    local have = Badges.Count()
+    return have >= 9 and 3 or have >= 6 and 2 or have >= 3 and 1 or 0
+end
+
+-- Your crest shows it: everywhere it's drawn, and to cousins with the next word your addon sends.
+local function Grow()
+    local house = Kin.House()
+    if not house or HC.TestMode.active then
+        return
+    end
+    local tier = Badges.Tier()
+    local now = tier > 0 and tier or nil
+    if house.crest.tier ~= now then
+        house.crest.tier = now
+        Kin.Changed()
+    end
+end
+
 local function Give(entry, quiet)
     local earned = Kin.House().badges
     if earned[entry.key] then
         return
     end
     earned[entry.key] = time()
+    Grow()
     if not quiet then
         fresh[#fresh + 1] = entry.name()
         Say()
@@ -156,6 +177,7 @@ end
 -- next new thing is the first line.
 function Badges.Start()
     Earned()
+    Grow()
 end
 
 -- One that's earned when it happens: "hey", "fam", "reunion", "raid", "apart".

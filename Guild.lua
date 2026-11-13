@@ -35,7 +35,8 @@ local incoming = {} -- [sender] = { stamp, count, parts, have }: settings arrivi
 local queue, pumping = {}, false -- the guild master's parts waiting to go
 local testFamily    -- test mode: the made-up guild's family, never saved
 
-local CREST_FIELDS = { "shape", "division", "field", "second", "metal", "symbol", "charge" }
+-- (tier last: an older addon reads the fields it knows and lets it go by)
+local CREST_FIELDS = { "shape", "division", "field", "second", "metal", "symbol", "charge", "tier" }
 
 -- --- your guild --------------------------------------------------------------------------------
 

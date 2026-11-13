@@ -68,6 +68,11 @@ function Crest.Normalize(crest)
     elseif crest.symbol == "none" then
         out.symbol = "none"
     end
+    -- how far the crest has grown with the family's achievements (Badges.lua): 1 to 3
+    local tier = tonumber(crest.tier)
+    if tier and tier >= 1 then
+        out.tier = math.min(3, math.floor(tier))
+    end
     return out
 end
 
@@ -226,6 +231,46 @@ local function PaintInitial(self, crest, surname, size, y, enemy, filter)
     self.letter:Show()
 end
 
+-- What a crest has grown: a gold star under it (tier 1), three (2), and a golden glow behind (3). Not
+-- on a black sheep's red crest, nor on crests too small to show it.
+local function Decorate(self, tier, size, enemy)
+    tier = (not enemy and size >= 24 and tier) or 0
+    local stars = tier >= 2 and 3 or (tier >= 1 and 1 or 0)
+    if stars > 0 and not self.stars then
+        self.stars = {}
+        for index = 1, 3 do
+            self.stars[index] = self:CreateTexture(nil, "OVERLAY", nil, 5)
+        end
+    end
+    local star = math.max(8, math.floor(size * 0.26 + 0.5))
+    for index, texture in ipairs(self.stars or {}) do
+        local shown = (stars == 1 and index == 2) or (stars == 3)
+        texture:SetShown(shown)
+        if shown then
+            Theme.SetArt(texture, Theme.Icon("Star"))
+            SetColor(texture, Theme.C.gold)
+            texture:SetSize(star, star)
+            texture:ClearAllPoints()
+            -- the middle one a little lower: a small arc under the crest
+            texture:SetPoint("TOP", self, "BOTTOM", (index - 2) * star * 0.95, index == 2 and star * 0.15 or star * 0.4)
+        end
+    end
+    if tier >= 3 and not self.glow then
+        self.glow = self:CreateTexture(nil, "BACKGROUND", nil, 0)
+        self.glow:SetBlendMode("ADD")
+    end
+    if self.glow then
+        self.glow:SetShown(tier >= 3)
+        if tier >= 3 then
+            Theme.SetArt(self.glow, Theme.Shared("Glow"))
+            SetColor(self.glow, Theme.C.gold, 0.9)
+            self.glow:SetSize(size * 2.1, size * 2.1)
+            self.glow:ClearAllPoints()
+            self.glow:SetPoint("CENTER", self, "CENTER", 0, 0)
+        end
+    end
+end
+
 -- Paints `crest` (a saved crest) with `surname`'s initial in the theme in use; `enemy` paints the
 -- black sheep's red.
 local function SetCrest(self, crest, surname, enemy)
@@ -250,6 +295,7 @@ local function SetCrest(self, crest, surname, enemy)
     Theme.SetArt(self.shine, folder .. "Shine", filter)
     Theme.SetArt(self.rim, folder .. (pixel and "Frame" or "Rim"), filter)
     SetColor(self.rim, enemy and Theme.C.text3 or Crest.Color(crest.metal))
+    Decorate(self, crest.tier, size, enemy)
     local spot = SPOTS[shape]
     local y = pixel and (16 - spot.pixelY) * size / 32 or (0.5 - spot.y) * size
     self.symbol:Hide()

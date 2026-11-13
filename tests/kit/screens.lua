@@ -153,6 +153,21 @@ function Screens.backup(skin)
     return { frames = { HeyCousinBackup } }
 end
 
+-- A crest as it grows: no achievements, then each of the three steps
+function Screens.grown(skin)
+    local HC = Boot(skin)
+    local holder = CreateFrame("Frame", "HeyCousinGrownSample", UIParent)
+    holder:SetSize(420, 150)
+    holder:SetPoint("CENTER")
+    HC.Theme.Panel(holder, "card")
+    for tier = 0, 3 do
+        local crest = HC.Crest.Create(holder, 64)
+        crest:SetPoint("TOPLEFT", 30 + tier * 96, -34)
+        crest:SetCrest({ shape = "Heater", field = "gules", metal = "or", symbol = "initial", tier = tier }, "Ashbrook")
+    end
+    return { frames = { holder } }
+end
+
 -- The family portrait
 function Screens.portrait(skin)
     local HC = Boot(skin)

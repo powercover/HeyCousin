@@ -28,7 +28,8 @@ local STILL_GAP = 4 * 60
 local ANSWER_WITHIN, ANSWER_GAP = 6, 60
 -- the answers right after your own hello are one line in chat, not one each
 local QUIET = 30
-local CREST_FIELDS = { "shape", "division", "field", "second", "metal", "symbol", "charge" }
+-- (tier last: an older addon reads the fields it knows and lets it go by)
+local CREST_FIELDS = { "shape", "division", "field", "second", "metal", "symbol", "charge", "tier" }
 -- a cousin's level is news on every fifth one
 local NEWS_EVERY = 5
 -- who's in the channel: asked this often, and the game's answer comes within this long

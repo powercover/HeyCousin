@@ -1403,6 +1403,10 @@ SlashCmdList.HEYCOUSINFAM("hello")
 check(SentTo("Kit Ashbrook", "^5:C:hello") and SentTo("Lia Ashbrook", "^5:C:hello"), "/fam goes to each")
 check(not SentTo("Sly Stranger", "^5:C:"), "and not to a stranger in the channel")
 -- your motto goes to them when it changes, and theirs comes to you
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:S:MAGE:30:Round.Plain.azure.or.or.initial..2", "WHISPER", "Kit Ashbrook")
+check(HC.Kin.CrestOf("Kit").tier == 2, "a cousin's crest comes with how far it has grown")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "4:S:MAGE:30:Round.Plain.azure.or.or.initial.", "WHISPER", "Kit Ashbrook")
+check(HC.Kin.CrestOf("Kit").tier == nil, "an older addon's crest: no steps")
 HC.Kin.SetCrest(HC.Kin.Crest(), "Family first")
 check(SentTo("Kit Ashbrook", "^4:M:Family first$") and SentTo("Lia Ashbrook", "^4:M:Family first$"), "a new motto goes to each")
 local mottoSent = #Mock.addonSent
@@ -2639,6 +2643,27 @@ HeyCousinDB.badgeLines = false
 HC.Badges.Earn("raid")
 Mock.Advance(3)
 check(badges.raid and #Mock.chat == linesBefore, "lines off: earned without a word")
+-- the crest grows: six achievements, three stars under it, on every crest of yours
+Settle()
+check(HC.Kin.Crest().tier == 2, "six achievements: the crest's second step: " .. tostring(HC.Kin.Crest().tier))
+local grown = HC.Crest.Create(UIParent, 64)
+local function Stars(frame)
+    local n = 0
+    for _, star in ipairs(frame.stars or {}) do if star:IsShown() then n = n + 1 end end
+    return n
+end
+grown:SetCrest(HC.Kin.Crest(), "Ashbrook")
+check(Stars(grown) == 3 and not (grown.glow and grown.glow:IsShown()), "three stars, no glow yet")
+grown:SetCrest(HC.Kin.Crest(), "Ashbrook", true)
+check(Stars(grown) == 0, "never on a black sheep's red crest")
+local small = HC.Crest.Create(UIParent, 16)
+small:SetCrest(HC.Kin.Crest(), "Ashbrook")
+check(Stars(small) == 0, "nor on a crest too small to show it")
+grown:SetCrest({ shape = "Heater", tier = 3 }, "Ashbrook")
+check(Stars(grown) == 3 and grown.glow:IsShown(), "the third step: a golden glow too")
+grown:SetCrest({ shape = "Heater", tier = 1 }, "Ashbrook")
+check(Stars(grown) == 1 and not grown.glow:IsShown(), "the first: one star")
+check(HC.Crest.Normalize({ tier = 99 }).tier == 3 and HC.Crest.Normalize({ tier = "x" }).tier == nil, "a tier is 1 to 3, or none")
 HeyCousinDB.badgeLines = nil
 -- the list
 SlashCmdList.HEYCOUSIN("achievements")

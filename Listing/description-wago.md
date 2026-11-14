@@ -4,6 +4,8 @@ Hey Cousin! is the surname finder and family finder for World of Warcraft Foreve
 
 ## Find your family
 
+![Find your family](https://cdn.wago.io/gallery/u6ZwgDzerRrLLLgmiuOY5IjSFRukXPQ43epbySbc.png)
+
 - **One-click surname finder:** everyone online with your exact surname, with their level, zone and guild. Look up any other family name with `/cousin find Surname`.
 - **Your family list** shows each cousin's role (tank, healer or damage), and keeps your own private notes on them.
 - **It finds them by itself too:** around you, in chat, in your group and in your guild, and it remembers every meeting.
@@ -11,6 +13,8 @@ Hey Cousin! is the surname finder and family finder for World of Warcraft Foreve
 - **Family reunions:** a banner when cousins are in your group.
 
 ## Play together
+
+![Play together](https://cdn.wago.io/gallery/dkin8PIqTsEFsDUVlyoQXPJJFSz8gGkmvUll4ZKx.png)
 
 With cousins who have the addon too, in any guild:
 
@@ -20,9 +24,13 @@ With cousins who have the addon too, in any guild:
 
 ## See your family everywhere
 
+![See your family everywhere](https://cdn.wago.io/gallery/SGbfK6tAlv47TyPSDDrNNR5BT0id1MkCZY24BTLb.png)
+
 Your cousins' crests on the **world map**, the **minimap** and **nameplates** (made to work with any nameplate addon), in chat and in tooltips. Sharing where you are stays off until you turn it on.
 
 ## Build your house
+
+![Build your house](https://cdn.wago.io/gallery/YtI0RhPdf6XR0bVRH2HrIt27zHXGQcsDRzoV9iWQ.png)
 
 - **Your own crest and motto**, and a crest that grows with **family achievements**.
 - **The family portrait:** your house on one card, for a screenshot.

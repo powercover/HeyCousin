@@ -11,10 +11,14 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # placeholder: (CurseForge, Wago); None until it's uploaded there
 ADDRESSES = {
     "IMAGE_EMBLEM": (None, None),
-    "IMAGE_FIND": (None, None),
-    "IMAGE_TOGETHER": (None, None),
-    "IMAGE_EVERYWHERE": (None, None),
-    "IMAGE_HOUSE": (None, None),
+    "IMAGE_FIND": ("https://media.forgecdn.net/attachments/2206/410/find-png.png",
+                   "https://cdn.wago.io/gallery/u6ZwgDzerRrLLLgmiuOY5IjSFRukXPQ43epbySbc.png"),
+    "IMAGE_TOGETHER": ("https://media.forgecdn.net/attachments/2206/411/together-png.png",
+                       "https://cdn.wago.io/gallery/dkin8PIqTsEFsDUVlyoQXPJJFSz8gGkmvUll4ZKx.png"),
+    "IMAGE_EVERYWHERE": ("https://media.forgecdn.net/attachments/2206/413/everywhere-png.png",
+                         "https://cdn.wago.io/gallery/SGbfK6tAlv47TyPSDDrNNR5BT0id1MkCZY24BTLb.png"),
+    "IMAGE_HOUSE": ("https://media.forgecdn.net/attachments/2206/414/house-png.png",
+                    "https://cdn.wago.io/gallery/YtI0RhPdf6XR0bVRH2HrIt27zHXGQcsDRzoV9iWQ.png"),
 }
 
 

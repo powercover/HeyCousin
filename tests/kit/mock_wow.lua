@@ -616,6 +616,10 @@ local function Globals()
         local p = Mock.professions[index]
         if p then return p.name, 136000 + index, p.rank, 300, 0, 0, p.line end
     end
+    -- your spec: Mock.spec = { name, icon } (nil: a client without specs)
+    Mock.spec = nil
+    function GetSpecialization() return Mock.spec and 1 or nil end
+    function GetSpecializationInfo(index) if Mock.spec and index == 1 then return 62, Mock.spec.name, "", Mock.spec.icon end end
     -- your quest log: Mock.quests = { { id, title } }, under one header
     Mock.quests = {}
     C_QuestLog = {

@@ -17,7 +17,7 @@ local ROW = 38
 -- a cousin's page: where it starts, its meetings' rows, the meeting shown in full
 local PAGE_TOP, MEETING_ROW, DETAIL = 134, 32, 146
 -- the list's columns from a row's left, and the room the seen column keeps at its right
-local LEVEL_X, ZONE_X, SEEN_W = 206, 248, 76
+local LEVEL_X, ZONE_X, SEEN_W = 206, 262, 76
 local LIST_TOP = 166
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 
@@ -167,6 +167,11 @@ local function NewRow(parent)
     row.level:SetJustifyH("RIGHT")
     row.level:SetWidth(30)
     row.level:SetPoint("LEFT", LEVEL_X, 0)
+    -- their spec's icon by the level: theirs as their addon last said, yours from the game
+    row.spec = Theme.Texture(row, nil, "ARTWORK", 1)
+    row.spec:SetSize(16, 16)
+    row.spec:SetPoint("LEFT", LEVEL_X + 34, 0)
+    row.spec:SetTexCoord(0.08, 0.92, 0.08, 0.92)
     -- the zone takes the room up to the seen column; a long one ends in "..."
     row.zone = Theme.Text(row, "Small", C.text2)
     row.zone:SetPoint("LEFT", ZONE_X, 0)
@@ -233,6 +238,13 @@ local function PaintRow(row, item)
         row.tag:SetPoint("LEFT", row.name, "RIGHT", 6, 0)
     end
     row.level:SetText(relative.level and tostring(relative.level) or "")
+    local spec = item.me and HC.Share.MySpec() or relative.spec
+    if type(spec) == "table" and spec.icon then
+        row.spec:SetTexture(spec.icon)
+        row.spec:Show()
+    else
+        row.spec:Hide()
+    end
     row.zone:SetText(relative.zone or "")
     local near = not item.me and Kin.IsNear(item.first)
     local online = not item.me and not near and Kin.IsOnline(item.first)
@@ -620,6 +632,9 @@ local function PaintPage(keep)
     local className = Utils.ClassName(relative.class, relative.sex)
     if relative.level and className then
         parts[#parts + 1] = string.format(L["Level %d %s"], relative.level, className)
+    end
+    if type(relative.spec) == "table" and Utils.IsUsableString(relative.spec.name) then
+        parts[#parts + 1] = relative.spec.name
     end
     if relative.zone then
         parts[#parts + 1] = (Kin.IsNear(opened) or Kin.IsOnline(opened)) and string.format(L["%s, now"], relative.zone)

@@ -15,6 +15,7 @@ C_PartyInfo
 C_PlayerInfo
 C_QuestLog
 C_Secrets
+C_SpecializationInfo
 C_SuperTrack
 C_Texture
 C_Timer
@@ -60,6 +61,7 @@ GetNormalizedRealmName
 GetNumGroupMembers
 GetNumGuildMembers
 GetNumSubgroupMembers
+GetNumTalentTabs
 GetPlayerFacing
 GetPlayerInfoByGUID
 GetProfessionInfo
@@ -67,7 +69,10 @@ GetProfessions
 GetRealZoneText
 GetRealmName
 GetRegionalRulesetName
+GetSpecialization
+GetSpecializationInfo
 GetSubZoneText
+GetTalentTabInfo
 GetTime
 GetUnitName
 GetZoneText

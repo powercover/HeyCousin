@@ -701,6 +701,39 @@ class Painter:
             frame = frame["parent"]
         return None
 
+    def within(self, frame, outer):
+        """Whether `frame` is `outer` or inside it."""
+        while frame is not None:
+            if frame["serial"] == outer["serial"]:
+                return True
+            frame = frame["parent"]
+        return False
+
+    def check_buttons(self, scene, inks, buttons, roots):
+        """Notes the addon's buttons that overlap each other, and words that run under a button they
+        aren't part of (in the same window)."""
+        boxes = [(button, self.rect(button), self.root_of(button, roots)) for button in buttons]
+        for index, (button, box, root) in enumerate(boxes):
+            for other, other_box, other_root in boxes[index + 1:]:
+                if root is not None and other_root is not None and root["serial"] == other_root["serial"] \
+                        and not self.within(button, other) and not self.within(other, button) and overlap(box, other_box):
+                    names = [str(b["label"]["text"] if b["label"] else "")[:20] or "an icon" for b in (button, other)]
+                    self.notes.append(f"{scene}: button {names[0]!r} overlaps button {names[1]!r}")
+        for frame, region, ink, clip in inks:
+            home = self.root_of(frame, roots)
+            if clip is not None:
+                # (only the part a list's edge leaves seen: a clip is in pixels, back to points)
+                s = self.scale
+                clip = (clip[0] / s, UI_H - clip[3] / s, clip[2] / s, UI_H - clip[1] / s)
+                ink = (max(ink[0], clip[0]), max(ink[1], clip[1]), min(ink[2], clip[2]), min(ink[3], clip[3]))
+                if ink[0] >= ink[2] or ink[1] >= ink[3]:
+                    continue
+            for button, box, root in boxes:
+                if root is not None and home is not None and home["serial"] == root["serial"] \
+                        and not self.within(frame, button) and overlap(ink, box):
+                    name = str(button["label"]["text"] if button["label"] else "")[:20] or "an icon"
+                    self.notes.append(f"{scene}: {str(region['text'])[:30]!r} runs under button {name!r}")
+
     def check(self, scene, inks, roots=()):
         """Notes texts that run into each other, labels wider than their buttons, and texts that run
         out of their window."""
@@ -771,7 +804,11 @@ class Painter:
                     ink = self.draw_text(self.text_of(region), region_box, a, own, scene)
                     if ink:
                         inks.append((frame, region, ink, own))
-        self.check(scene, inks, [] if result["full"] else items(result["frames"]))
+        roots = [] if result["full"] else items(result["frames"])
+        self.check(scene, inks, roots)
+        # (the addon's own buttons: Theme.Button, an icon button too, have a label)
+        buttons = [frame for _, frame, _, _ in shown if self.kind(frame) == "Button" and frame["label"] is not None]
+        self.check_buttons(scene, inks, buttons, roots)
         if result["tooltip"]:
             parts["tooltip"] = self.px(self.tooltip())
         for error in items(self.G.Screens.HC.errors):

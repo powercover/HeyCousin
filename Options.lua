@@ -41,13 +41,11 @@ local bridge
 -- What's new in this version: the version number's tooltip.
 local function News()
     return {
-        L["Family achievements: eleven quiet ones, behind the star on the Stats tab."],
-        L["Backup: your whole family as one line of text to keep safe. In About, or /cousin backup."],
-        L["Long time no see: a pop-up when you meet a cousin again after two weeks."],
-        L["Your first whisper to a cousin starts with a hello."],
-        L["In dungeons and raids the family channel waits, so it makes no errors there."],
-        L["Fixed: an error when you change the look without a reload."],
-        L["Fixed: boxes instead of dots between words in Russian and Ukrainian."],
+        L["The Together tab: calls for help, who has an item, crafters and quest buddies, beside Groups."],
+        L["Your crest grows with family achievements: stars, then a golden glow."],
+        L["Mute a cousin with the sound button on their page."],
+        L["Bad words from cousins are masked, as the game's language filter says."],
+        L["What you share with cousins has its switches on the new Together page of the settings."],
     }
 end
 

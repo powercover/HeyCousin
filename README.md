@@ -39,8 +39,8 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
   and on OpenMap's stitched map, across all its zones.
 - **Family chat, news and groups**: through the same hidden channel, cousins who have the addon are
   marked "(uses addon)" and see when each other come online. `/fam` talks to all of them, a line
-  tells when one reaches a round level, and the **Groups** tab says what you're looking for: Join asks
-  the one who posted, and the invite stays their click. It says nothing `/who` doesn't show, but that
+  tells when one reaches a round level, and the **Together** tab's Groups page says what you're looking
+  for: Join asks the one who posted, and the invite stays their click. It says nothing `/who` doesn't show, but that
   you run the addon. Each can be turned off, or all with one switch, and the game's ignore list counts.
 - **"Hey cousin!"**: a button on the pop-up and on a near cousin's page: you wave and say "Hey cousin
   Mira!" out loud. Only ever from a click.
@@ -48,9 +48,13 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
   the crest too, so you see where it goes. On the game's own plate frame, so they follow the plate under any nameplate
   addon. The settings draw a sample plate: drag the crest, scroll to resize it, and real plates follow.
 - **The family race**: you and the cousins who have the addon, by level, with a line when one passes you.
+- **Together**: beside Groups, a call for **Help** with a waypoint to you, **Who has it?** (one item
+  asked of the family; each addon answers with a count, nothing else), **Crafters** and **Quest
+  buddies**. What you share has its switches in the settings.
+- **Mute** a cousin, only for you, and bad words from cousins masked as the game's language filter says.
 - **Long time no see!**: a pop-up when you meet a cousin again after two weeks apart.
 - **Family achievements**: eleven small things a family does, quiet on purpose: one line in chat when
-  you earn one, no pop-up, no sound. The star on the Stats tab.
+  you earn one, no pop-up, no sound. The star on the Stats tab. Your crest grows with them.
 - **Backup and restore**: your whole family as one line of text to keep anywhere, and back after a new
   computer or a deleted WTF folder.
 - **Family reunions**: two or more of your house in one group get a banner with their crests side by
@@ -75,7 +79,7 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
 - `/cousin` (or `/heycousin`): your family
 - `/cousin tree`: your guild as a family tree
 - `/cousin recruit`: invite the cousins who have no guild
-- `/cousin groups`: cousins looking for a group
+- `/cousin groups`: the Together tab: groups, help, who has it, crafters, quest buddies
 - `/cousin race`: the family race, by level
 - `/cousin portrait`: your house on one card, for a screenshot
 - `/cousin achievements`: your family achievements

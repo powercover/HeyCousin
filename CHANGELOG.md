@@ -1,4 +1,24 @@
-# Hey Cousin! 1.1.4
+# Hey Cousin! 1.2.0
+
+- **The Together tab** (the Groups tab, grown): with cousins who have the addon too,
+  - **Groups**, as before: what you're looking for, and Join.
+  - **Help**: a call to every cousin online, with where you are; theirs come with a **Waypoint** to them.
+  - **Who has it?**: ask the family for one item. Each addon answers with one count from the game, bags and
+    bank, never a list, and to one cousin once in 10 seconds and 6 times a minute at most.
+  - **Crafters**: who in the family makes what, from the professions cousins share.
+  - **Quest buddies**: cousins online within 3 levels of you, your zone first, with the quests you share.
+    A cousin's page says how many quests you share too.
+- **A crest that grows** with family achievements: a star at 3, three stars at 6, a golden glow at 9. Cousins
+  see it on the map, nameplates and pop-ups.
+- **Mute a cousin**: the sound button on their page hides their chat, posts, calls, motto, pop-ups and map
+  crest, and stops yours going to them. Only for you; click again to unmute.
+- **Bad words from cousins are masked** with *, following the game's Mature Language Filter switch (the
+  game's own filter never sees addon messages).
+- **Safer with floods and nonsense**: calls and answers from a cousin come at a fair pace or not at all.
+- **A Together page in the settings**: calls for help, and what you share (professions, quests, answers
+  to item searches), each with its switch.
+
+## 1.1.4
 
 - **Fixed:** an error when you changed the look without a reload: a crest's letter was cleared before it
   had a font.

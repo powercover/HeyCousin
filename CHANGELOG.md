@@ -1,4 +1,15 @@
-# Hey Cousin! 1.2.0
+# Hey Cousin! 1.3.0
+
+- **Role badges** in your family list, by each level: a blue shield for a tank, a green cross for a healer, a
+  red sword for damage. Yours is the role you picked for the group finder, else your spec's, else your main
+  talent tree's; a cousin's as their addon last said. Its name is on their page.
+- **Notes on cousins:** a box on a cousin's page keeps your note, and their tooltip shows it. It stays in
+  your own saved file (every character on your account sees it) and is never sent to anyone.
+- **Crafters, for many professions:** one row a cousin with all their professions, the most skilled first,
+  a box to find a profession, and a line with yours on top (or why cousins don't see them).
+- **Tabs fit their words** in every language and look: TOGETHER was cut in the pixel font.
+
+## 1.2.0
 
 - **The Together tab** (the Groups tab, grown): with cousins who have the addon too,
   - **Groups**, as before: what you're looking for, and Join.

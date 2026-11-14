@@ -52,6 +52,8 @@ a surname, like a family. Hey Cousin! finds your relatives and makes the family 
   asked of the family; each addon answers with a count, nothing else), **Crafters** and **Quest
   buddies**. What you share has its switches in the settings.
 - **Mute** a cousin, only for you, and bad words from cousins masked as the game's language filter says.
+- **Role badges** (tank, healer, damage) by each level in your family list, and **private notes** on any
+  cousin, kept in your saved file for every character on your account, never sent.
 - **Long time no see!**: a pop-up when you meet a cousin again after two weeks apart.
 - **Family achievements**: eleven small things a family does, quiet on purpose: one line in chat when
   you earn one, no pop-up, no sound. The star on the Stats tab. Your crest grows with them.

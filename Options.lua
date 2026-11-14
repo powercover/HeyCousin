@@ -41,11 +41,10 @@ local bridge
 -- What's new in this version: the version number's tooltip.
 local function News()
     return {
-        L["The Together tab: calls for help, who has an item, crafters and quest buddies, beside Groups."],
-        L["Your crest grows with family achievements: stars, then a golden glow."],
-        L["Mute a cousin with the sound button on their page."],
-        L["Bad words from cousins are masked, as the game's language filter says."],
-        L["What you share with cousins has its switches on the new Together page of the settings."],
+        L["Role badges in your family list: tank, healer or damage."],
+        L["Notes on cousins: a private note on their page, shown in their tooltip. Only for you."],
+        L["Crafters: one row a cousin with all their professions, a box to find one, and yours on top."],
+        L["Tabs fit their words in every language and look."],
     }
 end
 

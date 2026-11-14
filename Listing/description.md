@@ -9,6 +9,7 @@ Hey Cousin! is the surname finder and family finder for World of Warcraft Foreve
 ![Find your family](IMAGE_FIND)
 
 - **One-click surname finder:** everyone online with your exact surname, with their level, zone and guild. Look up any other family name with `/cousin find Surname`.
+- **Your family list** shows each cousin's role (tank, healer or damage), and keeps your own private notes on them.
 - **It finds them by itself too:** around you, in chat, in your group and in your guild, and it remembers every meeting.
 - **"A cousin is near!"** A pop-up when you meet, "Long time no see!" after two weeks apart, and one click to wave hello.
 - **Family reunions:** a banner when cousins are in your group.
@@ -21,7 +22,7 @@ With cousins who have the addon too, in any guild:
 
 - **Family chat** (`/fam`) and a **family group finder** (LFG).
 - **Calls for help**, with an arrow to you.
-- **Who has it?** Ask the family for an item. **Crafters:** who makes what. **Quest buddies:** cousins near your level, on the same quests.
+- **Who has it?** Ask the family for an item. **Crafters:** who makes what, with every profession. **Quest buddies:** cousins near your level, on the same quests.
 
 ## See your family everywhere
 

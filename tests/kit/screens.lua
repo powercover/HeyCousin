@@ -85,8 +85,22 @@ function Screens.familyroles(skin)
 end
 
 -- Find my family, clicked: the cousins online on top, one never met
+-- the made-up family's roles, the same each time
+local function Roles(HC)
+    local roles = { "T", "H", "D", "D", "H", "D", "T", "D", "H", "D", "D", "T", "H", "D", "H" }
+    local names = {}
+    for first in pairs(HC.TestMode.House().relatives) do
+        names[#names + 1] = first
+    end
+    table.sort(names)
+    for index, first in ipairs(names) do
+        HC.TestMode.House().relatives[first].role = roles[(index - 1) % #roles + 1]
+    end
+end
+
 function Screens.found(skin)
     local HC = Boot(skin)
+    Roles(HC)
     HC.Window.Show("family")
     HeyCousinWindow.find:Click()
     Mock.Advance(2)

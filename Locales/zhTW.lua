@@ -469,6 +469,8 @@ HC.Locale.Register("zhTW", {
     ["%s isn't one of your other characters."] = "%s 不是你的其他角色。",
     ["take a cousin off your list"] = "把表親從清單中移除",
     ["%s isn't in your family."] = "%s 不在你的家族中。",
+    ["Your note on them, only for you"] = "你對他的備註，只有你能看到",
+    ["Your note: %s"] = "你的備註：%s",
     ["The game gives the addon no professions of yours yet."] = "遊戲還沒有把你的專業告訴插件。",
     ["Yours: %s. Not shared: it's off in the settings."] = "你的：%s。未分享：設定裡關著。",
     ["Yours, shared with cousins: %s"] = "你的，已分享給本家：%s",

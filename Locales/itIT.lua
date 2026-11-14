@@ -471,6 +471,8 @@ HC.Locale.Register("itIT", {
     ["%s isn't one of your other characters."] = "%s non è uno dei tuoi altri personaggi.",
     ["take a cousin off your list"] = "togli un cugino dalla lista",
     ["%s isn't in your family."] = "%s non è nella tua famiglia.",
+    ["Your note on them, only for you"] = "La tua nota su di lui, solo per te",
+    ["Your note: %s"] = "La tua nota: %s",
     ["The game gives the addon no professions of yours yet."] = "Il gioco non dà ancora all'addon nessuna tua professione.",
     ["Yours: %s. Not shared: it's off in the settings."] = "Le tue: %s. Non condivise: è spento nelle impostazioni.",
     ["Yours, shared with cousins: %s"] = "Le tue, condivise con i cugini: %s",

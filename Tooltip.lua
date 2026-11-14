@@ -76,6 +76,10 @@ local function AddLines(tooltip)
     local color = sheep and C.enemy or C.near
     tooltip:AddLine(Crest.ChatIcon(house.crest, sheep) .. " " .. string.format(L["Family: %s (%s)"], mine, role),
         color[1], color[2], color[3])
+    -- your note on them, only you see it
+    if relative and Utils.IsUsableString(relative.note) then
+        tooltip:AddLine(string.format(L["Your note: %s"], relative.note), C.gold[1], C.gold[2], C.gold[3], true)
+    end
     if relative and Utils.IsUsableString(relative.motto) then
         tooltip:AddLine("\226\128\156" .. relative.motto .. "\226\128\157", C.text2[1], C.text2[2], C.text2[3])
     end

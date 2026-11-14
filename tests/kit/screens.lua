@@ -65,6 +65,19 @@ function Screens.family(skin)
     return { frames = { HeyCousinWindow } }
 end
 
+-- The family list with spec icons by the level: the addon's own icon stands in for the game's spec
+-- icons, which only the game can draw
+function Screens.familyspecs(skin)
+    local HC = Boot(skin)
+    local stand = "Interface\\AddOns\\HeyCousin\\Media\\Icon"
+    for _, relative in pairs(HC.TestMode.House().relatives) do
+        relative.spec = { icon = stand, name = "Spec" }
+    end
+    HC.Window.Show("family")
+    HeyCousinWindow.badge:Hide()
+    return { frames = { HeyCousinWindow } }
+end
+
 -- Find my family, clicked: the cousins online on top, one never met
 function Screens.found(skin)
     local HC = Boot(skin)

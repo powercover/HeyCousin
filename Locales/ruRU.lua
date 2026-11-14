@@ -465,6 +465,8 @@ HC.Locale.Register("ruRU", {
     ["%s isn't one of your other characters."] = "%s — не твой другой персонаж.",
     ["take a cousin off your list"] = "убрать кузена из списка",
     ["%s isn't in your family."] = "%s нет в твоей семье.",
+    ["Your note on them, only for you"] = "Твоя заметка о нём, видна только тебе",
+    ["Your note: %s"] = "Твоя заметка: %s",
     ["The game gives the addon no professions of yours yet."] = "Игра пока не дала аддону твоих профессий.",
     ["Yours: %s. Not shared: it's off in the settings."] = "Твои: %s. Не видны другим: выключено в настройках.",
     ["Yours, shared with cousins: %s"] = "Твои, видны кузенам: %s",

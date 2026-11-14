@@ -471,6 +471,8 @@ HC.Locale.Register("koKR", {
     ["%s isn't one of your other characters."] = "%s: 내 다른 캐릭터가 아니에요.",
     ["take a cousin off your list"] = "사촌을 목록에서 빼기",
     ["%s isn't in your family."] = "%s: 내 가족에 없어요.",
+    ["Your note on them, only for you"] = "이 사촌에 대한 내 메모, 나만 봐요",
+    ["Your note: %s"] = "내 메모: %s",
     ["The game gives the addon no professions of yours yet."] = "게임이 아직 내 전문 기술을 애드온에 알려 주지 않았어요.",
     ["Yours: %s. Not shared: it's off in the settings."] = "내 기술: %s. 공유 안 함: 설정에서 꺼져 있어요.",
     ["Yours, shared with cousins: %s"] = "사촌과 공유하는 내 기술: %s",

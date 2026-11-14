@@ -16,6 +16,7 @@ local PAD = 18
 local ROW = 38
 -- a cousin's page: where it starts, its meetings' rows, the meeting shown in full
 local PAGE_TOP, MEETING_ROW, DETAIL = 134, 32, 146
+local NOTE_MAX = 80
 -- the list's columns from a row's left, and the room the seen column keeps at its right
 local LEVEL_X, ZONE_X, SEEN_W = 206, 262, 76
 local LIST_TOP = 166
@@ -591,7 +592,7 @@ local function BuildPage()
     end)
     -- wave and say hello, while they're near enough to hear it
     page.hey = Theme.Button(page, L["Hey cousin!"], "secondary", 100, 26)
-    page.hey:SetPoint("TOPRIGHT", 0, -112)
+    page.hey:SetPoint("TOPRIGHT", 0, -138)
     Theme.Fit(page.hey, 10, 90)
     Theme.Tip(page.hey, L["Hey cousin!"], L["You wave and say hello, out loud."])
     Theme.OnClick(page.hey, "hey cousin", function()
@@ -601,16 +602,30 @@ local function BuildPage()
     end)
     -- every meeting, the newest first; a click shows it in full below
     page.heading = Theme.Text(page, "Headline")
-    page.heading:SetPoint("TOPLEFT", 0, -118)
+    page.heading:SetPoint("TOPLEFT", 0, -144)
     page.heading:SetPoint("RIGHT", page.hey, "LEFT", -8, 0)
     page.list = Theme.List(page, MEETING_ROW, NewMeetingRow, PaintMeetingRow)
-    page.list:SetPoint("TOPLEFT", 0, -144)
+    page.list:SetPoint("TOPLEFT", 0, -170)
     page.list:SetPoint("BOTTOMRIGHT", 0, DETAIL + 8)
     page.none = Theme.Text(page, "Small", C.text3)
-    page.none:SetPoint("TOPLEFT", 4, -150)
+    page.none:SetPoint("TOPLEFT", 4, -176)
     page.none:SetPoint("RIGHT", page, "RIGHT", -4, 0)
     page.none:SetWordWrap(true)
     page.detail = BuildDetail(page)
+    -- your own note on them: only in your saved file (every character on your account sees it), never
+    -- sent to anyone. Kept as you type.
+    page.note = Theme.EditBox(page, 300, L["Your note on them, only for you"], nil, NOTE_MAX)
+    page.note:SetHeight(26)
+    page.note:SetPoint("TOPLEFT", 0, -108)
+    page.note:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+    page.note.onChange = function(text, typed)
+        if typed and page.first then
+            Kin.SetNote(page.first, text)
+        end
+    end
+    page.note.edit:SetScript("OnEnterPressed", Utils.Protect("cousin note", function(self)
+        self:ClearFocus()
+    end))
 end
 
 -- The page of the relative opened (Window.Open); false when there's none to show.
@@ -668,6 +683,11 @@ local function PaintPage(keep)
     -- black sheep play on the other side: no layer of theirs to join
     page.layer:SetShown(not sheep)
     page.layer:SetEnabled(HC.Layer == nil or HC.Layer.CanAsk(opened))
+    -- their note, unless you're typing it
+    if not page.note.edit:HasFocus() or page.noteFor ~= opened then
+        page.note.edit:SetText(relative.note or "")
+    end
+    page.noteFor = opened
     -- (the sound icon in red while they're muted)
     local tint = relative.muted and C.enemy or C.text2
     page.mute.icon:SetVertexColor(tint[1], tint[2], tint[3])

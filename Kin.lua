@@ -154,6 +154,16 @@ function Kin.IsMuted(first)
     return type(relative) == "table" and relative.muted == true
 end
 
+-- Your note on a cousin: saved with them, for you alone (never sent); empty takes it away.
+function Kin.SetNote(first, text)
+    local house = Kin.House()
+    local relative = house and house.relatives[first]
+    if relative then
+        local note = HC.Guild.Plain(text, 80)
+        relative.note = note ~= "" and note or nil
+    end
+end
+
 -- Mutes a cousin, or unmutes them (`muted` false).
 function Kin.SetMuted(first, muted)
     local house = Kin.House()

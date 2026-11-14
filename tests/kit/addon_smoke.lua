@@ -3030,6 +3030,54 @@ window:Hide()
 NoErrors(HC, "muting a cousin")
 end)()
 
+-- === Notes on cousins ========================================================================
+
+;(function() -- (its own locals: a chunk keeps 200 at most)
+HC = Mock.Boot("forever", { setupDone = true, houses = { Ashbrook = { relatives = {
+    Kit = { met = 2, class = "MAGE", level = 20, firstSeen = 1700000000 - 86400, lastSeen = 1700000000 - 3600 } } } } })
+Mock.channelMembers = { "*Rowan Ashbrook", "Kit Ashbrook" }
+Mock.Fire("PLAYER_ENTERING_WORLD")
+Mock.Advance(25)
+HC.Window.ShowRelative("Kit")
+Settle()
+local window = _G.HeyCousinWindow
+local noteBox
+Walk(window, function(f) if f.kind == "EditBox" and f:IsVisible() and f.parent and f.parent.hint and f.parent.hint.text
+    and f.parent.hint.text:find("Your note", 1, true) then noteBox = f end end)
+check(noteBox ~= nil, "a note box on their page")
+local sentBefore = #Mock.addonSent
+noteBox.text = "Great healer |cffowes me 5g"
+Mock.Run(noteBox, "OnTextChanged", true)
+check(HC.Kin.House().relatives.Kit.note == "Great healer cffowes me 5g", "what you type is kept, without codes: "
+    .. tostring(HC.Kin.House().relatives.Kit.note))
+local leaked = false
+for i = sentBefore + 1, #Mock.addonSent do
+    if Mock.addonSent[i].text:find("healer", 1, true) then leaked = true end
+end
+Mock.Advance(70)
+for _, line in ipairs(Mock.addonSent) do
+    if line.text:find("healer", 1, true) then leaked = true end
+end
+check(not leaked, "your note never goes to anyone")
+-- in their tooltip, for you
+Mock.units.mouseover = { name = "Kit", surname = "Ashbrook", guid = "Player-1-KIT", class = "MAGE", faction = "Alliance" }
+GameTooltip.unit = "mouseover"
+Mock.Run(GameTooltip, "OnTooltipCleared")
+GameTooltip.lines = {}
+Mock.postCalls[2](GameTooltip, {})
+check(table.concat(GameTooltip.lines, " "):find("Your note: Great healer", 1, true), "your note in their tooltip")
+-- account wide: another character of yours, same saved file
+local saved = HeyCousinDB
+HC = Mock.Boot("forever", saved, { name = "Wynn", surname = "Ashbrook", guid = "Player-1-WYNN", class = "PRIEST",
+    race = "Human", level = 14, sex = 3, faction = "Alliance" })
+check(HC.Kin.House().relatives.Kit.note == "Great healer cffowes me 5g", "your other characters see it too")
+-- empty takes it away
+HC.Kin.SetNote("Kit", "   ")
+check(HC.Kin.House().relatives.Kit.note == nil, "an empty note is no note")
+_G.HeyCousinWindow:Hide()
+NoErrors(HC, "notes on cousins")
+end)()
+
 -- === The dot between words =================================================================
 
 ;(function() -- (its own locals: a chunk keeps 200 at most)

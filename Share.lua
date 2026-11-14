@@ -251,6 +251,43 @@ function Share.Crafters()
     return rows
 end
 
+-- Who crafts what, a cousin each: { first, relative, crafts } with their professions the most skilled
+-- first; with `wanted` (lower case), only cousins with a profession that has it in its name, that one
+-- first. The cousins with the best match first, then by name.
+function Share.CraftsByCousin(wanted)
+    local rows = {}
+    for _, entry in ipairs(Kin.List()) do
+        local crafts = {}
+        for _, craft in ipairs(type(entry.relative.crafts) == "table" and entry.relative.crafts or {}) do
+            crafts[#crafts + 1] = craft
+        end
+        local match
+        if wanted and wanted ~= "" then
+            for _, craft in ipairs(crafts) do
+                if craft.name:lower():find(wanted, 1, true) and (not match or (craft.rank or 0) > (match.rank or 0)) then
+                    match = craft
+                end
+            end
+        end
+        if #crafts > 0 and (not wanted or wanted == "" or match) then
+            table.sort(crafts, function(a, b)
+                if (a == match) ~= (b == match) then
+                    return a == match
+                end
+                return (a.rank or 0) > (b.rank or 0)
+            end)
+            rows[#rows + 1] = { first = entry.first, relative = entry.relative, crafts = crafts, best = crafts[1].rank or 0 }
+        end
+    end
+    table.sort(rows, function(a, b)
+        if a.best ~= b.best then
+            return a.best > b.best
+        end
+        return a.first < b.first
+    end)
+    return rows
+end
+
 -- Cousins online within a few levels of you, to play with: the ones in your zone first, then the ones
 -- on most of your quests. { first, relative, same, here } each.
 function Share.Buddies()

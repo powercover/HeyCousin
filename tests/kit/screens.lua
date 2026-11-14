@@ -143,11 +143,22 @@ local function Together(skin, key)
     -- (your own professions, as the game would give them)
     Mock.professions = { { name = "Leatherworking", rank = 112, line = 165 }, { name = "Skinning", rank = 140, line = 393 } }
     local relatives = HC.TestMode.House().relatives
-    local crafts = { Mira = { "Tailoring", 150 }, Thane = { "Blacksmithing", 120 }, Lia = { "Alchemy", 95 },
-        Isla = { "Tailoring", 60 } }
-    for first, craft in pairs(crafts) do
+    -- (many professions each: primary ones, and cooking, first aid and fishing)
+    local crafts = {
+        Mira = { { "Tailoring", 150 }, { "Enchanting", 135 }, { "Cooking", 90 }, { "First Aid", 150 } },
+        Thane = { { "Blacksmithing", 120 }, { "Mining", 145 }, { "Fishing", 75 } },
+        Lia = { { "Alchemy", 95 }, { "Herbalism", 110 }, { "First Aid", 225 }, { "Cooking", 160 }, { "Fishing", 120 } },
+        Isla = { { "Tailoring", 60 }, { "Skinning", 40 } },
+        Fenn = { { "Leatherworking", 175 }, { "Skinning", 180 }, { "Cooking", 55 } },
+        Odo = { { "Engineering", 200 }, { "Mining", 205 }, { "First Aid", 150 }, { "Fishing", 150 } },
+    }
+    for first, list in pairs(crafts) do
         if relatives[first] then
-            relatives[first].crafts = { { line = 1, name = craft[1], rank = craft[2] } }
+            local shared = {}
+            for index, craft in ipairs(list) do
+                shared[index] = { line = index, name = craft[1], rank = craft[2] }
+            end
+            relatives[first].crafts = shared
         end
     end
     HC.Help.Heard("H", "1429:300:200:Elite boar by the mill, need one more", { first = "Thane", full = "Thane Ashbrook" })

@@ -469,6 +469,8 @@ HC.Locale.Register("zhCN", {
     ["%s isn't one of your other characters."] = "%s 不是你的其他角色。",
     ["take a cousin off your list"] = "把表亲从列表中移除",
     ["%s isn't in your family."] = "%s 不在你的家族中。",
+    ["Find a profession"] = "查找专业",
+    ["No cousin with the addon has %s."] = "装了插件的本家都没有%s。",
     ["Tank"] = "坦克",
     ["Healer"] = "治疗",
     ["Damage"] = "伤害输出",

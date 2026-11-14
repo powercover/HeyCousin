@@ -145,6 +145,18 @@ local function Page(x, top, bottom, spec)
             end
         end
         above = page.box
+    elseif spec.filter then
+        -- a box that narrows the list as you type, with no button
+        page.box = Theme.EditBox(page, 200, spec.filter(), "Search", 40)
+        page.box:SetPoint("TOPLEFT", above, "BOTTOMLEFT", 0, -8)
+        page.box:SetPoint("RIGHT", page, "RIGHT", 0, 0)
+        page.box.onChange = function()
+            Together.Paint()
+        end
+        page.box.edit:SetScript("OnEnterPressed", Utils.Protect("together filter", function(self)
+            self:ClearFocus()
+        end))
+        above = page.box
     end
     if spec.status then
         page.status = Theme.Text(page, "Small", C.text3)
@@ -270,6 +282,7 @@ local ITEMS = {
 
 local CRAFTS = {
     note = function() return L["What your cousins with the addon can make. Whisper one to ask."] end,
+    filter = function() return L["Find a profession"] end,
     status = true,
     paint = function(page, keep)
         -- yours first: what cousins see of you, or why they don't
@@ -284,11 +297,20 @@ local CRAFTS = {
         else
             page.status:SetText(string.format(L["Yours, shared with cousins: %s"], table.concat(mine, ", ")))
         end
+        -- one row a cousin, all their professions on it, the most skilled first; what you look for first
+        local wanted = Utils.Trim(page.box.edit:GetText() or ""):lower()
         local items = {}
-        for _, entry in ipairs(HC.Share.Crafters()) do
-            items[#items + 1] = Row(entry.first, entry.relative, { line = entry.craft.name .. "  " .. entry.craft.rank })
+        for _, entry in ipairs(HC.Share.CraftsByCousin(wanted)) do
+            local parts = {}
+            for _, craft in ipairs(entry.crafts) do
+                parts[#parts + 1] = craft.name .. " " .. craft.rank
+            end
+            -- (a long line is cut on the row: all of them on the mouse, one a line)
+            items[#items + 1] = Row(entry.first, entry.relative, { line = table.concat(parts, Theme.Sep()),
+                tip = { entry.first, table.concat(parts, "\n") } })
         end
-        Show(page, items, L["No cousin has shared their professions yet. Cousins with the addon share theirs."], keep)
+        Show(page, items, wanted ~= "" and string.format(L["No cousin with the addon has %s."], page.box.edit:GetText())
+            or L["No cousin has shared their professions yet. Cousins with the addon share theirs."], keep)
     end,
 }
 

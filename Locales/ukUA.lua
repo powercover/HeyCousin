@@ -471,6 +471,8 @@ HC.Locale.Register("ukUA", {
     ["%s isn't one of your other characters."] = "%s — не твій інший персонаж.",
     ["take a cousin off your list"] = "прибрати кузена зі списку",
     ["%s isn't in your family."] = "%s немає у твоїй родині.",
+    ["Find a profession"] = "Знайти професію",
+    ["No cousin with the addon has %s."] = "Ні в кого з кузенів з аддоном немає: %s.",
     ["Tank"] = "Танк",
     ["Healer"] = "Цілитель",
     ["Damage"] = "Боєць",

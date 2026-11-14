@@ -2857,8 +2857,21 @@ Settle()
 local window = _G.HeyCousinWindow
 check(ButtonWith(window, "Together") ~= nil and ButtonWith(window, "Crafters") ~= nil, "the Together tab, with its pages")
 ButtonWith(window, "Crafters"):Click()
-check(Says(window, "Alchemy  120"), "Crafters: who makes what")
+check(Says(window, "Alchemy 120"), "Crafters: who makes what")
 check(Says(window, "Yours, shared with cousins: Tailoring 150, Mining 90"), "and yours, shared")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:P:197,40,Tailoring;185,150,Cooking;129,120,First Aid;356,60,Fishing", "WHISPER", "Lia Ashbrook")
+Settle()
+HC.Together.Paint()
+check(Says(window, "Cooking 150") and Says(window, "Fishing 60"), "a cousin with many professions: one row, all of them")
+local craftBox = All(window, function(f) return f.kind == "EditBox" and f:IsVisible() end)[1]
+craftBox.text = "tail"
+Mock.Run(craftBox, "OnTextChanged", true)
+check(Says(window, "Tailoring 40") and not Says(window, "Alchemy 120"), "a filter keeps only who has it, that one first")
+craftBox.text = "jewel"
+Mock.Run(craftBox, "OnTextChanged", true)
+check(Says(window, "No cousin with the addon has jewel"), "nobody: it says so")
+craftBox.text = ""
+Mock.Run(craftBox, "OnTextChanged", true)
 HeyCousinDB.shareCrafts = false
 HC.Together.Paint()
 check(Says(window, "Not shared"), "or not, when it's off")

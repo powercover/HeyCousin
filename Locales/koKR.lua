@@ -471,6 +471,8 @@ HC.Locale.Register("koKR", {
     ["%s isn't one of your other characters."] = "%s: 내 다른 캐릭터가 아니에요.",
     ["take a cousin off your list"] = "사촌을 목록에서 빼기",
     ["%s isn't in your family."] = "%s: 내 가족에 없어요.",
+    ["Find a profession"] = "전문 기술 찾기",
+    ["No cousin with the addon has %s."] = "애드온을 쓰는 사촌 중 %s 기술이 있는 사람이 없어요.",
     ["Tank"] = "방어 전담",
     ["Healer"] = "치유 전담",
     ["Damage"] = "공격 전담",

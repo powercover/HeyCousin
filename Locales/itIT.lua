@@ -471,6 +471,8 @@ HC.Locale.Register("itIT", {
     ["%s isn't one of your other characters."] = "%s non è uno dei tuoi altri personaggi.",
     ["take a cousin off your list"] = "togli un cugino dalla lista",
     ["%s isn't in your family."] = "%s non è nella tua famiglia.",
+    ["Find a profession"] = "Cerca una professione",
+    ["No cousin with the addon has %s."] = "Nessun cugino con l'addon ha %s.",
     ["Tank"] = "Difensore",
     ["Healer"] = "Guaritore",
     ["Damage"] = "Assaltatore",

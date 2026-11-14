@@ -65,13 +65,19 @@ function Screens.family(skin)
     return { frames = { HeyCousinWindow } }
 end
 
--- The family list with spec icons by the level: the addon's own icon stands in for the game's spec
--- icons, which only the game can draw
-function Screens.familyspecs(skin)
+-- The family list with a role badge by each level
+function Screens.familyroles(skin)
     local HC = Boot(skin)
-    local stand = "Interface\\AddOns\\HeyCousin\\Media\\Icon"
-    for _, relative in pairs(HC.TestMode.House().relatives) do
-        relative.spec = { icon = stand, name = "Spec" }
+    local roles = { "T", "H", "D", "D", "H", "D", "T", "D", "H", "D", "D", "T", "H" }
+    local index = 0
+    local names = {}
+    for first in pairs(HC.TestMode.House().relatives) do
+        names[#names + 1] = first
+    end
+    table.sort(names)
+    for _, first in ipairs(names) do
+        index = index + 1
+        HC.TestMode.House().relatives[first].role = roles[(index - 1) % #roles + 1]
     end
     HC.Window.Show("family")
     HeyCousinWindow.badge:Hide()

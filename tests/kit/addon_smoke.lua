@@ -2826,16 +2826,19 @@ end
 -- after your hello: your professions and quests, to each cousin
 check(SentTo("Kit Ashbrook", "^6:P:197,150,Tailoring;186,90,Mining$"), "your professions go after your hello")
 check(SentTo("Lia Ashbrook", "^6:U:101,102$"), "and the numbers of your quests")
-check(SentTo("Kit Ashbrook", "^6:S:$"), "no spec from the game: an empty spec line")
-Mock.spec = { name = "Arcane", icon = 135932 }
+check(SentTo("Kit Ashbrook", "^6:S:$"), "no role known: an empty role line")
+Mock.spec = { name = "Arcane", icon = 135932, role = "DAMAGER" }
 HC.Share.Changed()
-check(SentTo("Kit Ashbrook", "^6:S:135932:Arcane$"), "your spec: its icon and name")
-Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:S:132222:Frost|cff", "WHISPER", "Kit Ashbrook")
-Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:S:Interface\\Icons\\Spell_Holy:Holy", "WHISPER", "Lia Ashbrook")
+check(SentTo("Kit Ashbrook", "^6:S:D$"), "your spec's role: damage")
+Mock.picked = "HEALER"
+HC.Share.Changed()
+check(SentTo("Kit Ashbrook", "^6:S:H$"), "the role you picked for the group finder comes first")
+Mock.picked, Mock.spec = nil, nil
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:S:T", "WHISPER", "Kit Ashbrook")
+Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:S:X|cff", "WHISPER", "Lia Ashbrook")
 Settle()
-check(HC.Kin.House().relatives.Kit.spec.icon == 132222 and HC.Kin.House().relatives.Kit.spec.name == "Frostcff",
-    "a cousin's spec is kept, without codes")
-check(HC.Kin.House().relatives.Lia.spec.icon == "Interface\\Icons\\Spell_Holy", "an icon by its path too")
+check(HC.Kin.House().relatives.Kit.role == "T", "a cousin's role is kept")
+check(HC.Kin.House().relatives.Lia.role == nil, "anything else: no role")
 -- theirs come back
 Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:P:171,120,Alchemy", "WHISPER", "Kit Ashbrook")
 Mock.Fire("CHAT_MSG_ADDON", "HeyCousin", "6:U:102,555", "WHISPER", "Kit Ashbrook")

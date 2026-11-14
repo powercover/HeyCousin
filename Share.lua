@@ -48,32 +48,40 @@ function Share.MyCrafts()
     return list
 end
 
--- Your spec: { icon, name }, from the game's specs, or else from the talent tree you put the most
--- points in (older clients have trees, not specs). Nothing when the game gives neither.
-function Share.MySpec()
+-- The roles, as the game names them, and for clients with talent trees and no specs, each class's
+-- trees in order (Feral counts as a tank: a feral druid in a group usually is one).
+local ROLES = { TANK = "T", HEALER = "H", DAMAGER = "D" }
+local TREES = {
+    WARRIOR = { "D", "D", "T" }, PALADIN = { "H", "T", "D" }, PRIEST = { "H", "H", "D" }, SHAMAN = { "D", "D", "H" },
+    DRUID = { "D", "T", "H" }, HUNTER = { "D", "D", "D" }, ROGUE = { "D", "D", "D" }, MAGE = { "D", "D", "D" },
+    WARLOCK = { "D", "D", "D" },
+}
+
+-- Your role: "T" (tank), "H" (healer) or "D" (damage). The one you picked for the group finder, else
+-- your spec's, else the talent tree you put the most points in. Nothing when the game tells none.
+function Share.MyRole()
+    local picked = ROLES[Utils.Call(UnitGroupRolesAssigned, "player") or ""]
+    if picked then
+        return picked
+    end
     local specs = C_SpecializationInfo
-    local which = (specs and specs.GetSpecialization) or GetSpecialization
-    local index = Utils.Call(which)
+    local index = Utils.Call((specs and specs.GetSpecialization) or GetSpecialization)
     if Utils.IsUsableNumber(index) and index > 0 then
-        local info = (specs and specs.GetSpecializationInfo) or GetSpecializationInfo
-        local _, name, _, icon = Utils.Call(info, index)
-        if Utils.IsUsableString(name) and icon then
-            return { icon = icon, name = name }
+        local role = ROLES[Utils.Call((specs and specs.GetSpecializationRole) or GetSpecializationRole, index) or ""]
+        if role then
+            return role
         end
     end
+    local _, class = Utils.Call(UnitClass, "player")
+    local trees = TREES[class or ""]
     local tabs = Utils.Call(GetNumTalentTabs)
     local best, most = nil, 0
-    for tab = 1, Utils.IsUsableNumber(tabs) and math.min(tabs, 5) or 0 do
-        local a, b, c, d, e = Utils.Call(GetTalentTabInfo, tab)
+    for tab = 1, trees and Utils.IsUsableNumber(tabs) and math.min(tabs, 3) or 0 do
+        local a, b, c, _, e = Utils.Call(GetTalentTabInfo, tab)
         -- (name, icon, points in the oldest clients; id, name, description, icon, points later)
-        local name, icon, points
-        if Utils.IsUsableNumber(a) and Utils.IsUsableString(b) then
-            name, icon, points = b, d, e
-        else
-            name, icon, points = a, b, c
-        end
-        if Utils.IsUsableString(name) and icon and Utils.IsUsableNumber(points) and points > most then
-            best, most = { icon = icon, name = name }, points
+        local points = (Utils.IsUsableNumber(a) and Utils.IsUsableString(b)) and e or c
+        if Utils.IsUsableNumber(points) and points > most then
+            best, most = trees[tab], points
         end
     end
     return best
@@ -108,14 +116,8 @@ local function CraftsLine()
     return "6:P:" .. table.concat(parts, ";")
 end
 
--- (an icon goes as its number, or as a file path with only letters, digits and slashes)
-local function SpecLine()
-    local spec = Share.MySpec()
-    if not spec then
-        return "6:S:"
-    end
-    local icon = tostring(spec.icon):gsub("[^%w_\\/]", "")
-    return "6:S:" .. icon .. ":" .. HC.Guild.Plain(spec.name, 24):gsub(":", "")
+local function RoleLine()
+    return "6:S:" .. (Share.MyRole() or "")
 end
 
 local function QuestsLine()
@@ -129,7 +131,7 @@ local function SendChanged()
     if HC.TestMode.active or not HC.Family.Messages() then
         return
     end
-    for _, line in ipairs({ CraftsLine(), QuestsLine(), SpecLine() }) do
+    for _, line in ipairs({ CraftsLine(), QuestsLine(), RoleLine() }) do
         local kind = line:sub(3, 3)
         if sent[kind] ~= line and HC.Family.Send(line) then
             sent[kind] = line
@@ -149,7 +151,7 @@ HC.Family.OnHello(function(target)
     if HC.TestMode.active then
         return
     end
-    for _, line in ipairs({ CraftsLine(), QuestsLine(), SpecLine() }) do
+    for _, line in ipairs({ CraftsLine(), QuestsLine(), RoleLine() }) do
         if target then
             HC.Family.Whisper(line, target)
         elseif HC.Family.Send(line) then
@@ -199,11 +201,10 @@ function Share.Heard(text, sender)
             Kin.Changed()
         end
     elseif kind == "S" then
+        -- their role: T, H or D, or nothing known
         local relative = Learn(member)
-        local icon, name = rest:match("^([%w_\\/]+):(.+)$")
         if relative then
-            name = name and HC.Words.Clean(HC.Guild.Plain(name, 24))
-            relative.spec = icon and name and name ~= "" and { icon = tonumber(icon) or icon, name = name } or nil
+            relative.role = rest:match("^([THD])$")
             Kin.Changed()
         end
     elseif kind == "Q" or kind == "R" then
@@ -284,9 +285,10 @@ end))
 frame:RegisterEvent("QUEST_ACCEPTED")
 frame:RegisterEvent("QUEST_REMOVED")
 frame:RegisterEvent("SKILL_LINES_CHANGED")
--- (a spec or talent change: whichever the client has)
+-- (a role, spec or talent change: whichever the client has)
 pcall(frame.RegisterEvent, frame, "PLAYER_SPECIALIZATION_CHANGED")
 pcall(frame.RegisterEvent, frame, "CHARACTER_POINTS_CHANGED")
+pcall(frame.RegisterEvent, frame, "PLAYER_ROLES_ASSIGNED")
 
 -- (for the tests: the lines it would send)
-Share.CraftsLine, Share.QuestsLine, Share.SpecLine = CraftsLine, QuestsLine, SpecLine
+Share.CraftsLine, Share.QuestsLine, Share.RoleLine = CraftsLine, QuestsLine, RoleLine

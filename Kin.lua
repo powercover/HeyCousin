@@ -520,7 +520,7 @@ function Kin.NoteMe()
     house.mine[first] = {
         class = class, level = Utils.Call(UnitLevel, "player"), zone = Utils.Zone(), sex = Utils.Call(UnitSex, "player"),
         faction = MyFaction(), guid = Utils.Call(UnitGUID, "player"), lastSeen = time(),
-        spec = HC.Share and HC.Share.MySpec() or nil,
+        role = HC.Share and HC.Share.MyRole() or nil,
     }
     -- you may have been noted as a cousin, on another character or before this was here
     house.relatives[first] = nil

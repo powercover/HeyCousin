@@ -841,7 +841,7 @@ def main():
         if old.endswith(".png"):
             os.remove(os.path.join(out, old))
     pair("1-family.png", "family")
-    pair("1-family-specs.png", "familyspecs")
+    pair("1-family-roles.png", "familyroles")
     pair("1b-found.png", "found")
     pair("1c-found-page.png", "foundpage")
     pair("1d-recruit.png", "recruit")

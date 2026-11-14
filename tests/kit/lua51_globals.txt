@@ -71,6 +71,7 @@ GetRealmName
 GetRegionalRulesetName
 GetSpecialization
 GetSpecializationInfo
+GetSpecializationRole
 GetSubZoneText
 GetTalentTabInfo
 GetTime
@@ -123,6 +124,7 @@ UnitExists
 UnitFactionGroup
 UnitFullName
 UnitGUID
+UnitGroupRolesAssigned
 UnitInParty
 UnitInRaid
 UnitIsFriend

@@ -620,6 +620,10 @@ local function Globals()
     Mock.spec = nil
     function GetSpecialization() return Mock.spec and 1 or nil end
     function GetSpecializationInfo(index) if Mock.spec and index == 1 then return 62, Mock.spec.name, "", Mock.spec.icon end end
+    function GetSpecializationRole(index) if Mock.spec and index == 1 then return Mock.spec.role end end
+    -- the role you picked for the group finder: Mock.picked ("TANK", "HEALER", "DAMAGER" or nil: "NONE")
+    Mock.picked = nil
+    function UnitGroupRolesAssigned(unit) return unit == "player" and Mock.picked or "NONE" end
     -- your quest log: Mock.quests = { { id, title } }, under one header
     Mock.quests = {}
     C_QuestLog = {

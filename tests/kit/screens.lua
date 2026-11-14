@@ -140,6 +140,8 @@ end
 -- The Together tab: who crafts what, and a cousin's call for help
 local function Together(skin, key)
     local HC = Boot(skin)
+    -- (your own professions, as the game would give them)
+    Mock.professions = { { name = "Leatherworking", rank = 112, line = 165 }, { name = "Skinning", rank = 140, line = 393 } }
     local relatives = HC.TestMode.House().relatives
     local crafts = { Mira = { "Tailoring", 150 }, Thane = { "Blacksmithing", 120 }, Lia = { "Alchemy", 95 },
         Isla = { "Tailoring", 60 } }

@@ -30,45 +30,22 @@ name and summary on both sites by hand; the URL slug stays `hey-cousin`.
 
 ## Images
 
-Upload these to each project's gallery, then put each address in `description.md` in place of its
-placeholder. `python Listing/make_shots.py` draws them all again (run `python tests/kit/screens.py`
-first). The cards are 2560 x 1440, made from the addon's own frames, with a made-up family and places.
-They aren't game screenshots.
+Four pictures, one for each part of the addon, each several windows side by side (2026-11-14: the
+user found thirteen too many). `python Listing/make_shots.py --store` draws them again (run
+`python tests/kit/screens.py` first); without `--store` it draws the crest emblem and the logos too.
+They're made from the addon's own frames, with a made-up family: never game screenshots.
 
 | Placeholder | Image |
 | --- | --- |
 | `IMAGE_EMBLEM` | [emblem.gif](emblem.gif): the animated crest, a 5.8-second loop on a clear background (480 x 480) |
-| `IMAGE_FOUND` | [found.png](found.png): Find my family, clicked |
-| `IMAGE_PAGE` | [page.png](page.png): a cousin's page, with its buttons and meetings |
-| `IMAGE_CRESTS` | [crests.png](crests.png): some of the crests you can make |
-| `IMAGE_TREE` | [tree.png](tree.png): the Tree tab |
-| `IMAGE_LOOKS` | [looks.png](looks.png): the three looks side by side |
-| `IMAGE_MAP` | [map.png](map.png): the family map (a made-up map, drawn from the addon's own crests) |
-| `IMAGE_GROUPS` | [groups.png](groups.png): the Groups tab |
-| `IMAGE_HEY` | [hey.png](hey.png): the pop-up, with its "Hey cousin!" button |
-| `IMAGE_PLATES` | [nameplates.png](nameplates.png): the settings' sample nameplates, friend and black sheep |
-| `IMAGE_RACE` | [race.png](race.png): the family race |
-| `IMAGE_PORTRAIT` | [portrait.png](portrait.png): the family portrait (drawn again for 1.1.3: upload it again) |
-| `IMAGE_REUNION` | [reunion.png](reunion.png): a family reunion banner |
-| `IMAGE_ACHIEVEMENTS` | [achievements.png](achievements.png): the family achievements |
+| `IMAGE_FIND` | [find.png](find.png): the found list, a cousin's page, the pop-up and a reunion |
+| `IMAGE_TOGETHER` | [together.png](together.png): Help, Crafters and Groups |
+| `IMAGE_EVERYWHERE` | [everywhere.png](everywhere.png): the family map and the nameplate crests |
+| `IMAGE_HOUSE` | [house.png](house.png): the growing crest, achievements, the portrait and the guild tree |
 
-The gallery's own order, best first: found, map, hey, reunion, groups, nameplates, portrait, achievements, page,
-race, crests, looks, tree.
-
-### Gallery addresses
-
-As uploaded to each site: [description-curseforge.md](description-curseforge.md) and [description-wago.md](description-wago.md) are
-`description.md` with these in place of the placeholders, and a picture with no address yet left out. The
-addresses live in [build_descriptions.py](build_descriptions.py): change them there and run it. The table below
-is the first upload's.
-
-| Placeholder | CurseForge | Wago |
-| --- | --- | --- |
-| `IMAGE_FOUND` | https://media.forgecdn.net/attachments/2156/174/found-png.png | https://cdn.wago.io/gallery/HO2UjIkBq20Z4TB2bGA95Z8NBsl0raaFjRWZiMqi.png |
-| `IMAGE_PAGE` | https://media.forgecdn.net/attachments/2156/175/page-png.png | https://cdn.wago.io/gallery/LzjDreoTZii1dGhgdgtKZbmq9k0HoJQG9wHSsna7.png |
-| `IMAGE_CRESTS` | https://media.forgecdn.net/attachments/2156/176/crests-png.png | https://cdn.wago.io/gallery/HHHBUQ9XK1szpaVraUmtZo1jrvJGgFBfRJCSXArS.png |
-| `IMAGE_TREE` | https://media.forgecdn.net/attachments/2156/177/tree-png.png | https://cdn.wago.io/gallery/KmflmYpZWqHuVA7N3IkpoGIsCYfdcFMcWPVmNRcv.png |
-| `IMAGE_LOOKS` | https://media.forgecdn.net/attachments/2156/178/looks-png.png | https://cdn.wago.io/gallery/1wiWqHacqtD5SbhnZ36LuSg5db75LpdidglQ1f4G.png |
+The gallery's order: find, together, everywhere, house. Each site's addresses go in
+[build_descriptions.py](build_descriptions.py); run it, and paste [description-curseforge.md](description-curseforge.md)
+and [description-wago.md](description-wago.md). A picture with no address yet is left out.
 
 ### One picture to take in the game
 

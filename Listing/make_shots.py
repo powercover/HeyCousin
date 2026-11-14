@@ -219,81 +219,62 @@ def words(card, title, line, y, width):
     return y
 
 
-def window_card(name, sheet, title, line):
-    """Words on the left, a window on the right, as big as it stays sharp."""
+
+
+def collage(name, title, line, columns):
+    """Words across the top, and under them several windows side by side, one look each, at one scale
+    (so they keep the sizes they have in the game). Each column is a list of (sheet, look) stacked."""
     card = blank()
-    window = window_of(column(sheet, 1))
-    x = W - MARGIN - window.width
-    words(card, title, line, 400, x - MARGIN - 90)
-    place(card, window, x, (H - window.height) // 2)
+    bottom = words(card, title, line, 250, W - MARGIN * 2) + 40
+    gap = 44
+    cols = [[window_of(column(sheet, look)) for sheet, look in col] for col in columns]
+    widths = [max(win.width for win in col) for col in cols]
+    heights = [sum(win.height for win in col) + gap * (len(col) - 1) for col in cols]
+    room_w = W - MARGIN * 2 - gap * (len(cols) - 1)
+    room_h = H - bottom - 70
+    scale = min(1, room_w / sum(widths), room_h / max(heights))
+    x = MARGIN + (room_w - sum(widths) * scale) / 2
+    for col, width, height in zip(cols, widths, heights):
+        y = bottom + (room_h - height * scale) / 2
+        for win in col:
+            size = (int(win.width * scale), int(win.height * scale))
+            place(card, win, int(x + (width * scale - size[0]) / 2), int(y), size)
+            y += size[1] + gap * scale
+        x += width * scale + gap
     save(card, name, optimize=True)
 
 
-def looks_card():
-    card = blank()
-    draw = ImageDraw.Draw(card)
-    draw.text((MARGIN, 210), "THREE LOOKS, ONE FAMILY", font=font(PIXEL_FONT, 88), fill=(244, 232, 208))
-    size = (744, 893)
-    gap = (W - MARGIN * 2 - size[0] * 3) // 2
-    for slot, (index, label) in enumerate(((1, "PIXEL"), (0, "FOREVER"), (2, "SMOOTH"))):
-        x = MARGIN + slot * (size[0] + gap)
-        draw.text((x, 348), label, font=font(PIXEL_FONT, 40), fill=GOLD)
-        place(card, window_of(column("1-family.png", index)), x, 412, size)
-    save(card, "looks.png", optimize=True)
+def store_cards():
+    """The store page's four pictures, one for each part of the addon (Pixel, Forever and Smooth mixed,
+    to show the looks too)."""
+    collage("find.png", "FIND YOUR FAMILY",
+            "Everyone online with your surname, a page for every cousin, and a pop-up when you meet one.",
+            [[("1b-found.png", 1)], [("2-cousin.png", 0)], [("3b-hey.png", 2), ("3c-reunion.png", 1)]])
+    collage("together.png", "PLAY TOGETHER",
+            "Family chat and groups, calls for help, who has an item, who crafts what, and quest buddies.",
+            [[("1h-together-help.png", 1)], [("1g-together-crafts.png", 2)], [("1e-groups.png", 0)]])
+    collage("everywhere.png", "SEE YOUR FAMILY EVERYWHERE",
+            "Your cousins' crests on the world map, the minimap and nameplates.",
+            [[("12-family-map.png", 1)], [("5f-settings-plates.png", 2)]])
+    collage("house.png", "BUILD YOUR HOUSE",
+            "A crest that grows with family achievements, a portrait to share, and your guild as a family tree.",
+            [[("9b-grown.png", 1), ("2bd-achievements.png", 1)], [("2bc-portrait.png", 0)], [("2c-tree.png", 2)]])
 
 
-def map_card():
-    """The family map: wide, so it goes under the words."""
-    card = blank()
-    window = window_of(column("12-family-map.png", 1))
-    scale = min(1, 1500 / window.width, 980 / window.height)
-    size = (int(window.width * scale), int(window.height * scale))
-    words(card, "YOUR FAMILY ON THE MAP", "Cousins who share where they are, on the world map and the minimap. "
-          "Off until you turn it on. Never in a fight or a dungeon.", 400, W - MARGIN * 2 - size[0] - 90)
-    place(card, window, W - MARGIN - size[0], (H - size[1]) // 2, size)
-    save(card, "map.png", optimize=True)
 
 
-def hey_card():
-    """The pop-up, with its button: a short window, big."""
-    card = blank()
-    window = window_of(column("3b-hey.png", 1))
-    words(card, "HEY COUSIN!", "A pop-up when a cousin is near. One click and you wave and say it out loud, so everyone around sees it.",
-          330, W - MARGIN * 2)
-    width = W - MARGIN * 2
-    size = (width, int(window.height * width / window.width))
-    place(card, window, MARGIN, 640, size)
-    save(card, "hey.png", optimize=True)
+
+
 
 
 def main():
+    store_cards()
+    if "--store" in sys.argv:
+        return
     emblem()
     # for a logo, which CurseForge shows small: a lighter file, the same 5.8 seconds a loop
     emblem("emblem-small.gif", size=256, hold=12, flip=4, delay=90)
     logos()
-    window_card("found.png", "1b-found.png", "ONE CLICK FINDS YOUR FAMILY",
-                "Everyone online with your exact surname, with their level and zone. New cousins join your family as you find them.")
-    window_card("page.png", "2-cousin.png", "A PAGE FOR EVERY COUSIN",
-                "Whisper, invite or join their layer. Once you meet, it keeps every meeting: where, when and what they said.")
-    window_card("tree.png", "2c-tree.png", "YOUR GUILD AS A FAMILY",
-                "Each rank is a generation. A guild master can give each rank a family word and write a welcome line.")
-    window_card("crests.png", "9-crests.png", "MAKE YOUR OWN CREST",
-                "Shape, pattern, colors and a symbol, or roll the dice. It shows in cousins' chat lines, in tooltips and on the minimap.")
-    looks_card()
-    window_card("groups.png", "1e-groups.png", "FIND A GROUP IN THE FAMILY",
-                "Say what you're looking for. Cousins see it and click Join. That asks you, and the invite stays your click.")
-    window_card("race.png", "2bb-race.png", "THE FAMILY RACE",
-                "You and your cousins with the addon, by level. A line in chat tells you when one passes you.")
-    window_card("portrait.png", "2bc-portrait.png", "A FAMILY PORTRAIT",
-                "Your house on one card: crest, motto, who's online, the highest level and the cousins you meet most. One click takes the picture.")
-    window_card("reunion.png", "3c-reunion.png", "FAMILY REUNION",
-                "Two or more of your house in one group get a banner with your crests side by side. Five or more, a family raid.")
-    window_card("achievements.png", "2bd-achievements.png", "FAMILY ACHIEVEMENTS",
-                "Your first cousin, the black sheep, the eldest, a family raid and more. Quiet on purpose: one line in chat, no pop-ups.")
-    window_card("nameplates.png", "5f-settings-plates.png", "SPOT A COUSIN IN A CROWD",
-                "A red crest for a black sheep. Drag it in the settings: while that page is open, the real plates around you show it too.")
-    map_card()
-    hey_card()
 
 
 if __name__ == "__main__":

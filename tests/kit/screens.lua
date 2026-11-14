@@ -133,6 +133,8 @@ local function Together(skin, key)
     HC.Help.Heard("H", ":::Stuck on Hogger, anyone?", { first = "Lia", full = "Lia Ashbrook" })
     HC.Window.Show("groups")
     HC.Together.Open(key)
+    -- (the calls repaint the window a moment later: the badge goes after that)
+    Mock.Advance(1)
     HeyCousinWindow.badge:Hide()
     return { frames = { HeyCousinWindow } }
 end

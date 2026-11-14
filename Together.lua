@@ -270,7 +270,20 @@ local ITEMS = {
 
 local CRAFTS = {
     note = function() return L["What your cousins with the addon can make. Whisper one to ask."] end,
+    status = true,
     paint = function(page, keep)
+        -- yours first: what cousins see of you, or why they don't
+        local mine = {}
+        for _, craft in ipairs(HC.Share.MyCrafts()) do
+            mine[#mine + 1] = craft.name .. " " .. craft.rank
+        end
+        if #mine == 0 then
+            page.status:SetText(L["The game gives the addon no professions of yours yet."])
+        elseif not HC.Share.CraftsOn() then
+            page.status:SetText(string.format(L["Yours: %s. Not shared: it's off in the settings."], table.concat(mine, ", ")))
+        else
+            page.status:SetText(string.format(L["Yours, shared with cousins: %s"], table.concat(mine, ", ")))
+        end
         local items = {}
         for _, entry in ipairs(HC.Share.Crafters()) do
             items[#items + 1] = Row(entry.first, entry.relative, { line = entry.craft.name .. "  " .. entry.craft.rank })

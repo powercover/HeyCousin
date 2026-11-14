@@ -709,6 +709,31 @@ function Theme.Tabs(parent, items, onSelect, width, height)
         end))
         tabs.buttons[index] = button
     end
+    -- each as wide as its label needs, and the room left shared out, so a long word (TOGETHER in the
+    -- pixel font, a long translation) is never cut; again once shown, when the game knows its fonts
+    local function Fit()
+        local needs, total = {}, gap * (#items - 1)
+        for index, button in ipairs(tabs.buttons) do
+            local text = button.label and button.label:GetStringWidth() or 0
+            if not text or text <= 0 then
+                return
+            end
+            needs[index] = math.ceil(text) + 18
+            total = total + needs[index]
+        end
+        local extra = math.max(0, ((width or 240) - total) / #items)
+        local x = 0
+        for index, button in ipairs(tabs.buttons) do
+            local wide = math.floor(needs[index] + extra)
+            button:SetWidth(wide)
+            button:ClearAllPoints()
+            button:SetPoint("TOPLEFT", x, 0)
+            x = x + wide + gap
+        end
+        tabs:SetWidth(x - gap)
+    end
+    Fit()
+    tabs:HookScript("OnShow", Fit)
     function tabs:Select(key)
         for _, button in ipairs(self.buttons) do
             Theme.SetKind(button, button.key == key and "primary" or "secondary")

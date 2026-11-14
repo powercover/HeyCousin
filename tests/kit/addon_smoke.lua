@@ -2845,6 +2845,11 @@ local window = _G.HeyCousinWindow
 check(ButtonWith(window, "Together") ~= nil and ButtonWith(window, "Crafters") ~= nil, "the Together tab, with its pages")
 ButtonWith(window, "Crafters"):Click()
 check(Says(window, "Alchemy  120"), "Crafters: who makes what")
+check(Says(window, "Yours, shared with cousins: Tailoring 150, Mining 90"), "and yours, shared")
+HeyCousinDB.shareCrafts = false
+HC.Together.Paint()
+check(Says(window, "Not shared"), "or not, when it's off")
+HeyCousinDB.shareCrafts = nil
 ButtonWith(window, "Quest buddies"):Click()
 check(Says(window, "1 same quests") and ButtonWith(window, "Invite") ~= nil, "quest buddies: near your level, with the same quests")
 -- who has it: one count, asked once, answered once

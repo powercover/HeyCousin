@@ -1,4 +1,11 @@
-# Hey Cousin! 1.3.0
+# Hey Cousin! 1.3.1
+
+- **The "Hey cousin!" button can whisper:** in Settings, Alerts, choose "Say it out loud" (as before) or
+  "Whisper them", and write your own hello, with `{name}` for their name. Empty, it's the usual one.
+  Whispering, a cousin's page has the button while they're online, and you wave only when they're near.
+  Thanks for the idea in the comments!
+
+## 1.3.0
 
 - **Role badges** in your family list, by each level: a blue shield for a tank, a green cross for a healer, a
   red sword for damage. Yours is the role you picked for the group finder, else your spec's, else your main

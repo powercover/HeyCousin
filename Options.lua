@@ -41,10 +41,7 @@ local bridge
 -- What's new in this version: the version number's tooltip.
 local function News()
     return {
-        L["Role badges in your family list: tank, healer or damage."],
-        L["Notes on cousins: a private note on their page, shown in their tooltip. Only for you."],
-        L["Crafters: one row a cousin with all their professions, a box to find one, and yours on top."],
-        L["Tabs fit their words in every language and look."],
+        string.format(L["The %s button can whisper them, with your own hello: Settings, %s."], L["Hey cousin!"], L["Alerts"]),
     }
 end
 

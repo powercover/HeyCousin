@@ -212,7 +212,7 @@ local function Build()
     toast.hey:SetPoint("BOTTOMRIGHT", -12, 12)
     Theme.Fit(toast.hey, 10, 90)
     toast.hey:SetFrameLevel(click:GetFrameLevel() + 2)
-    Theme.Tip(toast.hey, L["Hey cousin!"], L["You wave and say hello, out loud."])
+    Theme.Tip(toast.hey, L["Hey cousin!"], HC.Family.HeyTip)
     Theme.OnClick(toast.hey, "hey cousin", function()
         if toast.item then
             HC.Family.Hey(toast.item.first, toast.item.unit)

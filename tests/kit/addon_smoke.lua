@@ -1163,6 +1163,20 @@ check(#Mock.said == 3 and Mock.emotes[3].unit == "none", "and at nobody once the
 Mock.Advance(200)
 HC.Window.Refresh(true)
 check(not heyPage.hey:IsVisible(), "gone from near you: no button")
+-- whispered instead, with your own words: to them by their full name, while they're online
+HeyCousinDB.heyWhisper, HeyCousinDB.heyWords = true, "  Hi {name}, {NAME} of the |cffff0000family|r!  "
+HC.Kin.Seen({ first = "Fern", online = true })
+HC.Window.Refresh(true)
+check(heyPage.hey:IsVisible(), "whispering: the button while they're online, near or not")
+heyPage.hey:Click()
+local whispered = Mock.said[4]
+check(whispered and whispered.kind == "WHISPER" and whispered.target == "Fern Ashbrook"
+    and whispered.text == "Hi Fern, Fern of the cffff0000familyr!", "a whisper with your words, their name in: "
+    .. tostring(whispered and whispered.text) .. " to " .. tostring(whispered and whispered.target))
+check(#Mock.emotes == 3, "and no wave at nobody")
+HeyCousinDB.heyWords = "   "
+check(HC.Family.HeyWords("Fern") == "Hey cousin Fern!", "empty words: the usual hello")
+HeyCousinDB.heyWhisper, HeyCousinDB.heyWords = nil, nil
 _G.HeyCousinWindow:Hide()
 HC.Alert.Dismiss()
 Settle()
@@ -2304,6 +2318,15 @@ check(HeyCousinDB.popupEvery == true, "a row sets its setting")
 Row(options, "Every time you meet"):Click()
 ButtonWith(options, "Bell"):Click()
 check(HeyCousinDB.sound == "bell" and ButtonWith(options, "Bell").kind == "primary" and #Mock.sounds > 0, "a sound chip picks and plays it")
+ButtonWith(options, "Whisper them"):Click()
+check(HeyCousinDB.heyWhisper == true and ButtonWith(options, "Whisper them").kind == "primary"
+    and ButtonWith(options, "Say it out loud").kind == "secondary", "the hello chip: a whisper")
+local helloBox = All(options, function(f) return f.kind == "EditBox" and f:IsVisible() end)[1]
+helloBox:SetText(" Hi {name}! ")
+check(HeyCousinDB.heyWords == "Hi {name}!", "your own hello is kept as you type")
+helloBox:SetText("")
+ButtonWith(options, "Say it out loud"):Click()
+check(HeyCousinDB.heyWhisper == nil and HeyCousinDB.heyWords == nil, "and back to the usual")
 ButtonWith(options, "Family"):Click()
 check(ButtonWith(options, "Family").kind == "primary" and ButtonWith(options, "Alerts").kind == "secondary", "the chosen page is lit")
 check(Crest(options, 64):IsVisible() and Row(options, "Cousins coming online") and not Row(options, "Every time you meet"),

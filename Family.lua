@@ -283,9 +283,37 @@ function Family.Tell(text)
     end
 end
 
--- "Hey cousin Mira!": you wave and say it out loud, for everyone around. Only ever from a click of
--- yours (`unit`: them, when the game can see them; you wave at nobody otherwise).
-function Family.Hey(first, unit)
+Family.HEY_MAX = 120
+
+-- Whether the "Hey cousin!" button whispers them instead of saying it out loud (a setting).
+function Family.HeyWhispers()
+    return HeyCousinDB.heyWhisper == true
+end
+
+-- Your hello to `first`: your own words from the settings, with {name} as their name, or else
+-- "Hey cousin Mira!". (No "|": the game won't send a line with a broken code in it.)
+function Family.HeyWords(first)
+    local own = type(HeyCousinDB.heyWords) == "string" and Utils.Trim(HeyCousinDB.heyWords) or ""
+    local words
+    if own == "" then
+        words = string.format(L["Hey cousin %s!"], first)
+    else
+        words = own:gsub("{[Nn][Aa][Mm][Ee]}", function()
+            return first
+        end)
+    end
+    return (words:gsub("|", ""):sub(1, 255))
+end
+
+-- The "Hey cousin!" button's tooltip line.
+function Family.HeyTip()
+    return Family.HeyWhispers() and L["You wave and whisper them hello."] or L["You wave and say hello, out loud."]
+end
+
+-- "Hey cousin Mira!": you wave and say it out loud, for everyone around, or whisper it to them (a
+-- setting). Only ever from a click of yours (`unit`: them, when the game can see them; out loud you
+-- wave at nobody otherwise, and a whisper waves only at them).
+function Family.Hey(first, unit, surname)
     if HC.TestMode.active then
         Utils.Print(L["Test mode: made-up cousins can't hear you."])
         return
@@ -295,8 +323,16 @@ function Family.Hey(first, unit)
         return
     end
     heyAt = now
-    Utils.Call(DoEmote, "WAVE", unit or "none")
-    Utils.Call((C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage, string.format(L["Hey cousin %s!"], first), "SAY")
+    local whisper = Family.HeyWhispers()
+    if unit or not whisper then
+        Utils.Call(DoEmote, "WAVE", unit or "none")
+    end
+    local send = (C_ChatInfo and C_ChatInfo.SendChatMessage) or SendChatMessage
+    if whisper then
+        Utils.Call(send, Family.HeyWords(first), "WHISPER", nil, Names.Full(first, surname or select(2, Names.Me())))
+    else
+        Utils.Call(send, Family.HeyWords(first), "SAY")
+    end
     HC.Badges.Earn("hey")
 end
 

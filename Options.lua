@@ -172,6 +172,23 @@ local function SoundChips(parent)
     return chips
 end
 
+-- How the "Hey cousin!" button says hello, as chips: out loud, or a whisper.
+local function HeyChips(parent)
+    local ways = { { false, L["Say it out loud"] }, { true, L["Whisper them"] } }
+    local chips = {}
+    for _, spec in ipairs(ways) do
+        chips[#chips + 1] = Theme.Chip(parent, spec[2], function()
+            return HC.Family.HeyWhispers() == spec[1]
+        end, function()
+            HeyCousinDB.heyWhisper = spec[1] or nil
+            for _, other in ipairs(chips) do
+                other:Refresh()
+            end
+        end)
+    end
+    return chips
+end
+
 -- The chats to learn from, as chips.
 local function ChatChips(parent)
     local chats = { { "say", L["Say and yell"] }, { "channel", L["Trade and general"] }, { "guild", L["Guild"] },
@@ -200,6 +217,24 @@ local function BuildAlerts()
     Toggle(p, L["Achievements in chat"], L["One quiet line when you earn one. No pop-ups, no sounds."], "badgeLines", true)
     Heading(p, L["Sound"])
     Chips(p, SoundChips(p))
+    Heading(p, L["Saying hello"])
+    Chips(p, HeyChips(p))
+    -- your own hello: saved as you type; empty, the usual one
+    local box = Theme.EditBox(p, PAGE_W, string.format(L["Hey cousin %s!"], "{name}"), nil, HC.Family.HEY_MAX)
+    box:SetPoint("TOPLEFT", 0, p.y)
+    box.onChange = function(value)
+        local words = Utils.Trim(value)
+        HeyCousinDB.heyWords = words ~= "" and words or nil
+    end
+    p.parts[#p.parts + 1] = {
+        Refresh = function()
+            if not box.edit:HasFocus() then
+                box.edit:SetText(HeyCousinDB.heyWords or "")
+            end
+        end,
+    }
+    p.y = p.y - 38
+    Note(p, L["Your own hello: {name} is their name. Leave it empty for the usual one."])
     return p
 end
 

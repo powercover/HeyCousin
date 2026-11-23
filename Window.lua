@@ -594,14 +594,14 @@ local function BuildPage()
             Window.Refresh(true)
         end
     end)
-    -- wave and say hello, while they're near enough to hear it
+    -- wave and say hello, while they're near enough to hear it (or whisper it, while they're online)
     page.hey = Theme.Button(page, L["Hey cousin!"], "secondary", 100, 26)
     page.hey:SetPoint("TOPRIGHT", 0, -138)
     Theme.Fit(page.hey, 10, 90)
-    Theme.Tip(page.hey, L["Hey cousin!"], L["You wave and say hello, out loud."])
+    Theme.Tip(page.hey, L["Hey cousin!"], HC.Family.HeyTip)
     Theme.OnClick(page.hey, "hey cousin", function()
         if page.first then
-            HC.Family.Hey(page.first, page.heyUnit)
+            HC.Family.Hey(page.first, page.heyUnit, page.surname)
         end
     end)
     -- every meeting, the newest first; a click shows it in full below
@@ -710,7 +710,7 @@ local function PaintPage(keep)
     end
     page.model:SetShown(live == true)
     page.heyUnit = live and unit or nil
-    page.hey:SetShown(Kin.IsNear(opened) and not sheep)
+    page.hey:SetShown((Kin.IsNear(opened) or (HC.Family.HeyWhispers() and Kin.IsOnline(opened))) and not sheep)
     page.crest:SetShown(not live)
     if not live then
         page.crest:SetCrest(Kin.CrestOf(opened), surname, sheep)
